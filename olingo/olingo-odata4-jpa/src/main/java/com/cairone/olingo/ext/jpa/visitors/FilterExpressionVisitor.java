@@ -1,6 +1,9 @@
 package com.cairone.olingo.ext.jpa.visitors;
 
 import java.lang.reflect.Field;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -28,11 +31,13 @@ import com.cairone.olingo.ext.jpa.annotations.ODataJPAProperty;
 import com.cairone.olingo.ext.jpa.converters.BinaryOperatorConverter;
 import com.cairone.olingo.ext.jpa.enums.BinaryOperatorGroup;
 import com.google.common.base.CharMatcher;
-import com.google.common.primitives.Ints;
+import com.google.common.primitives.Longs;
 
 public class FilterExpressionVisitor implements ExpressionVisitor<Object> {
 	
 	private static Logger logger = LoggerFactory.getLogger(FilterExpressionVisitor.class);
+	private static String REGEX_DATE_FORMAT = "\\d{4}-\\d{2}-\\d{2}";
+	private static String PATTERN_DATE_FORMAT = "\\d{4}-\\d{2}-\\d{2}";
 	
 	private Class<?> clazz;
 	private Map<String, Object> queryParams = null;
@@ -70,9 +75,23 @@ public class FilterExpressionVisitor implements ExpressionVisitor<Object> {
 		sb.append(converter.convertToJpqlOperator(operator) + ":");
 		sb.append(param);
 		
-		Integer intParam = Ints.tryParse(right.toString());
-		if(intParam != null) {
-			queryParams.put(param, intParam);
+		if(right.toString().matches(REGEX_DATE_FORMAT)) {
+			DateTimeFormatter formatter = DateTimeFormatter.ofPattern(PATTERN_DATE_FORMAT);
+			try
+			{
+				LocalDate date = LocalDate.parse(right.toString(), formatter);
+				
+				queryParams.put(param, date);
+				return sb.toString();
+				
+			} catch(DateTimeParseException e) {
+				throw new ODataApplicationException(e.getMessage(), HttpStatusCode.BAD_REQUEST.getStatusCode(), Locale.ENGLISH);
+			}
+		}
+		
+		Long longParam = Longs.tryParse(right.toString());
+		if(longParam != null) {
+			queryParams.put(param, longParam);
 			return sb.toString();
 		}
 		
