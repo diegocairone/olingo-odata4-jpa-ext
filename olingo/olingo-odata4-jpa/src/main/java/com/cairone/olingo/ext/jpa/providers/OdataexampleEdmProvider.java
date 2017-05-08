@@ -21,16 +21,22 @@ import java.util.stream.Collectors;
 import org.apache.olingo.commons.api.edm.EdmPrimitiveTypeKind;
 import org.apache.olingo.commons.api.edm.FullQualifiedName;
 import org.apache.olingo.commons.api.edm.provider.CsdlAbstractEdmProvider;
+import org.apache.olingo.commons.api.edm.provider.CsdlAction;
+import org.apache.olingo.commons.api.edm.provider.CsdlActionImport;
 import org.apache.olingo.commons.api.edm.provider.CsdlEntityContainer;
 import org.apache.olingo.commons.api.edm.provider.CsdlEntityContainerInfo;
 import org.apache.olingo.commons.api.edm.provider.CsdlEntitySet;
 import org.apache.olingo.commons.api.edm.provider.CsdlEntityType;
 import org.apache.olingo.commons.api.edm.provider.CsdlEnumMember;
 import org.apache.olingo.commons.api.edm.provider.CsdlEnumType;
+import org.apache.olingo.commons.api.edm.provider.CsdlFunction;
+import org.apache.olingo.commons.api.edm.provider.CsdlFunctionImport;
 import org.apache.olingo.commons.api.edm.provider.CsdlNavigationProperty;
 import org.apache.olingo.commons.api.edm.provider.CsdlNavigationPropertyBinding;
+import org.apache.olingo.commons.api.edm.provider.CsdlParameter;
 import org.apache.olingo.commons.api.edm.provider.CsdlProperty;
 import org.apache.olingo.commons.api.edm.provider.CsdlPropertyRef;
+import org.apache.olingo.commons.api.edm.provider.CsdlReturnType;
 import org.apache.olingo.commons.api.edm.provider.CsdlSchema;
 import org.apache.olingo.commons.api.ex.ODataException;
 import org.apache.olingo.commons.api.http.HttpStatusCode;
@@ -39,11 +45,17 @@ import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.context.annotation.ClassPathScanningCandidateComponentProvider;
 import org.springframework.core.type.filter.AnnotationTypeFilter;
 
+import com.cairone.olingo.ext.jpa.annotations.EdmAction;
+import com.cairone.olingo.ext.jpa.annotations.EdmActionImport;
 import com.cairone.olingo.ext.jpa.annotations.EdmEntity;
 import com.cairone.olingo.ext.jpa.annotations.EdmEntitySet;
 import com.cairone.olingo.ext.jpa.annotations.EdmEnum;
+import com.cairone.olingo.ext.jpa.annotations.EdmFunction;
+import com.cairone.olingo.ext.jpa.annotations.EdmFunctionImport;
 import com.cairone.olingo.ext.jpa.annotations.EdmNavigationProperty;
+import com.cairone.olingo.ext.jpa.annotations.EdmParameter;
 import com.cairone.olingo.ext.jpa.annotations.EdmProperty;
+import com.cairone.olingo.ext.jpa.annotations.EdmReturnType;
 
 public class OdataexampleEdmProvider extends CsdlAbstractEdmProvider {
 
@@ -54,11 +66,15 @@ public class OdataexampleEdmProvider extends CsdlAbstractEdmProvider {
 	
 	private HashMap<String, Class<?>> entitySetsMap = new HashMap<String, Class<?>>();
 	private HashMap<String, Class<?>> enumsMap = new HashMap<String, Class<?>>();
+	private HashMap<String, Class<?>> actionsMap = new HashMap<String, Class<?>>();
+	private HashMap<String, Class<?>> actionImportsMap = new HashMap<String, Class<?>>();
+	private HashMap<String, Class<?>> functionsMap = new HashMap<String, Class<?>>();
+	private HashMap<String, Class<?>> functionImportsMap = new HashMap<String, Class<?>>();
 	private HashMap<String, String> entityTypesMap = new HashMap<>();
 	
 	public OdataexampleEdmProvider initialize() throws ODataApplicationException {
 
-		ClassPathScanningCandidateComponentProvider provider = createComponentScanner(Arrays.asList(EdmEntitySet.class, EdmEnum.class));
+		ClassPathScanningCandidateComponentProvider provider = createComponentScanner(Arrays.asList(EdmEntitySet.class, EdmEnum.class, EdmAction.class, EdmActionImport.class));
 		Set<BeanDefinition> beanDefinitions = provider.findCandidateComponents(DEFAULT_EDM_PACKAGE);
 		
 		try {
@@ -67,6 +83,10 @@ public class OdataexampleEdmProvider extends CsdlAbstractEdmProvider {
 				
 				EdmEntitySet edmEntitySet = cl.getAnnotation(EdmEntitySet.class);
 				EdmEnum edmEnum = cl.getAnnotation(EdmEnum.class);
+				EdmAction edmAction = cl.getAnnotation(EdmAction.class);
+				EdmActionImport edmActionImport = cl.getAnnotation(EdmActionImport.class);
+				EdmFunction edmFunction = cl.getAnnotation(EdmFunction.class);
+				EdmFunctionImport edmFunctionImport = cl.getAnnotation(EdmFunctionImport.class);
 				
 				if(edmEntitySet != null) {
 					EdmEntity edmEntity = cl.getAnnotation(EdmEntity.class);
@@ -80,6 +100,26 @@ public class OdataexampleEdmProvider extends CsdlAbstractEdmProvider {
 				if(edmEnum != null) {
 					String name = edmEnum.name().isEmpty() ? cl.getSimpleName() : edmEnum.name();
 					enumsMap.put(name, cl);
+				}
+				
+				if(edmAction != null) {
+					String name = edmAction.name().isEmpty() ? cl.getSimpleName() : edmAction.name();
+					actionsMap.put(name, cl);
+				}
+
+				if(edmActionImport != null) {
+					String name = edmActionImport.name().isEmpty() ? cl.getSimpleName() : edmActionImport.name();
+					actionImportsMap.put(name, cl);
+				}
+
+				if(edmFunction != null) {
+					String name = edmFunction.name().isEmpty() ? cl.getSimpleName() : edmFunction.name();
+					functionsMap.put(name, cl);
+				}
+
+				if(edmFunctionImport != null) {
+					String name = edmFunctionImport.name().isEmpty() ? cl.getSimpleName() : edmFunctionImport.name();
+					functionImportsMap.put(name, cl);
 				}
 			}
 		} catch (ClassNotFoundException e) {
@@ -129,6 +169,32 @@ public class OdataexampleEdmProvider extends CsdlAbstractEdmProvider {
 		
 		schema.setEnumTypes(enumTypes);
 		
+		// add actions
+		List<CsdlAction> actions = new ArrayList<CsdlAction>();
+
+		for(Map.Entry<String, Class<?>> entry : actionsMap.entrySet()) {
+			Class<?> clazz = entry.getValue();
+			EdmAction edmAction = clazz.getAnnotation(EdmAction.class);
+			String namespace = edmAction.namespace().isEmpty() ? NAME_SPACE : edmAction.namespace();
+			String name = edmAction.name().isEmpty() ? clazz.getSimpleName() : edmAction.name();
+			actions.add(getAction(getFullQualifiedName(namespace, name)));
+		}
+		
+		schema.setActions(actions);
+
+		// add functions
+		List<CsdlFunction> functions = new ArrayList<CsdlFunction>();
+
+		for(Map.Entry<String, Class<?>> entry : functionsMap.entrySet()) {
+			Class<?> clazz = entry.getValue();
+			EdmFunction edmFunction = clazz.getAnnotation(EdmFunction.class);
+			String namespace = edmFunction.namespace().isEmpty() ? NAME_SPACE : edmFunction.namespace();
+			String name = edmFunction.name().isEmpty() ? clazz.getSimpleName() : edmFunction.name();
+			functions.add(getFunction(getFullQualifiedName(namespace, name)));
+		}
+		
+		schema.setFunctions(functions);
+		
 		// add EntityContainer
 		schema.setEntityContainer(getEntityContainer());
 
@@ -158,10 +224,28 @@ public class OdataexampleEdmProvider extends CsdlAbstractEdmProvider {
 			}
 		});
 		
+		// Create action imports
+		List<CsdlActionImport> actionImports = new ArrayList<CsdlActionImport>();
+		
+		for(Map.Entry<String, Class<?>> entry : actionImportsMap.entrySet()) {
+			String actionImport = entry.getKey();
+			actionImports.add(getActionImport(CONTAINER, actionImport));
+		}
+
+		// Create function imports
+		List<CsdlFunctionImport> functionImports = new ArrayList<CsdlFunctionImport>();
+		
+		for(Map.Entry<String, Class<?>> entry : functionImportsMap.entrySet()) {
+			String functionImport = entry.getKey();
+			functionImports.add(getFunctionImport(CONTAINER, functionImport));
+		}
+		
 		// create EntityContainer
 		CsdlEntityContainer entityContainer = new CsdlEntityContainer();
 		entityContainer.setName(CONTAINER_NAME);
 		entityContainer.setEntitySets(entitySets);
+		entityContainer.setActionImports(actionImports);
+		entityContainer.setFunctionImports(functionImports);
 
 		return entityContainer;
 	}
@@ -187,6 +271,8 @@ public class OdataexampleEdmProvider extends CsdlAbstractEdmProvider {
 	public CsdlEntitySet getEntitySet(FullQualifiedName entityContainer, String entitySetName) throws ODataException {
 		
 		Class<?> clazz = entitySetsMap.get(entitySetName);
+		if(clazz == null) return null;
+		
 		EdmEntity edmEntity = clazz.getAnnotation(EdmEntity.class);
 		
 		List<CsdlNavigationPropertyBinding> navigationPropertyBindings = new ArrayList<>();
@@ -229,6 +315,38 @@ public class OdataexampleEdmProvider extends CsdlAbstractEdmProvider {
 		return entitySet;
 	}
 	
+	@Override
+	public CsdlActionImport getActionImport(FullQualifiedName entityContainer, String actionImportName) throws ODataException {
+		
+		Class<?> clazz = actionImportsMap.get(actionImportName);
+		if(clazz == null) return null;
+		
+		EdmActionImport edmActionImport = clazz.getAnnotation(EdmActionImport.class);
+		
+		CsdlActionImport csdlActionImport = new CsdlActionImport()
+			.setName(actionImportName)
+			.setEntitySet(edmActionImport.entitySet())
+			.setAction(getFullQualifiedName(edmActionImport.namespace(), edmActionImport.action()));
+		
+		return csdlActionImport;
+	}
+
+	@Override
+	public CsdlFunctionImport getFunctionImport(FullQualifiedName entityContainer, String functionImportName) throws ODataException {
+
+		Class<?> clazz = functionImportsMap.get(functionImportName);
+		if(clazz == null) return null;
+		
+		EdmFunctionImport edmFunctionImport = clazz.getAnnotation(EdmFunctionImport.class);
+		
+		CsdlFunctionImport csdlFunctionImport = new CsdlFunctionImport()
+			.setName(functionImportName)
+			.setEntitySet(edmFunctionImport.entitySet())
+			.setFunction(getFullQualifiedName(edmFunctionImport.namespace(), edmFunctionImport.function()));
+		
+		return csdlFunctionImport;
+	}
+
 	private List<CsdlNavigationProperty> getCsdlNavigationProperties(Field[] fields) {
 		
 		List<CsdlNavigationProperty> csdlNavigationProperties = new ArrayList<CsdlNavigationProperty>();
@@ -335,7 +453,9 @@ public class OdataexampleEdmProvider extends CsdlAbstractEdmProvider {
 		String edmEnumName = enumTypeName.getName();
 		Class<?> clazz = enumsMap.get(edmEnumName);
 		
-		if(clazz.isEnum()) {
+		if(clazz == null) {
+			return null;
+		} else if(clazz.isEnum()) {
 
 			EdmEnum edmEnum = clazz.getAnnotation(EdmEnum.class);
 			List<Object> constants = Arrays.asList(clazz.getEnumConstants());
@@ -360,6 +480,180 @@ public class OdataexampleEdmProvider extends CsdlAbstractEdmProvider {
 		
 		throw new ODataException(String.format("%s IS NOT AN ENUMERATION", edmEnumName));
 	}
+
+	@Override
+	public List<CsdlAction> getActions(FullQualifiedName actionName) throws ODataException {
+		return Arrays.asList(getAction(actionName));
+	}
+
+	public CsdlAction getAction(FullQualifiedName actionName) throws ODataException {
+		
+		String actionNameString = actionName.getName();
+		Class<?> clazz = actionsMap.get(actionNameString);
+		
+		if(clazz == null) return null;
+		
+		EdmAction edmAction = clazz.getAnnotation(EdmAction.class);
+		EdmReturnType edmReturnType = clazz.getAnnotation(EdmReturnType.class);
+		
+		boolean isCollection = edmReturnType == null ? false : edmReturnType.type().startsWith("Collection");
+		
+		CsdlAction action = new CsdlAction()
+			.setBound(edmAction.isBound())
+			.setName(actionName.getName());
+		if(edmAction.isBound()) action.setEntitySetPath(edmAction.entitySetPath());
+		
+		if(edmReturnType != null) {
+
+			CsdlReturnType returnType = new CsdlReturnType()
+					.setCollection(isCollection)
+					.setNullable(edmReturnType.nullable())
+					.setType(getFullQualifiedName(edmReturnType.type()));
+			
+			action.setReturnType(returnType);	
+		}
+		
+		if(edmAction.isBound()) {
+			
+			Class<?> entitySetClass = entitySetsMap.get(edmAction.entitySetPath());
+			EdmEntity edmEntity = entitySetClass.getAnnotation(EdmEntity.class);
+						
+			CsdlParameter csdlParameter = new CsdlParameter()
+				.setName(edmAction.entitySetPath())
+				.setType(getFullQualifiedName(edmEntity.namespace(), edmEntity.name()));
+			
+			action.getParameters().add(csdlParameter);
+		}
+		
+		for(Field fld : clazz.getDeclaredFields()) {
+			
+			EdmParameter parameter = fld.getAnnotation(EdmParameter.class);
+			if(parameter != null) {
+				
+				String parameterName = parameter.name().isEmpty() ? fld.getName() : parameter.name();
+				FullQualifiedName parameterType = null;
+
+				if(parameter.type().isEmpty()) {					
+					if(fld.getType().isAssignableFrom(Integer.class)) {
+						parameterType = EdmPrimitiveTypeKind.Int32.getFullQualifiedName();
+					} else if(fld.getType().isAssignableFrom(String.class)) {
+						parameterType = EdmPrimitiveTypeKind.String.getFullQualifiedName();
+					} else if(fld.getType().isAssignableFrom(LocalDate.class)) {
+						parameterType = EdmPrimitiveTypeKind.Date.getFullQualifiedName();
+					} else if(fld.getType().isAssignableFrom(Boolean.class)) {
+						parameterType = EdmPrimitiveTypeKind.Boolean.getFullQualifiedName();
+					} else {
+						Class<?> enumClazz = fld.getType();
+						EdmEnum edmEnum = enumClazz.getAnnotation(EdmEnum.class);
+						if(edmEnum != null) {
+							String namespace = edmEnum.namespace().isEmpty() ? NAME_SPACE : edmEnum.namespace();
+							String name = edmEnum.name().isEmpty() ? enumClazz.getSimpleName() : edmEnum.name();
+							parameterType = getFullQualifiedName(namespace, name);
+						}
+					}
+				} else {
+					switch(parameter.type()) {
+					case "Edm.Int32":
+						parameterType = EdmPrimitiveTypeKind.Int32.getFullQualifiedName();
+						break;
+					case "Edm.String":
+						parameterType = EdmPrimitiveTypeKind.String.getFullQualifiedName();
+						break;
+					case "Edm.Date":
+						parameterType = EdmPrimitiveTypeKind.Date.getFullQualifiedName();
+						break;
+					}
+				}
+				
+				CsdlParameter csdlParameter = new CsdlParameter()
+					.setName(parameterName)
+					.setType(parameterType)
+					.setNullable(parameter.nullable());
+				
+				action.getParameters().add(csdlParameter);
+			}
+		}
+		
+		return action;
+	}
+	
+	public CsdlFunction getFunction(FullQualifiedName functionName) throws ODataException {
+
+		String functionNameString = functionName.getName();
+		Class<?> clazz = functionsMap.get(functionNameString);
+		
+		if(clazz == null) return null;
+		
+		EdmFunction edmFunction = clazz.getAnnotation(EdmFunction.class);
+		EdmReturnType edmReturnType = clazz.getAnnotation(EdmReturnType.class);
+
+		boolean isCollection = edmReturnType.type().startsWith("Collection");
+		
+		CsdlReturnType returnType = new CsdlReturnType()
+			.setCollection(isCollection)
+			.setMaxLength(edmReturnType.maxLength())
+			.setNullable(edmReturnType.nullable())
+			.setPrecision(edmReturnType.precision())
+			.setScale(edmReturnType.scale())
+			.setType(getFullQualifiedName(edmReturnType.type()));
+		
+		CsdlFunction function = new CsdlFunction()
+			.setBound(edmFunction.isBound())
+			.setEntitySetPath(edmFunction.entitySetPath())
+			.setName(edmFunction.name())
+			.setReturnType(returnType);
+
+		for(Field fld : clazz.getDeclaredFields()) {
+			
+			EdmParameter parameter = fld.getAnnotation(EdmParameter.class);
+			if(parameter != null) {
+				
+				String parameterName = parameter.name().isEmpty() ? fld.getName() : parameter.name();
+				FullQualifiedName parameterType = null;
+
+				if(parameter.type().isEmpty()) {					
+					if(fld.getType().isAssignableFrom(Integer.class)) {
+						parameterType = EdmPrimitiveTypeKind.Int32.getFullQualifiedName();
+					} else if(fld.getType().isAssignableFrom(String.class)) {
+						parameterType = EdmPrimitiveTypeKind.String.getFullQualifiedName();
+					} else if(fld.getType().isAssignableFrom(LocalDate.class)) {
+						parameterType = EdmPrimitiveTypeKind.Date.getFullQualifiedName();
+					} else if(fld.getType().isAssignableFrom(Boolean.class)) {
+						parameterType = EdmPrimitiveTypeKind.Boolean.getFullQualifiedName();
+					} else {
+						Class<?> enumClazz = fld.getType();
+						EdmEnum edmEnum = enumClazz.getAnnotation(EdmEnum.class);
+						if(edmEnum != null) {
+							String namespace = edmEnum.namespace().isEmpty() ? NAME_SPACE : edmEnum.namespace();
+							String name = edmEnum.name().isEmpty() ? enumClazz.getSimpleName() : edmEnum.name();
+							parameterType = getFullQualifiedName(namespace, name);
+						}
+					}
+				} else {
+					switch(parameter.type()) {
+					case "Edm.Int32":
+						parameterType = EdmPrimitiveTypeKind.Int32.getFullQualifiedName();
+						break;
+					case "Edm.String":
+						parameterType = EdmPrimitiveTypeKind.String.getFullQualifiedName();
+						break;
+					case "Edm.Date":
+						parameterType = EdmPrimitiveTypeKind.Date.getFullQualifiedName();
+						break;
+					}
+				}
+				
+				CsdlParameter csdlParameter = new CsdlParameter()
+					.setName(parameterName)
+					.setType(parameterType)
+					.setNullable(parameter.nullable());
+				
+				function.getParameters().add(csdlParameter);
+			}
+		}
+		
+		return function;
+	}
 	
 	@Override
 	public CsdlEntityType getEntityType(FullQualifiedName entityTypeName) throws ODataException {
@@ -368,6 +662,8 @@ public class OdataexampleEdmProvider extends CsdlAbstractEdmProvider {
 		String entitySetName = entityTypesMap.get(entityTypeNameString);
 		
 		Class<?> clazz = entitySetsMap.get(entitySetName);
+		if(clazz == null) return null;
+		
 		EdmEntity edmEntity = clazz.getAnnotation(EdmEntity.class);
 
 		Field[] fields = clazz.getDeclaredFields();

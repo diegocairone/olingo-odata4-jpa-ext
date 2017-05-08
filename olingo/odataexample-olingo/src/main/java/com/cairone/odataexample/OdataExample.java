@@ -10,7 +10,8 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
 
 import com.cairone.odataexample.ctrls.ODataController;
-import com.cairone.olingo.ext.jpa.processors.OdataexampleEntityProcessor;
+import com.cairone.olingo.ext.jpa.processors.ActionProcessor;
+import com.cairone.olingo.ext.jpa.processors.EntitySetProcessor;
 import com.cairone.olingo.ext.jpa.providers.OdataexampleEdmProvider;
 
 @SpringBootApplication
@@ -35,9 +36,20 @@ public class OdataExample extends SpringBootServletInitializer
     }
     
     @Bean
-    public OdataexampleEntityProcessor getOdataexampleEntityProcessor() throws ODataApplicationException {
+    public ActionProcessor getActionProcessor() throws ODataApplicationException {
     	
-    	OdataexampleEntityProcessor processor = new OdataexampleEntityProcessor()
+    	ActionProcessor processor = new ActionProcessor()
+    		.setDefaultEdmPackage(DEFAULT_EDM_PACKAGE)
+    		.setServiceRoot(SERVICE_ROOT)
+    		.initialize(context);
+    	
+    	return processor;
+    }
+    
+    @Bean
+    public EntitySetProcessor getEntitySetProcessor() throws ODataApplicationException {
+    	
+    	EntitySetProcessor processor = new EntitySetProcessor()
     		.setDefaultEdmPackage(DEFAULT_EDM_PACKAGE)
     		.setServiceRoot(SERVICE_ROOT)
     		.initialize(context);

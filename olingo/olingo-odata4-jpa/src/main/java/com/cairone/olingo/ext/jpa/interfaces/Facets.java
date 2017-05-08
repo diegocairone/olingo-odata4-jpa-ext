@@ -26,40 +26,40 @@ public interface Facets {
     /**
      * Special value to indicate that {@code maxLength} is unspecified.
      */
-    long MAX_LENGTH_UNSPECIFIED = Long.MIN_VALUE;
+    int MAX_LENGTH_UNSPECIFIED = Integer.MIN_VALUE;
 
     /**
      * Special value to indicate that {@code maxLength} has the value "max".
      * Reference: OData Version 4.0 Part 3: Common Schema Definition Language (CSDL), paragraph 6.2.2
      */
-    long MAX_LENGTH_MAX = -1L;
+    int MAX_LENGTH_MAX = -1;
 
     /**
      * Special value to indicate that {@code precision} is unspecified.
      */
-    long PRECISION_UNSPECIFIED = Long.MIN_VALUE;
+    int PRECISION_UNSPECIFIED = Integer.MIN_VALUE;
 
     /**
      * Special value to indicate that {@code scale} is unspecified.
      */
-    long SCALE_UNSPECIFIED = Long.MIN_VALUE;
+    int SCALE_UNSPECIFIED = Integer.MIN_VALUE;
 
     /**
      * Special value to indicate that {@code scale} has the value "variable".
      * Reference: OData Version 4.0 Part 3: Common Schema Definition Language (CSDL), paragraph 6.2.4
      */
-    long SCALE_VARIABLE = -1L;
+    int SCALE_VARIABLE = -1;
 
     /**
      * Special value to indicate that {@code srid} is unspecified.
      */
-    long SRID_UNSPECIFIED = Long.MIN_VALUE;
+    int SRID_UNSPECIFIED = Integer.MIN_VALUE;
 
     /**
      * Special value to indicate that {@code srid} has the value "variable".
      * Reference: OData Version 4.0 Part 3: Common Schema Definition Language (CSDL), paragraph 6.2.6
      */
-    long SRID_VARIABLE = -1L;
+    int SRID_VARIABLE = -1;
 
     /**
      * Returns the maximum length of the value of the property. This is only relevant for binary, string and stream
@@ -70,7 +70,7 @@ public interface Facets {
      *
      * @return The maximum length of the value of the property.
      */
-    long getMaxLength();
+    int getMaxLength();
 
     /**
      * Returns the precision of the value of the property. This is only relevant for properties of the following
@@ -86,7 +86,7 @@ public interface Facets {
      *
      * @return The precision of the value of the property.
      */
-    long getPrecision();
+    int getPrecision();
 
     /**
      * Returns the scale of the value of the property. This is only relevant for properties of the primitive type
@@ -97,7 +97,7 @@ public interface Facets {
      *
      * @return The scale of the value of the property.
      */
-    long getScale();
+    int getScale();
 
     /**
      * Returns the spatial reference system identifier of the property. This is only relevant for geography and
@@ -106,7 +106,7 @@ public interface Facets {
      *
      * @return The spatial reference system identifier of the property.
      */
-    long getSRID();
+    int getSRID();
 
     /**
      * Returns {@code true} if the property is encoded with Unicode, {@code false} if it is encoded with ASCII. This
