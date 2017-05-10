@@ -10,7 +10,11 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.cairone.odataexample.dtos.SectorFrmDto;
+import com.cairone.odataexample.entities.PersonaEntity;
+import com.cairone.odataexample.entities.PersonaSectorEntity;
+import com.cairone.odataexample.entities.PersonaSectorPKEntity;
 import com.cairone.odataexample.entities.SectorEntity;
+import com.cairone.odataexample.repositories.PersonaSectorRepository;
 import com.cairone.odataexample.repositories.SectorRepository;
 import com.mysema.query.types.expr.BooleanExpression;
 
@@ -18,6 +22,7 @@ import com.mysema.query.types.expr.BooleanExpression;
 public class SectorService {
 
 	@Autowired private SectorRepository sectorRepository = null;
+	@Autowired private PersonaSectorRepository personaSectorRepository = null;
 
 	@Transactional(readOnly=true)
 	public SectorEntity buscarPorID(Integer sectorID) {
@@ -88,5 +93,14 @@ public class SectorService {
 		}
 		
 		sectorRepository.delete(sectorEntity);
+	}
+	
+	@Transactional
+	public void quitarPersona(SectorEntity sectorEntity, PersonaEntity personaEntity) {
+		
+		PersonaSectorPKEntity pk = new PersonaSectorPKEntity(personaEntity, sectorEntity);
+		PersonaSectorEntity personaSectorEntity = personaSectorRepository.findOne(pk);
+		
+		personaSectorRepository.delete(personaSectorEntity);
 	}
 }

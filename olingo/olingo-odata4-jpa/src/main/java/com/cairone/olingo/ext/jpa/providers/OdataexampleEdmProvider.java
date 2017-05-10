@@ -545,6 +545,7 @@ public class OdataexampleEdmProvider extends CsdlAbstractEdmProvider {
 				
 				String parameterName = parameter.name().isEmpty() ? fld.getName() : parameter.name();
 				FullQualifiedName parameterType = null;
+				boolean fieldIsCollection = false;
 
 				if(parameter.type().isEmpty()) {					
 					if(fld.getType().isAssignableFrom(Integer.class)) {
@@ -555,6 +556,22 @@ public class OdataexampleEdmProvider extends CsdlAbstractEdmProvider {
 						parameterType = EdmPrimitiveTypeKind.Date.getFullQualifiedName();
 					} else if(fld.getType().isAssignableFrom(Boolean.class)) {
 						parameterType = EdmPrimitiveTypeKind.Boolean.getFullQualifiedName();
+					} else if(fld.getType().isAssignableFrom(List.class)) {
+						fieldIsCollection = true;
+						Type genericType = fld.getGenericType();
+						if(genericType instanceof ParameterizedType) {
+							ParameterizedType pt = (ParameterizedType) genericType;
+							Class<?> t = (Class<?>) pt.getActualTypeArguments()[0];
+							if(t.isAssignableFrom(Integer.class)) {
+								parameterType = EdmPrimitiveTypeKind.Int32.getFullQualifiedName();
+							} else if(t.isAssignableFrom(String.class)) {
+								parameterType = EdmPrimitiveTypeKind.String.getFullQualifiedName();
+							} else if(t.isAssignableFrom(LocalDate.class)) {
+								parameterType = EdmPrimitiveTypeKind.Date.getFullQualifiedName();
+							} else if(t.isAssignableFrom(Boolean.class)) {
+								parameterType = EdmPrimitiveTypeKind.Boolean.getFullQualifiedName();
+							}
+						}
 					} else {
 						Class<?> enumClazz = fld.getType();
 						EdmEnum edmEnum = enumClazz.getAnnotation(EdmEnum.class);
@@ -581,7 +598,8 @@ public class OdataexampleEdmProvider extends CsdlAbstractEdmProvider {
 				CsdlParameter csdlParameter = new CsdlParameter()
 					.setName(parameterName)
 					.setType(parameterType)
-					.setNullable(parameter.nullable());
+					.setNullable(parameter.nullable())
+					.setCollection(fieldIsCollection);
 				
 				action.getParameters().add(csdlParameter);
 			}

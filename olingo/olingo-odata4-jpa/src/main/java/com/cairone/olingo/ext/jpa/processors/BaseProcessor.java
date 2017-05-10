@@ -113,6 +113,8 @@ public class BaseProcessor implements Processor {
 
 	protected Entity writeEntity(Object object, ExpandOption expandOption) throws IllegalArgumentException, IllegalAccessException, NoSuchMethodException, SecurityException, InvocationTargetException, ODataApplicationException {
 		
+		if(object == null) return null;
+		
 		Entity entity = new Entity();
 		Class<?> clazz = object.getClass();
 		
