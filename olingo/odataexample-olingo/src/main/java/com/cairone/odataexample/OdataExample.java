@@ -30,12 +30,6 @@ public class OdataExample extends SpringBootServletInitializer
     @Autowired ODataController dispatcherServlet = null;
     
     @Bean
-    public ServletRegistrationBean dispatcherServletRegistration() {
-    	ServletRegistrationBean registration = new ServletRegistrationBean(dispatcherServlet, "/odata/appexample.svc/*");
-    	return registration;
-    }
-    
-    @Bean
     public ActionProcessor getActionProcessor() throws ODataApplicationException {
     	
     	ActionProcessor processor = new ActionProcessor()
@@ -69,4 +63,11 @@ public class OdataExample extends SpringBootServletInitializer
     	
     	return provider;
     }
+
+    @Bean
+    public ServletRegistrationBean dispatcherServletRegistration() {
+    	ServletRegistrationBean registration = new ServletRegistrationBean(dispatcherServlet, "/odata/appexample.svc/*");
+    	return registration;
+    }
+    
 }

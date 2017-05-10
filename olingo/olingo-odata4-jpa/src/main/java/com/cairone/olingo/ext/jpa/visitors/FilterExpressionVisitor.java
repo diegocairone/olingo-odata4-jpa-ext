@@ -37,7 +37,6 @@ public class FilterExpressionVisitor implements ExpressionVisitor<Object> {
 	
 	private static Logger logger = LoggerFactory.getLogger(FilterExpressionVisitor.class);
 	private static String REGEX_DATE_FORMAT = "\\d{4}-\\d{2}-\\d{2}";
-	private static String PATTERN_DATE_FORMAT = "\\d{4}-\\d{2}-\\d{2}";
 	
 	private Class<?> clazz;
 	private Map<String, Object> queryParams = null;
@@ -76,7 +75,7 @@ public class FilterExpressionVisitor implements ExpressionVisitor<Object> {
 		sb.append(param);
 		
 		if(right.toString().matches(REGEX_DATE_FORMAT)) {
-			DateTimeFormatter formatter = DateTimeFormatter.ofPattern(PATTERN_DATE_FORMAT);
+			DateTimeFormatter formatter = DateTimeFormatter.ofPattern(REGEX_DATE_FORMAT);
 			try
 			{
 				LocalDate date = LocalDate.parse(right.toString(), formatter);

@@ -189,4 +189,10 @@ public class UsuarioEdm {
 			return false;
 		return true;
 	}
+	
+	public static List<UsuarioEdm> crearLista(Iterable<UsuarioEntity> usuarioEntities) {
+		List<UsuarioEdm> usuarioEdms = new ArrayList<UsuarioEdm>();
+		for(UsuarioEntity usuarioEntity : usuarioEntities) usuarioEdms.add(new UsuarioEdm(usuarioEntity));
+		return usuarioEdms;
+	}
 }

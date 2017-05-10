@@ -31,6 +31,7 @@ import com.cairone.odataexample.entities.PermisoEntity;
 import com.cairone.odataexample.services.PermisoService;
 import com.cairone.olingo.ext.jpa.interfaces.DataSource;
 import com.cairone.olingo.ext.jpa.interfaces.DataSourceProvider;
+import com.google.common.base.CharMatcher;
 
 @Component
 public class PermisoDataSource implements DataSourceProvider, DataSource {
@@ -70,7 +71,7 @@ public class PermisoDataSource implements DataSourceProvider, DataSource {
 	@Override
 	public Object readFromKey(Map<String, UriParameter> keyPredicateMap) throws ODataException {
 		
-		String permisoID = keyPredicateMap.get("id").getText();
+		String permisoID = CharMatcher.is('\'').trimFrom( keyPredicateMap.get("id").getText() );
 		
 		PermisoEntity permisoEntity = permisoService.buscarPorNombre(permisoID);
 		PermisoEdm permisoEdm = permisoEntity == null ? null : new PermisoEdm(permisoEntity);

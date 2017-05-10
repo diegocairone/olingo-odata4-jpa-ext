@@ -6,10 +6,12 @@ import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.math.BigDecimal;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.time.LocalDate;
 import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
@@ -47,6 +49,8 @@ import com.cairone.olingo.ext.jpa.annotations.EdmEntity;
 
 public class BaseProcessor implements Processor {
 
+	private static String REGEX_DATE_FORMAT = "\\d{4}-\\d{2}-\\d{2}";
+	
 	protected String SERVICE_ROOT = null;
 	protected String DEFAULT_EDM_PACKAGE = null;
 	
@@ -228,13 +232,10 @@ public class BaseProcessor implements Processor {
 		return entity;
 	}
 	
-	protected void writeObject(Class<?> clazz, Object object, Entity entity) throws NoSuchMethodException, SecurityException, InstantiationException, IllegalAccessException, IllegalArgumentException, InvocationTargetException {
+	protected Object writeObject(Class<?> clazz, Entity entity) throws NoSuchMethodException, SecurityException, InstantiationException, IllegalAccessException, IllegalArgumentException, InvocationTargetException {
 		
-		if(object == null) {
-			
-			Constructor<?> constructor = clazz.getConstructor();
-			object = constructor.newInstance();
-		}
+		Constructor<?> constructor = clazz.getConstructor();
+		Object object = constructor.newInstance();
 		
 		for (Field fld : clazz.getDeclaredFields()) {
 			
@@ -293,28 +294,31 @@ public class BaseProcessor implements Processor {
 				} else {
 
 					fld.setAccessible(true);
-					Object navpropField = fld.get(object);
+//					Object navpropField = fld.get(object);
 
 					com.cairone.olingo.ext.jpa.annotations.EdmEntitySet targetEdmEntitySet = fieldClass.getAnnotation(com.cairone.olingo.ext.jpa.annotations.EdmEntitySet.class);
 					String targetEntitySetName = targetEdmEntitySet.value();
 					Class<?> cl = entitySetMap.get(targetEntitySetName);
 
-					if(navpropField == null) {
-						Constructor<?> c = cl.getConstructor();
-    					navpropField = c.newInstance();
-    					fld.set(object, navpropField);
-					}
+//					if(navpropField == null) {
+//						Constructor<?> c = cl.getConstructor();
+//    					navpropField = c.newInstance();
+//    					fld.set(object, navpropField);
+//					}
 					
 					Link link = entity.getNavigationLink(propertyName);
 					if(link != null) {
-						writeObject(cl, navpropField, link.getInlineEntity());
+						Object navpropField = writeObject(cl, link.getInlineEntity());
+						fld.set(object, navpropField);
 					}
 				}
         	}
-		}		
+		}
+		
+		return object;
 	}
 
-	protected Map<String, Parameter> readParameters(final org.apache.olingo.commons.api.edm.EdmAction action, final InputStream body, final ContentType requestFormat) throws ODataApplicationException, DeserializerException {
+	protected Map<String, Parameter> readActionParameters(final org.apache.olingo.commons.api.edm.EdmAction action, final InputStream body, final ContentType requestFormat) throws ODataApplicationException, DeserializerException {
 		if (action.getParameterNames().size() - (action.isBound() ? 1 : 0) > 0) {
 			return odata.createDeserializer(requestFormat).actionParameters(body, action).getActionParameters();
 		}
@@ -326,5 +330,36 @@ public class BaseProcessor implements Processor {
 		for(Class<? extends Annotation> annotationType : annotationTypes) provider.addIncludeFilter(new AnnotationTypeFilter(annotationType));
 		return provider;
     }
+
+	protected String inferEdmType(Field field) {
+		
+		if(field.getType().isAssignableFrom(Integer.class)) {
+			return "Edm.Int32";
+		} else if (field.getType().isAssignableFrom(Long.class)) {
+			return "Edm.Int64";
+		} else if (field.getType().isAssignableFrom(LocalDate.class)) {
+			return "Edm.Date";
+		} else if (field.getType().isAssignableFrom(Boolean.class)) {
+			return "Edm.Boolean";
+		} else if (field.getType().isAssignableFrom(BigDecimal.class)) {
+			return "Edm.Decimal";
+		}
+		
+		return "Edm.String";
+	}
 	
+	protected Object convertEdmType(String edmType, String value) {
+		
+		if(edmType.equals("Edm.Int32")) {
+			return Integer.parseInt(value);
+		} else if(edmType.equals("Edm.Int64")) {
+			return Long.parseLong(value);
+		} else if(edmType.equals("Edm.Date") && value.matches(REGEX_DATE_FORMAT)) {
+			DateTimeFormatter formatter = DateTimeFormatter.ofPattern(REGEX_DATE_FORMAT);
+			LocalDate date = LocalDate.parse(value, formatter);
+			return date;
+		} else {
+			return value;
+		}
+	}
 }

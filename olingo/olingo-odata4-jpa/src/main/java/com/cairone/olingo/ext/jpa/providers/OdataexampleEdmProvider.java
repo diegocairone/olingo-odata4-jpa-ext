@@ -74,7 +74,14 @@ public class OdataexampleEdmProvider extends CsdlAbstractEdmProvider {
 	
 	public OdataexampleEdmProvider initialize() throws ODataApplicationException {
 
-		ClassPathScanningCandidateComponentProvider provider = createComponentScanner(Arrays.asList(EdmEntitySet.class, EdmEnum.class, EdmAction.class, EdmActionImport.class));
+		ClassPathScanningCandidateComponentProvider provider = createComponentScanner(Arrays.asList(
+				EdmEntitySet.class, 
+				EdmEnum.class, 
+				EdmAction.class, 
+				EdmActionImport.class,
+				EdmFunction.class,
+				EdmFunctionImport.class));
+		
 		Set<BeanDefinition> beanDefinitions = provider.findCandidateComponents(DEFAULT_EDM_PACKAGE);
 		
 		try {
@@ -483,7 +490,8 @@ public class OdataexampleEdmProvider extends CsdlAbstractEdmProvider {
 
 	@Override
 	public List<CsdlAction> getActions(FullQualifiedName actionName) throws ODataException {
-		return Arrays.asList(getAction(actionName));
+		CsdlAction csdlAction = getAction(actionName);
+		return csdlAction == null ? null : Arrays.asList(csdlAction);
 	}
 
 	public CsdlAction getAction(FullQualifiedName actionName) throws ODataException {
@@ -507,8 +515,13 @@ public class OdataexampleEdmProvider extends CsdlAbstractEdmProvider {
 
 			CsdlReturnType returnType = new CsdlReturnType()
 					.setCollection(isCollection)
-					.setNullable(edmReturnType.nullable())
-					.setType(getFullQualifiedName(edmReturnType.type()));
+					.setNullable(edmReturnType.nullable());
+
+			if(isCollection) {
+				returnType.setType(String.format("Collection(%s)", getFullQualifiedName(edmReturnType.type()).toString() ));
+			} else {
+				returnType.setType(getFullQualifiedName(edmReturnType.type()));
+			}
 			
 			action.setReturnType(returnType);	
 		}
@@ -577,6 +590,12 @@ public class OdataexampleEdmProvider extends CsdlAbstractEdmProvider {
 		return action;
 	}
 	
+	@Override
+	public List<CsdlFunction> getFunctions(FullQualifiedName functionName) throws ODataException {
+		CsdlFunction csdlFunction = getFunction(functionName);
+		return csdlFunction == null ? null : Arrays.asList(csdlFunction);
+	}
+
 	public CsdlFunction getFunction(FullQualifiedName functionName) throws ODataException {
 
 		String functionNameString = functionName.getName();
@@ -589,20 +608,38 @@ public class OdataexampleEdmProvider extends CsdlAbstractEdmProvider {
 
 		boolean isCollection = edmReturnType.type().startsWith("Collection");
 		
-		CsdlReturnType returnType = new CsdlReturnType()
-			.setCollection(isCollection)
-			.setMaxLength(edmReturnType.maxLength())
-			.setNullable(edmReturnType.nullable())
-			.setPrecision(edmReturnType.precision())
-			.setScale(edmReturnType.scale())
-			.setType(getFullQualifiedName(edmReturnType.type()));
-		
 		CsdlFunction function = new CsdlFunction()
 			.setBound(edmFunction.isBound())
-			.setEntitySetPath(edmFunction.entitySetPath())
-			.setName(edmFunction.name())
-			.setReturnType(returnType);
+			.setName(edmFunction.name());
+		if(edmFunction.isBound()) function.setEntitySetPath(edmFunction.entitySetPath());
 
+		if(edmReturnType != null) {
+			
+			CsdlReturnType returnType = new CsdlReturnType()
+				.setCollection(isCollection)
+				.setNullable(edmReturnType.nullable());
+			
+			if(isCollection) {
+				returnType.setType(String.format("Collection(%s)", getFullQualifiedName(edmReturnType.type()).toString() ));
+			} else {
+				returnType.setType(getFullQualifiedName(edmReturnType.type()));
+			}
+			
+			function.setReturnType(returnType);
+		}
+
+		if(edmFunction.isBound()) {
+			
+			Class<?> entitySetClass = entitySetsMap.get(edmFunction.entitySetPath());
+			EdmEntity edmEntity = entitySetClass.getAnnotation(EdmEntity.class);
+						
+			CsdlParameter csdlParameter = new CsdlParameter()
+				.setName(edmFunction.entitySetPath())
+				.setType(getFullQualifiedName(edmEntity.namespace(), edmEntity.name()));
+			
+			function.getParameters().add(csdlParameter);
+		}
+		
 		for(Field fld : clazz.getDeclaredFields()) {
 			
 			EdmParameter parameter = fld.getAnnotation(EdmParameter.class);
@@ -718,6 +755,9 @@ public class OdataexampleEdmProvider extends CsdlAbstractEdmProvider {
 	}
 
 	private FullQualifiedName getFullQualifiedName(String namespace, String name) {
+		if(name.startsWith("Collection")) {
+			name = name.subSequence(name.indexOf('(') + 1, name.length() - 1).toString();
+		}
 		return new FullQualifiedName(namespace, name);
 	}
 	

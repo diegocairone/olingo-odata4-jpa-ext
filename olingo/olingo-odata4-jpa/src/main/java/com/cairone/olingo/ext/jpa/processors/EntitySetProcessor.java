@@ -1,7 +1,6 @@
 package com.cairone.olingo.ext.jpa.processors;
 
 import java.io.InputStream;
-import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -10,6 +9,7 @@ import java.net.URISyntaxException;
 import java.time.LocalDate;
 import java.time.ZoneId;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.GregorianCalendar;
 import java.util.HashMap;
 import java.util.List;
@@ -49,6 +49,7 @@ import org.apache.olingo.server.api.uri.UriInfo;
 import org.apache.olingo.server.api.uri.UriParameter;
 import org.apache.olingo.server.api.uri.UriResource;
 import org.apache.olingo.server.api.uri.UriResourceEntitySet;
+import org.apache.olingo.server.api.uri.UriResourceFunction;
 import org.apache.olingo.server.api.uri.queryoption.CountOption;
 import org.apache.olingo.server.api.uri.queryoption.ExpandOption;
 import org.apache.olingo.server.api.uri.queryoption.FilterOption;
@@ -59,13 +60,17 @@ import org.apache.olingo.server.api.uri.queryoption.TopOption;
 import org.springframework.context.ApplicationContext;
 
 import com.cairone.olingo.ext.jpa.annotations.EdmEntity;
+import com.cairone.olingo.ext.jpa.annotations.EdmFunction;
+import com.cairone.olingo.ext.jpa.annotations.EdmParameter;
 import com.cairone.olingo.ext.jpa.interfaces.DataSource;
 import com.cairone.olingo.ext.jpa.interfaces.DataSourceProvider;
+import com.cairone.olingo.ext.jpa.interfaces.Operation;
 import com.google.common.collect.Iterables;
 
 public class EntitySetProcessor extends BaseProcessor implements EntityProcessor, EntityCollectionProcessor {
 	
 	private Map<String, DataSourceProvider> dataSourceProviderMap = new HashMap<>();
+	private Map<String, Operation<?>> operationsMap = new HashMap<>();
 	
 	public EntitySetProcessor initialize(ApplicationContext context) throws ODataApplicationException {
 		super.initialize(context);
@@ -75,6 +80,17 @@ public class EntitySetProcessor extends BaseProcessor implements EntityProcessor
 			.forEach(entry -> {
 				DataSourceProvider dataSourceProvider = entry.getValue();
 				dataSourceProviderMap.put(dataSourceProvider.isSuitableFor(), dataSourceProvider);
+			});
+		
+		context.getBeansOfType(Operation.class).entrySet()
+			.stream()
+			.forEach(entry -> {
+				Operation<?> operation = entry.getValue();
+				EdmFunction edmFunction = operation.getClass().getAnnotation(EdmFunction.class);
+				if(edmFunction != null) {
+					String operationName = edmFunction.name().isEmpty() ? operation.getClass().getSimpleName() : edmFunction.name();
+					operationsMap.put(operationName, operation);
+				}
 			});
 		
 		return this;
@@ -128,10 +144,10 @@ public class EntitySetProcessor extends BaseProcessor implements EntityProcessor
     	
     	try {
     		
-			Constructor<?> constructor = clazz.getConstructor();
-			object = constructor.newInstance();
+//			Constructor<?> constructor = clazz.getConstructor();
+//			object = constructor.newInstance();
 			
-			writeObject(clazz, object, requestEntity);
+			object = writeObject(clazz, requestEntity);
     		
     	} catch (IllegalArgumentException | IllegalAccessException | NoSuchMethodException | SecurityException | InstantiationException | InvocationTargetException e) {
 			throw new ODataApplicationException(e.getMessage(), HttpStatusCode.INTERNAL_SERVER_ERROR.getStatusCode(), Locale.ENGLISH);
@@ -259,10 +275,10 @@ public class EntitySetProcessor extends BaseProcessor implements EntityProcessor
 
     	try {
 	    	
-			Constructor<?> constructor = clazz.getConstructor();
-			object = constructor.newInstance();
+//			Constructor<?> constructor = clazz.getConstructor();
+//			object = constructor.newInstance();
 
-			writeObject(clazz, object, requestEntity);
+			object = writeObject(clazz, requestEntity);
     		
     	} catch (IllegalArgumentException | IllegalAccessException | NoSuchMethodException | SecurityException | InstantiationException | InvocationTargetException e) {
 			throw new ODataApplicationException(e.getMessage(), HttpStatusCode.INTERNAL_SERVER_ERROR.getStatusCode(), Locale.ENGLISH);
@@ -374,9 +390,130 @@ public class EntitySetProcessor extends BaseProcessor implements EntityProcessor
 	    response.setStatusCode(HttpStatusCode.OK.getStatusCode());
 	    response.setHeader(HttpHeader.CONTENT_TYPE, responseFormat.toContentTypeString());
 	}
-
+	
 	@Override
 	public void readEntityCollection(ODataRequest request, ODataResponse response, UriInfo uriInfo, ContentType responseFormat) throws ODataApplicationException, ODataLibraryException {
+		
+		final UriResource lastResourceSegment = uriInfo.getUriResourceParts().get( uriInfo.getUriResourceParts().size() - 1 );
+		
+		if(lastResourceSegment instanceof UriResourceFunction) {
+			readFunctionImportCollection(request, response, uriInfo, responseFormat);
+		} else if(lastResourceSegment instanceof UriResourceEntitySet) {
+			readEntityCollectionInternal(request, response, uriInfo, responseFormat);
+		} else {
+			throw new ODataApplicationException("Not implemented", HttpStatusCode.NOT_IMPLEMENTED.getStatusCode(), Locale.ENGLISH);
+		}
+	}
+	
+	private void readFunctionImportCollection(ODataRequest request, ODataResponse response, UriInfo uriInfo, ContentType responseFormat) throws ODataApplicationException, ODataLibraryException {
+		
+		List<UriResource> resourcePaths = uriInfo.getUriResourceParts();
+		UriResourceFunction uriResourceFunction = (UriResourceFunction) resourcePaths.get( uriInfo.getUriResourceParts().size() - 1 );
+		org.apache.olingo.commons.api.edm.EdmFunction function = uriResourceFunction.getFunction();
+		
+		String operationName = function.getName();
+		Operation<?> operation = operationsMap.get(operationName);
+		
+		Map<String, UriParameter> functionParameters = uriResourceFunction.getParameters()
+			.stream()
+			.collect(Collectors.toMap(UriParameter::getName, x -> x ));
+		
+		Class<?> clazz = operation.getClass();
+		
+		for (Field fld : clazz.getDeclaredFields()) {
+
+			EdmParameter edmParameter = fld.getAnnotation(EdmParameter.class);
+			if(edmParameter != null) {
+
+				String parameterName = edmParameter.name().isEmpty() ? fld.getName() : edmParameter.name();
+				String edmType = edmParameter.type().isEmpty() ? inferEdmType(fld) : edmParameter.type();
+				UriParameter parameter = functionParameters.get(parameterName);
+				Object value = convertEdmType(edmType, parameter.getText());
+				
+				fld.setAccessible(true);
+				try {
+					fld.set(operation, value);
+				} catch (IllegalArgumentException | IllegalAccessException e) {
+					throw new ODataApplicationException(e.getMessage(), HttpStatusCode.INTERNAL_SERVER_ERROR.getStatusCode(), Locale.ENGLISH);
+				}
+			}
+		}
+		
+		ExpandOption expandOption = uriInfo.getExpandOption();
+		
+		Map<String, UriParameter> keyPredicateMap = null;
+		EdmEntitySet edmEntitySet = null;
+		
+		if(function.isBound()) {
+			
+			UriResourceEntitySet uriResourceEntitySet = (UriResourceEntitySet) resourcePaths.get(0);
+			List<UriParameter> keyPredicates = uriResourceEntitySet.getKeyPredicates();
+			keyPredicateMap = keyPredicates.stream().collect(Collectors.toMap(UriParameter::getName, x -> x));
+			
+	    	String returnedEntitySetName = entityTypeMap.get(function.getReturnType().getType().getName());
+	    	edmEntitySet = serviceMetadata.getEdm().getEntityContainer().getEntitySet(returnedEntitySetName);
+		} else {
+			edmEntitySet = uriResourceFunction.getFunctionImport().getReturnedEntitySet();
+		}
+		
+		EntityCollection entityCollection = new EntityCollection();
+		List<Entity> result = entityCollection.getEntities();
+		
+		try {
+			Object object = operation.doOperation(function.isBound(), keyPredicateMap);
+			
+			if(Collection.class.isAssignableFrom(object.getClass())) {
+				for(Class<?> clazzIFace : object.getClass().getInterfaces()) {
+					if(List.class.isAssignableFrom(clazzIFace)) {
+						
+						@SuppressWarnings("unchecked")
+						Collection<Object> collection = (Collection<Object>) object;
+						
+						for(Object item : collection) {
+							Entity entity = writeEntity(item, expandOption);
+							result.add(entity);
+						}						
+					}
+				}
+			} else {
+				Entity entity = writeEntity(object, expandOption);
+				result.add(entity);
+			}
+			
+		} catch (ODataException | IllegalArgumentException | IllegalAccessException | NoSuchMethodException | SecurityException | InvocationTargetException e) {
+			throw new ODataApplicationException(e.getMessage(), HttpStatusCode.INTERNAL_SERVER_ERROR.getStatusCode(), Locale.ENGLISH);
+		}
+
+		
+		ODataSerializer serializer = odata.createSerializer(responseFormat);
+
+	    ContextURL contextUrl = null;
+		try {
+			contextUrl = ContextURL.with()
+					.serviceRoot(new URI(SERVICE_ROOT))
+					.entitySet(edmEntitySet)
+					.build();
+		} catch (URISyntaxException e) {
+			throw new ODataApplicationException(e.getMessage(), HttpStatusCode.BAD_REQUEST.getStatusCode(), Locale.ENGLISH);
+		}
+		
+		final String id = request.getRawBaseUri() + "/" + edmEntitySet.getName();
+		final EdmEntityType edmEntityType = (EdmEntityType) uriResourceFunction.getFunction().getReturnType().getType();
+		
+		EntityCollectionSerializerOptions opts = EntityCollectionSerializerOptions.with()
+			.id(id)
+			.contextURL(contextUrl)
+			.expand(expandOption).build();
+		
+		SerializerResult serializerResult = serializer.entityCollection(serviceMetadata, edmEntityType, entityCollection, opts);
+		InputStream serializedContent = serializerResult.getContent();
+
+		response.setContent(serializedContent);
+		response.setStatusCode(HttpStatusCode.OK.getStatusCode());
+		response.setHeader(HttpHeader.CONTENT_TYPE, responseFormat.toContentTypeString());
+	}
+	
+	private void readEntityCollectionInternal(ODataRequest request, ODataResponse response, UriInfo uriInfo, ContentType responseFormat) throws ODataApplicationException, ODataLibraryException {
 		
 		List<UriResource> resourcePaths = uriInfo.getUriResourceParts();
 		UriResourceEntitySet uriResourceEntitySet = (UriResourceEntitySet) resourcePaths.get(0);

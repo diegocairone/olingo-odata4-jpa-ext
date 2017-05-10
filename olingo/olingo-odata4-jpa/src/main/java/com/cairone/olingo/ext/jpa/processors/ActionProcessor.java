@@ -59,8 +59,10 @@ public class ActionProcessor extends BaseProcessor implements ActionEntityProces
 		.forEach(entry -> {
 			Operation<?> operation = entry.getValue();
 			EdmAction edmAction = operation.getClass().getAnnotation(EdmAction.class);
-			String operationName = edmAction.name().isEmpty() ? operation.getClass().getSimpleName() : edmAction.name();
-			operationsMap.put(operationName, operation);
+			if(edmAction != null) {
+				String operationName = edmAction.name().isEmpty() ? operation.getClass().getSimpleName() : edmAction.name();
+				operationsMap.put(operationName, operation);
+			}
 		});
 		
 		return this;
@@ -98,7 +100,7 @@ public class ActionProcessor extends BaseProcessor implements ActionEntityProces
 		String operationName = action.getName();
 		Operation<?> operation = operationsMap.get(operationName);
 		
-		Map<String, Parameter> parameters = readParameters(action, request.getBody(), requestFormat);
+		Map<String, Parameter> parameters = readActionParameters(action, request.getBody(), requestFormat);
 		Class<?> clazz = operation.getClass();
 		
 		for (Field fld : clazz.getDeclaredFields()) {
