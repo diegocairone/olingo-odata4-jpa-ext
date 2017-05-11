@@ -4,7 +4,6 @@ import java.io.Serializable;
 import java.time.LocalDate;
 import java.util.List;
 
-import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.EmbeddedId;
 import javax.persistence.Entity;
@@ -52,7 +51,7 @@ public class PersonaEntity implements Serializable {
 	@Column(name="genero", nullable = false, length = 1)
 	private GeneroEnum genero = null;
 	
-	@OneToMany(cascade=CascadeType.ALL, mappedBy="persona", fetch=FetchType.EAGER)
+	@OneToMany(orphanRemoval=true, mappedBy="persona", fetch=FetchType.EAGER)
 	private List<PersonaSectorEntity> personaSectorEntities = null;
 	
 	public PersonaEntity() {

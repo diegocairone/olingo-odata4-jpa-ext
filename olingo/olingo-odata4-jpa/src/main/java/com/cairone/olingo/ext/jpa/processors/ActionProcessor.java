@@ -104,6 +104,10 @@ public class ActionProcessor extends BaseProcessor implements ActionEntityProces
 		String operationName = action.getName();
 		Operation<?> operation = operationsMap.get(operationName);
 		
+		if(operation == null) {
+			throw new ODataApplicationException(String.format("OPERATION %s NOT FOUND", operationName), HttpStatusCode.BAD_REQUEST.getStatusCode(), Locale.ENGLISH);
+		}
+		
 		Map<String, Parameter> parameters = readActionParameters(action, request.getBody(), requestFormat);
 		Class<?> clazz = operation.getClass();
 		

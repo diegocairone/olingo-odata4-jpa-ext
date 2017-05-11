@@ -1,6 +1,9 @@
 package com.cairone.odataexample.services;
 
+import java.time.LocalDate;
 import java.util.List;
+import java.util.stream.Collectors;
+import java.util.stream.StreamSupport;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -13,6 +16,7 @@ import com.cairone.odataexample.dtos.SectorFrmDto;
 import com.cairone.odataexample.entities.PersonaEntity;
 import com.cairone.odataexample.entities.PersonaSectorEntity;
 import com.cairone.odataexample.entities.PersonaSectorPKEntity;
+import com.cairone.odataexample.entities.QPersonaSectorEntity;
 import com.cairone.odataexample.entities.SectorEntity;
 import com.cairone.odataexample.repositories.PersonaSectorRepository;
 import com.cairone.odataexample.repositories.SectorRepository;
@@ -29,6 +33,20 @@ public class SectorService {
 		
 		SectorEntity sectorEntity = sectorRepository.findOne(sectorID);
 		return sectorEntity;
+	}
+	
+	@Transactional(readOnly=true)
+	public List<SectorEntity> buscarPorPersona(PersonaEntity personaEntity) {
+		
+		QPersonaSectorEntity q = QPersonaSectorEntity.personaSectorEntity;
+		BooleanExpression exp = q.persona.eq(personaEntity);
+		Iterable<PersonaSectorEntity> iterable = personaSectorRepository.findAll(exp);
+		
+		List<SectorEntity> sectorEntities = StreamSupport.stream(iterable.spliterator(), false)
+				.map(PersonaSectorEntity::getSector)
+				.collect(Collectors.toList());
+		
+		return sectorEntities;
 	}
 
 	@Transactional(readOnly=true)
@@ -95,6 +113,20 @@ public class SectorService {
 		sectorRepository.delete(sectorEntity);
 	}
 	
+	@Transactional
+	public PersonaSectorEntity agregarPersona(SectorEntity sectorEntity, PersonaEntity personaEntity) {
+		
+		PersonaSectorEntity personaSectorEntity = new PersonaSectorEntity();
+		
+		personaSectorEntity.setPersona(personaEntity);
+		personaSectorEntity.setSector(sectorEntity);
+		personaSectorEntity.setFechaIngreso(LocalDate.now());
+		
+		personaSectorRepository.save(personaSectorEntity);
+		
+		return personaSectorEntity;
+	}
+
 	@Transactional
 	public void quitarPersona(SectorEntity sectorEntity, PersonaEntity personaEntity) {
 		

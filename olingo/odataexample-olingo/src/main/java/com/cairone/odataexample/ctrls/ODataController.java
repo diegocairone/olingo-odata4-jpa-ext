@@ -16,6 +16,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import com.cairone.olingo.ext.jpa.processors.ActionProcessor;
+import com.cairone.olingo.ext.jpa.processors.BatchRequestProcessor;
 import com.cairone.olingo.ext.jpa.processors.EntitySetProcessor;
 import com.cairone.olingo.ext.jpa.providers.OdataexampleEdmProvider;
 
@@ -27,6 +28,7 @@ public class ODataController extends HttpServlet {
 	@Autowired private OdataexampleEdmProvider odataexampleEdmProvider = null;
 	@Autowired private EntitySetProcessor entitySetProcessor = null;
 	@Autowired private ActionProcessor actionProcessor = null;
+	@Autowired private BatchRequestProcessor batchRequestProcessor = null;
 	
 	public void service(HttpServletRequest servletRequest, HttpServletResponse servletResponse) throws ServletException {
 		
@@ -38,6 +40,7 @@ public class ODataController extends HttpServlet {
 			
 			handler.register(entitySetProcessor);
 			handler.register(actionProcessor);
+			handler.register(batchRequestProcessor);
 			handler.register(new DefaultDebugSupport());
 			handler.process(servletRequest, servletResponse);
 			

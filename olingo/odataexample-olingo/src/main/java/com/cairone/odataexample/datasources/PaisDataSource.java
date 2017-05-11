@@ -16,8 +16,6 @@ import org.apache.olingo.server.api.uri.UriParameter;
 import org.apache.olingo.server.api.uri.queryoption.ExpandOption;
 import org.apache.olingo.server.api.uri.queryoption.FilterOption;
 import org.apache.olingo.server.api.uri.queryoption.OrderByOption;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.MessageSource;
 import org.springframework.stereotype.Component;
@@ -36,8 +34,6 @@ import com.cairone.olingo.ext.jpa.query.JPQLQueryBuilder;
 
 @Component
 public class PaisDataSource implements DataSource, DataSourceProvider {
-	
-	private static Logger logger = LoggerFactory.getLogger(PaisDataSource.class);
 	
 	private static final String ENTITY_SET_NAME = "Paises";
 	
@@ -177,8 +173,6 @@ public class PaisDataSource implements DataSource, DataSourceProvider {
         EntityManager em = entityManagerFactory.createEntityManager();
 
         String queryString = jpaQuery.getQueryString();
-
-    	logger.info("JPQL: {}", queryString);
     	
         Query query = em.createQuery(queryString);
         Map<String, Object> queryParams = jpaQuery.getQueryParams();

@@ -11,6 +11,7 @@ import org.springframework.context.annotation.Bean;
 
 import com.cairone.odataexample.ctrls.ODataController;
 import com.cairone.olingo.ext.jpa.processors.ActionProcessor;
+import com.cairone.olingo.ext.jpa.processors.BatchRequestProcessor;
 import com.cairone.olingo.ext.jpa.processors.EntitySetProcessor;
 import com.cairone.olingo.ext.jpa.providers.OdataexampleEdmProvider;
 
@@ -50,7 +51,13 @@ public class OdataExample extends SpringBootServletInitializer
     	
     	return processor;
     }
-
+    
+    @Bean
+    public BatchRequestProcessor getBatchRequestProcessor() {
+    	BatchRequestProcessor processor = new BatchRequestProcessor();
+    	return processor;
+    }
+    
     @Bean
     public OdataexampleEdmProvider getOdataexampleEdmProvider() throws ODataApplicationException {
     	

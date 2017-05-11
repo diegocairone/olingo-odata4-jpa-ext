@@ -3,7 +3,6 @@ package com.cairone.odataexample.entities;
 import java.time.LocalDate;
 import java.util.List;
 
-import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.EmbeddedId;
 import javax.persistence.Entity;
@@ -47,7 +46,7 @@ public class UsuarioEntity {
 	@Column(name = "usuario_habilitado", nullable = false)
 	private Boolean usuarioHabilitado = null;
 
-	@OneToMany(cascade=CascadeType.ALL, mappedBy="usuario", fetch=FetchType.EAGER)
+	@OneToMany(orphanRemoval=true, mappedBy="usuario", fetch=FetchType.EAGER)
 	private List<UsuarioPermisoEntity> usuarioPermisoEntities = null;
 	
 	public UsuarioEntity() {

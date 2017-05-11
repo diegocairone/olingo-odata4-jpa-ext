@@ -57,7 +57,9 @@ public class ProvinciaDataSource implements DataSourceProvider, DataSource {
 			
 			ProvinciaEdm provinciaEdm = (ProvinciaEdm) entity;
 			ProvinciaFrmDto provinciaFrmDto = new ProvinciaFrmDto(provinciaEdm);
-
+			
+			logger.info("CREANDO PROVINCIA: [{}] {}", provinciaEdm.getId(), provinciaEdm.getNombre());
+			
 			try {
 				ValidatorUtil.validate(provinciaFrmDtoValidator, messageSource, provinciaFrmDto);
 				ProvinciaEntity provinciaEntity = provinciaService.nuevo(provinciaFrmDto);
