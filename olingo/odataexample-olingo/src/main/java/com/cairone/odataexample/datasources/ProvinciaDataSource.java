@@ -126,7 +126,8 @@ public class ProvinciaDataSource implements DataSourceProvider, DataSource {
     	try {
 			provinciaService.borrar(paisID, provinciaID);
 		} catch (Exception e) {
-			throw new ODataApplicationException("Entity not found", HttpStatusCode.NOT_FOUND.getStatusCode(), Locale.ENGLISH);
+			String message = SQLExceptionParser.parse(e);
+			throw new ODataApplicationException(message, HttpStatusCode.BAD_REQUEST.getStatusCode(), Locale.ENGLISH);
 		}
     	
     	return null;

@@ -143,11 +143,7 @@ public class EntitySetProcessor extends BaseProcessor implements EntityProcessor
     		.collect(Collectors.toMap(x -> x, x -> x));
     	
     	try {
-    		
-//			Constructor<?> constructor = clazz.getConstructor();
-//			object = constructor.newInstance();
-			
-			object = writeObject(clazz, requestEntity);
+    		object = writeObject(clazz, requestEntity);
     		
     	} catch (IllegalArgumentException | IllegalAccessException | NoSuchMethodException | SecurityException | InstantiationException | InvocationTargetException e) {
 			throw new ODataApplicationException(e.getMessage(), HttpStatusCode.INTERNAL_SERVER_ERROR.getStatusCode(), Locale.ENGLISH);
@@ -201,7 +197,9 @@ public class EntitySetProcessor extends BaseProcessor implements EntityProcessor
 	            	}
 	            }
 	    	}
-		} catch(ODataException | IllegalArgumentException | IllegalAccessException | NoSuchMethodException | SecurityException | InvocationTargetException e) {
+		} catch (ODataApplicationException e) {
+			throw e;
+		} catch (Exception e) {
 			throw new ODataApplicationException(e.getMessage(), HttpStatusCode.INTERNAL_SERVER_ERROR.getStatusCode(), Locale.ENGLISH);
 		}
 		
@@ -274,11 +272,7 @@ public class EntitySetProcessor extends BaseProcessor implements EntityProcessor
 		Object object;
 
     	try {
-	    	
-//			Constructor<?> constructor = clazz.getConstructor();
-//			object = constructor.newInstance();
-
-			object = writeObject(clazz, requestEntity);
+	    	object = writeObject(clazz, requestEntity);
     		
     	} catch (IllegalArgumentException | IllegalAccessException | NoSuchMethodException | SecurityException | InstantiationException | InvocationTargetException e) {
 			throw new ODataApplicationException(e.getMessage(), HttpStatusCode.INTERNAL_SERVER_ERROR.getStatusCode(), Locale.ENGLISH);
@@ -286,7 +280,9 @@ public class EntitySetProcessor extends BaseProcessor implements EntityProcessor
     	
 		try {
 			dataSource.update(keyPredicateMap, object, propertiesInJSON, request.getMethod().equals(HttpMethod.PUT));
-		} catch(ODataException e) {
+		} catch (ODataApplicationException e) {
+    		throw e;
+    	} catch (Exception e) {
 			throw new ODataApplicationException(e.getMessage(), HttpStatusCode.INTERNAL_SERVER_ERROR.getStatusCode(), Locale.ENGLISH);
 		}
 		
@@ -319,8 +315,10 @@ public class EntitySetProcessor extends BaseProcessor implements EntityProcessor
 		
     	try {
     		dataSource.delete(keyPredicateMap);
-		} catch (Exception e) {
-			throw new ODataApplicationException("Entity not found", HttpStatusCode.NOT_FOUND.getStatusCode(), Locale.ENGLISH);
+    	} catch (ODataApplicationException e) {
+    		throw e;
+    	} catch (Exception e) {
+			throw new ODataApplicationException(e.getMessage(), HttpStatusCode.INTERNAL_SERVER_ERROR.getStatusCode(), Locale.ENGLISH);
 		}
     	
     	response.setStatusCode(HttpStatusCode.NO_CONTENT.getStatusCode());
