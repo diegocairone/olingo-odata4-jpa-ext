@@ -12,7 +12,7 @@ import org.springframework.context.annotation.Bean;
 import com.cairone.odataexample.ctrls.ODataController;
 import com.cairone.olingo.ext.jpa.processors.ActionProcessor;
 import com.cairone.olingo.ext.jpa.processors.BatchRequestProcessor;
-import com.cairone.olingo.ext.jpa.processors.EntitySetProcessor;
+import com.cairone.olingo.ext.jpa.processors.MediaProcessor;
 import com.cairone.olingo.ext.jpa.providers.OdataexampleEdmProvider;
 
 @SpringBootApplication
@@ -31,6 +31,16 @@ public class OdataExample extends SpringBootServletInitializer
     @Autowired ODataController dispatcherServlet = null;
     
     @Bean
+    public MediaProcessor getMediaProcessor() throws ODataApplicationException {
+    	MediaProcessor mediaProcessor = new MediaProcessor()
+	    	.setDefaultEdmPackage(DEFAULT_EDM_PACKAGE)
+			.setServiceRoot(SERVICE_ROOT)
+			.initialize(context);
+    	
+    	return mediaProcessor;
+    }
+    
+    @Bean
     public ActionProcessor getActionProcessor() throws ODataApplicationException {
     	
     	ActionProcessor processor = new ActionProcessor()
@@ -40,7 +50,7 @@ public class OdataExample extends SpringBootServletInitializer
     	
     	return processor;
     }
-    
+    /*
     @Bean
     public EntitySetProcessor getEntitySetProcessor() throws ODataApplicationException {
     	
@@ -51,7 +61,7 @@ public class OdataExample extends SpringBootServletInitializer
     	
     	return processor;
     }
-    
+    */
     @Bean
     public BatchRequestProcessor getBatchRequestProcessor() {
     	BatchRequestProcessor processor = new BatchRequestProcessor();

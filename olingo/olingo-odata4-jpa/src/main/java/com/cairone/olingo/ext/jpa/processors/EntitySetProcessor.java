@@ -69,8 +69,8 @@ import com.google.common.collect.Iterables;
 
 public class EntitySetProcessor extends BaseProcessor implements EntityProcessor, EntityCollectionProcessor {
 	
-	private Map<String, DataSourceProvider> dataSourceProviderMap = new HashMap<>();
-	private Map<String, Operation<?>> operationsMap = new HashMap<>();
+	protected Map<String, DataSourceProvider> dataSourceProviderMap = new HashMap<>();
+	protected Map<String, Operation<?>> operationsMap = new HashMap<>();
 	
 	public EntitySetProcessor initialize(ApplicationContext context) throws ODataApplicationException {
 		super.initialize(context);

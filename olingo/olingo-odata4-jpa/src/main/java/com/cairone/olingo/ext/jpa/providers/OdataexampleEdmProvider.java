@@ -731,7 +731,8 @@ public class OdataexampleEdmProvider extends CsdlAbstractEdmProvider {
 			.setName(edmEntity.name())
     		.setProperties(csdlProperties)
     		.setKey(csdlPropertyRefs)
-    		.setNavigationProperties(csdlNavigationProperties);
+    		.setNavigationProperties(csdlNavigationProperties)
+    		.setHasStream(edmEntity.hasStream());
 
 		return entityType;
 	}

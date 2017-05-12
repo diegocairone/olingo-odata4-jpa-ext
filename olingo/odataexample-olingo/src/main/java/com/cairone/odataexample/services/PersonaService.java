@@ -14,6 +14,8 @@ import com.cairone.odataexample.dtos.PersonaFrmDto;
 import com.cairone.odataexample.entities.LocalidadEntity;
 import com.cairone.odataexample.entities.LocalidadPKEntity;
 import com.cairone.odataexample.entities.PersonaEntity;
+import com.cairone.odataexample.entities.PersonaFotoEntity;
+import com.cairone.odataexample.entities.PersonaFotoPKEntity;
 import com.cairone.odataexample.entities.PersonaPKEntity;
 import com.cairone.odataexample.entities.PersonaSectorEntity;
 import com.cairone.odataexample.entities.PersonaSectorPKEntity;
@@ -21,6 +23,7 @@ import com.cairone.odataexample.entities.QPersonaSectorEntity;
 import com.cairone.odataexample.entities.SectorEntity;
 import com.cairone.odataexample.entities.TipoDocumentoEntity;
 import com.cairone.odataexample.repositories.LocalidadRepository;
+import com.cairone.odataexample.repositories.PersonaFotoRepository;
 import com.cairone.odataexample.repositories.PersonaRepository;
 import com.cairone.odataexample.repositories.PersonaSectorRepository;
 import com.cairone.odataexample.repositories.TipoDocumentoRepository;
@@ -31,6 +34,7 @@ public class PersonaService {
 
 	@Autowired private PersonaRepository personaRepository = null;
 	@Autowired private PersonaSectorRepository personaSectorRepository = null;
+	@Autowired private PersonaFotoRepository personaFotoRepository = null;
 	@Autowired private LocalidadRepository localidadRepository = null;
 	@Autowired private TipoDocumentoRepository tipoDocumentoRepository = null;
 
@@ -58,6 +62,15 @@ public class PersonaService {
 				personaRepository.findAll(expression, new PageRequest(0, limit, new Sort(orderByList)));
 				
 		return pagePersonaEntity;
+	}
+	
+	@Transactional(readOnly=true)
+	public PersonaFotoEntity buscarFoto(PersonaEntity personaEntity) {
+		
+		PersonaFotoPKEntity pk = new PersonaFotoPKEntity(personaEntity);
+		PersonaFotoEntity personaFotoEntity = personaFotoRepository.findOne(pk);
+		
+		return personaFotoEntity;
 	}
 
 	@Transactional
@@ -175,6 +188,33 @@ public class PersonaService {
 		
 		if(personaSectorEntity != null) {
 			personaSectorRepository.delete(personaSectorEntity);
+		}
+	}
+	
+	@Transactional
+	public PersonaFotoEntity actualizarFoto(PersonaEntity personaEntity, byte[] foto) {
+		
+		PersonaFotoPKEntity pk = new PersonaFotoPKEntity(personaEntity);
+		PersonaFotoEntity fotoEntity = personaFotoRepository.findOne(pk);
+		
+		if(fotoEntity == null) {
+			fotoEntity = new PersonaFotoEntity(personaEntity);
+		}
+		
+		fotoEntity.setFoto(foto);
+		personaFotoRepository.save(fotoEntity);
+		
+		return fotoEntity;
+	}
+
+	@Transactional
+	public void quitarFoto(PersonaEntity personaEntity) {
+		
+		PersonaFotoPKEntity pk = new PersonaFotoPKEntity(personaEntity);
+		PersonaFotoEntity fotoEntity = personaFotoRepository.findOne(pk);
+		
+		if(fotoEntity != null) {
+			personaFotoRepository.delete(fotoEntity);
 		}
 	}
 }

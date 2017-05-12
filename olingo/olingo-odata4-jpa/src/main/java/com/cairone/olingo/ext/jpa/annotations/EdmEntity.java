@@ -56,4 +56,7 @@ public @interface EdmEntity {
      * @return container name of the entity type.
      */
     String containerName() default "";
+    
+    
+    boolean hasStream() default false;
 }

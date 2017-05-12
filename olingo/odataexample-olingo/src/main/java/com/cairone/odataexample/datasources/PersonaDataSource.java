@@ -242,4 +242,38 @@ public class PersonaDataSource implements DataSourceProvider, DataSource {
             em.close();
         }
     }
+/*
+	@Override
+	public byte[] findMediaResource(Map<String, UriParameter> keyPredicateMap) throws ODataApplicationException {
+		
+		Integer tipoDocumentoID = Integer.valueOf( keyPredicateMap.get("tipoDocumentoId").getText() );
+		String numeroDocumento = CharMatcher.is('\'').trimFrom( keyPredicateMap.get("numeroDocumento").getText() );
+    	
+    	PersonaEntity personaEntity = personaService.buscarPorId(tipoDocumentoID, numeroDocumento);
+    	byte[] foto = personaService.buscarFoto(personaEntity);
+    	
+    	return foto;
+	}
+
+	@Override
+	public void updateMediaResource(Map<String, UriParameter> keyPredicateMap, byte[] binary) throws ODataApplicationException {
+
+		Integer tipoDocumentoID = Integer.valueOf( keyPredicateMap.get("tipoDocumentoId").getText() );
+		String numeroDocumento = CharMatcher.is('\'').trimFrom( keyPredicateMap.get("numeroDocumento").getText() );
+
+    	PersonaEntity personaEntity = personaService.buscarPorId(tipoDocumentoID, numeroDocumento);
+    	
+    	personaService.actualizarFoto(personaEntity, binary);
+	}
+
+	@Override
+	public void deleteMediaResource(Map<String, UriParameter> keyPredicateMap) throws ODataApplicationException {
+
+		Integer tipoDocumentoID = Integer.valueOf( keyPredicateMap.get("tipoDocumentoId").getText() );
+		String numeroDocumento = CharMatcher.is('\'').trimFrom( keyPredicateMap.get("numeroDocumento").getText() );
+
+    	PersonaEntity personaEntity = personaService.buscarPorId(tipoDocumentoID, numeroDocumento);
+    	
+    	personaService.quitarFoto(personaEntity);
+	}*/
 }
