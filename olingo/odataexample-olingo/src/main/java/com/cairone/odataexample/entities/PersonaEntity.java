@@ -51,6 +51,9 @@ public class PersonaEntity implements Serializable {
 	@Column(name="genero", nullable = false, length = 1)
 	private GeneroEnum genero = null;
 	
+	@Column(name="uuid_foto", nullable = true, length = 36)
+	private String fotoUUID = null;
+	
 	@OneToMany(orphanRemoval=true, mappedBy="persona", fetch=FetchType.EAGER)
 	private List<PersonaSectorEntity> personaSectorEntities = null;
 	
@@ -128,6 +131,14 @@ public class PersonaEntity implements Serializable {
 
 	public void setGenero(GeneroEnum genero) {
 		this.genero = genero;
+	}
+
+	public String getFotoUUID() {
+		return fotoUUID;
+	}
+
+	public void setFotoUUID(String fotoUUID) {
+		this.fotoUUID = fotoUUID;
 	}
 
 	public List<PersonaSectorEntity> getPersonaSectorEntities() {

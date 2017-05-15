@@ -285,7 +285,7 @@ public class EntitySetProcessor extends BaseProcessor implements EntityProcessor
     	} catch (Exception e) {
 			throw new ODataApplicationException(e.getMessage(), HttpStatusCode.INTERNAL_SERVER_ERROR.getStatusCode(), Locale.ENGLISH);
 		}
-		
+
 		response.setStatusCode(HttpStatusCode.NO_CONTENT.getStatusCode());
 	}
 
@@ -593,5 +593,4 @@ public class EntitySetProcessor extends BaseProcessor implements EntityProcessor
 		response.setStatusCode(HttpStatusCode.OK.getStatusCode());
 		response.setHeader(HttpHeader.CONTENT_TYPE, responseFormat.toContentTypeString());
 	}
-
 }

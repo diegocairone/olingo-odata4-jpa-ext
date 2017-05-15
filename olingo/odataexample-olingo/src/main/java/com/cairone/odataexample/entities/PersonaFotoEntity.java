@@ -1,47 +1,40 @@
 package com.cairone.odataexample.entities;
 
+import java.util.UUID;
+
 import javax.persistence.Column;
-import javax.persistence.EmbeddedId;
 import javax.persistence.Entity;
-import javax.persistence.JoinColumn;
-import javax.persistence.JoinColumns;
+import javax.persistence.Id;
 import javax.persistence.Lob;
-import javax.persistence.MapsId;
-import javax.persistence.OneToOne;
 import javax.persistence.Table;
 
 @Entity @Table(name="personas_fotos")
 public class PersonaFotoEntity {
 
-	@EmbeddedId private PersonaFotoPKEntity pk = null;
+	@Id @Column(name="uuid_foto")
+	private String uuid = null;
 
-	@OneToOne @MapsId("personaPKEntity") @JoinColumns({
-		@JoinColumn(name="id_tipodoc", referencedColumnName = "id_tipodoc", nullable = false, insertable = false, updatable = false),
-		@JoinColumn(name="numero_documento", referencedColumnName = "numero_documento", nullable = false, insertable = false, updatable = false)
-	})
-	private PersonaEntity persona = null;
-
-	@Column(name="foto", nullable=true) @Lob
+	@Column(name="bytes_foto", nullable=true) @Lob
 	private byte[] foto = null;
 	
-	public PersonaFotoEntity() {
-		pk = new PersonaFotoPKEntity();
-	}
+	public PersonaFotoEntity() {}
 
-	public PersonaFotoEntity(PersonaEntity persona) {
+	public PersonaFotoEntity(String uuid, byte[] foto) {
 		super();
-		this.persona = persona;
-		this.pk = new PersonaFotoPKEntity(persona.getTipoDocumento(), persona.getNumeroDocumento());
+		this.uuid = uuid;
+		this.foto = foto;
 	}
 
-	public PersonaEntity getPersona() {
-		return persona;
+	public PersonaFotoEntity(byte[] foto) {
+		this(UUID.randomUUID().toString(), foto);
 	}
 
-	public void setPersona(PersonaEntity persona) {
-		this.persona = persona;
-		this.pk.setTipoDocId(persona.getTipoDocumento().getId());
-		this.pk.setNumeroDocumento(persona.getNumeroDocumento());
+	public String getUuid() {
+		return uuid;
+	}
+
+	public void setUuid(String uuid) {
+		this.uuid = uuid;
 	}
 
 	public byte[] getFoto() {
@@ -56,7 +49,7 @@ public class PersonaFotoEntity {
 	public int hashCode() {
 		final int prime = 31;
 		int result = 1;
-		result = prime * result + ((pk == null) ? 0 : pk.hashCode());
+		result = prime * result + ((uuid == null) ? 0 : uuid.hashCode());
 		return result;
 	}
 
@@ -69,11 +62,12 @@ public class PersonaFotoEntity {
 		if (getClass() != obj.getClass())
 			return false;
 		PersonaFotoEntity other = (PersonaFotoEntity) obj;
-		if (pk == null) {
-			if (other.pk != null)
+		if (uuid == null) {
+			if (other.uuid != null)
 				return false;
-		} else if (!pk.equals(other.pk))
+		} else if (!uuid.equals(other.uuid))
 			return false;
 		return true;
 	}
+
 }

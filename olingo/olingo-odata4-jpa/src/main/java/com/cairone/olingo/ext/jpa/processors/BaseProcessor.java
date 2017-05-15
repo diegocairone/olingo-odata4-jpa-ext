@@ -364,4 +364,66 @@ public class BaseProcessor implements Processor {
 			return value;
 		}
 	}
+
+	protected Entity createEntity(Object createdObject) throws ODataApplicationException {
+		
+		Entity createdEntity = new Entity();
+		
+		EdmEntity edmEntity = createdObject.getClass().getAnnotation(EdmEntity.class);
+    	String[] keys = edmEntity.key();
+    	Map<String, Object> keyValues = Arrays.asList(keys)
+    		.stream()
+    		.collect(Collectors.toMap(x -> x, x -> x));
+    	
+    	try
+    	{
+			for(Field fld : createdObject.getClass().getDeclaredFields()) {
+	
+	    		com.cairone.olingo.ext.jpa.annotations.EdmProperty edmProperty = fld.getAnnotation(com.cairone.olingo.ext.jpa.annotations.EdmProperty.class);
+				
+	            if (edmProperty != null) {
+	            	
+	            	fld.setAccessible(true);
+	            	
+	            	String name = edmProperty.name().isEmpty() ? fld.getName() : edmProperty.name();
+	            	Object value = fld.get(createdObject);
+	            	
+	            	if(value != null) {
+		            		
+		            	if(value instanceof LocalDate) {
+		            		
+		            		LocalDate localDateValue = (LocalDate) value;
+		            		createdEntity.addProperty(new Property(null, name, ValueType.PRIMITIVE, GregorianCalendar.from(localDateValue.atStartOfDay(ZoneId.systemDefault()))));
+		            	
+		            	} else if(value.getClass().isEnum()) {
+		            		
+		            		Class<?> fldClazz = fld.getType();
+		            		Method getValor = fldClazz.getMethod("getValor");
+	    					Enum<?>[] enums = (Enum<?>[]) fldClazz.getEnumConstants();
+	    					
+	    					Object rvValue = getValor.invoke(value);
+	    					
+	    					for(Enum<?> enumeration : enums) {
+	    						Object rv = getValor.invoke(enumeration);
+	    						if(rvValue.equals(rv)) {
+		    						createdEntity.addProperty(new Property(null, name, ValueType.ENUM, rv));
+		                    		break;
+	    						}
+	    					}
+		            	} else {
+		            		createdEntity.addProperty(new Property(null, name, ValueType.PRIMITIVE, value));
+		            	}
+	            	}
+	            	
+	            	if(keyValues.containsKey(name)) {
+	            		keyValues.put(name, value);
+	            	}
+	            }
+			}
+    	} catch(SecurityException | IllegalArgumentException | IllegalAccessException | NoSuchMethodException | InvocationTargetException e) {
+    		throw new ODataApplicationException(e.getMessage(), HttpStatusCode.INTERNAL_SERVER_ERROR.getStatusCode(), Locale.ENGLISH);
+    	}
+    	
+		return createdEntity;
+	}
 }

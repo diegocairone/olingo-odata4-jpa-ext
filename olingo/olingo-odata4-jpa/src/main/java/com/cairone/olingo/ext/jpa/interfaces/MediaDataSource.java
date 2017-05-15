@@ -10,6 +10,7 @@ public interface MediaDataSource {
 	String isSuitableFor();
 	
 	byte[] findMediaResource(Map<String, UriParameter> keyPredicateMap) throws ODataApplicationException;
+	Object createMediaResource(byte[] binary) throws ODataApplicationException;
 	void updateMediaResource(Map<String, UriParameter> keyPredicateMap, byte[] binary) throws ODataApplicationException;
 	//void deleteMediaResource(Map<String, UriParameter> keyPredicateMap) throws ODataApplicationException;
 	
