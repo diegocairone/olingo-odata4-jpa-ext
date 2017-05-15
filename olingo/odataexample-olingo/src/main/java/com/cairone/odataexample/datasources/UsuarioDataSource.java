@@ -1,29 +1,23 @@
 package com.cairone.odataexample.datasources;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-import org.apache.olingo.commons.api.edm.EdmProperty;
+import javax.persistence.EntityManager;
+import javax.persistence.EntityManagerFactory;
+import javax.persistence.Query;
+
 import org.apache.olingo.commons.api.ex.ODataException;
 import org.apache.olingo.commons.api.http.HttpStatusCode;
 import org.apache.olingo.server.api.ODataApplicationException;
-import org.apache.olingo.server.api.uri.UriInfoResource;
 import org.apache.olingo.server.api.uri.UriParameter;
-import org.apache.olingo.server.api.uri.UriResource;
-import org.apache.olingo.server.api.uri.UriResourcePrimitiveProperty;
 import org.apache.olingo.server.api.uri.queryoption.ExpandOption;
 import org.apache.olingo.server.api.uri.queryoption.FilterOption;
 import org.apache.olingo.server.api.uri.queryoption.OrderByOption;
-import org.apache.olingo.server.api.uri.queryoption.expression.Expression;
-import org.apache.olingo.server.api.uri.queryoption.expression.Member;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.MessageSource;
-import org.springframework.data.domain.Sort;
-import org.springframework.data.domain.Sort.Direction;
-import org.springframework.data.domain.Sort.Order;
 import org.springframework.stereotype.Component;
 
 import com.cairone.odataexample.dtos.UsuarioFrmDto;
@@ -35,6 +29,8 @@ import com.cairone.odataexample.utils.SQLExceptionParser;
 import com.cairone.odataexample.utils.ValidatorUtil;
 import com.cairone.olingo.ext.jpa.interfaces.DataSource;
 import com.cairone.olingo.ext.jpa.interfaces.DataSourceProvider;
+import com.cairone.olingo.ext.jpa.query.JPQLQuery;
+import com.cairone.olingo.ext.jpa.query.JPQLQueryBuilder;
 import com.google.common.base.CharMatcher;
 
 @Component
@@ -45,6 +41,9 @@ public class UsuarioDataSource implements DataSourceProvider, DataSource {
 	@Autowired private UsuarioService usuarioService = null;
 	@Autowired private UsuarioFrmDtoValidator usuarioFrmDtoValidator = null;
 
+	@Autowired
+    private EntityManagerFactory entityManagerFactory;
+	
 	@Autowired
 	private MessageSource messageSource = null;
 
@@ -184,28 +183,40 @@ public class UsuarioDataSource implements DataSourceProvider, DataSource {
 	@Override
 	public Iterable<?> readAll(ExpandOption expandOption, FilterOption filterOption, OrderByOption orderByOption) throws ODataException {
 
-		List<Sort.Order> orderByList = new ArrayList<Sort.Order>();
+		JPQLQuery query = new JPQLQueryBuilder()
+			.setDistinct(true)
+			.setClazz(UsuarioEdm.class)
+			.setExpandOption(expandOption)
+			.setFilterOption(filterOption)
+			.setOrderByOption(orderByOption)
+			.build();
 		
-		if(orderByOption != null) {
-			orderByOption.getOrders().forEach(orderByItem -> {
-				
-				Expression expression = orderByItem.getExpression();
-				if(expression instanceof Member){
-					
-					UriInfoResource resourcePath = ((Member)expression).getResourcePath();
-					UriResource uriResource = resourcePath.getUriResourceParts().get(0);
-					
-				    if (uriResource instanceof UriResourcePrimitiveProperty) {
-				    	EdmProperty edmProperty = ((UriResourcePrimitiveProperty)uriResource).getProperty();
-						Direction direction = orderByItem.isDescending() ? Direction.DESC : Direction.ASC;
-						String property = edmProperty.getName();
-						orderByList.add(new Order(direction, property));
-				    }
-				}
-				
-			});
-		}
+		List<UsuarioEntity> usuarioEntities = executeQueryListResult(query);
+		List<UsuarioEdm> usuarioEdms = usuarioEntities.stream().map(entity -> { return new UsuarioEdm(entity); }).collect(Collectors.toList());
 		
-		return usuarioService.ejecutarConsulta(null, orderByList).stream().map(e -> new UsuarioEdm(e)).collect(Collectors.toList());
+		return usuarioEdms;
 	}
+
+    @SuppressWarnings("unchecked")
+	protected <T> List<T> executeQueryListResult(JPQLQuery jpaQuery) {
+
+        EntityManager em = entityManagerFactory.createEntityManager();
+
+        String queryString = jpaQuery.getQueryString();
+    	
+        Query query = em.createQuery(queryString);
+        Map<String, Object> queryParams = jpaQuery.getQueryParams();
+
+        try {
+        	em.getTransaction().begin();
+
+            for (Map.Entry<String, Object> entry : queryParams.entrySet()) {
+                query.setParameter(entry.getKey(), entry.getValue());
+            }
+
+            return query.getResultList();
+        } finally {
+            em.close();
+        }
+    }
 }
