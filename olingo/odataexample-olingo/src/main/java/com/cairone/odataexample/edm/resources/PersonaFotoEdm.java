@@ -1,18 +1,16 @@
 package com.cairone.odataexample.edm.resources;
 
 import com.cairone.odataexample.OdataExample;
+import com.cairone.odataexample.entities.PersonaFotoEntity;
 import com.cairone.olingo.ext.jpa.annotations.EdmEntity;
 import com.cairone.olingo.ext.jpa.annotations.EdmEntitySet;
 import com.cairone.olingo.ext.jpa.annotations.EdmProperty;
 import com.cairone.olingo.ext.jpa.annotations.ODataJPAEntity;
 
-@EdmEntity(name = "PersonaFoto", hasStream=true, key = { "uuid" }, namespace = OdataExample.NAME_SPACE, containerName = OdataExample.CONTAINER_NAME)
+@EdmEntity(name = "PersonaFoto", key = { "tipoDocumentoId", "numeroDocumento" }, namespace = OdataExample.NAME_SPACE, containerName = OdataExample.CONTAINER_NAME)
 @EdmEntitySet("PersonasFotos")
 @ODataJPAEntity("PersonaFotoEntity")
 public class PersonaFotoEdm {
-	
-	@EdmProperty(name="uuid", nullable = false)
-	private String uuid = null;
 	
 	@EdmProperty(name="numeroDocumento", nullable = false)
 	private String numeroDocumento = null;
@@ -20,19 +18,20 @@ public class PersonaFotoEdm {
 	@EdmProperty(name="tipoDocumentoId", nullable = false)
 	private Integer tipoDocumentoId = null;
 	
+	@EdmProperty(name="foto", nullable = false)
+	private byte[] foto = null;
+	
 	public PersonaFotoEdm() {}
 
-	public PersonaFotoEdm(String uuid) {
+	public PersonaFotoEdm(String numeroDocumento, Integer tipoDocumentoId, byte[] foto) {
 		super();
-		this.uuid = uuid;
+		this.numeroDocumento = numeroDocumento;
+		this.tipoDocumentoId = tipoDocumentoId;
+		this.foto = foto;
 	}
-
-	public String getUuid() {
-		return uuid;
-	}
-
-	public void setUuid(String uuid) {
-		this.uuid = uuid;
+	
+	public PersonaFotoEdm(PersonaFotoEntity personaFotoEntity) {
+		this(personaFotoEntity.getPersona().getNumeroDocumento(), personaFotoEntity.getPersona().getTipoDocumento().getId(), personaFotoEntity.getFoto());
 	}
 
 	public String getNumeroDocumento() {
@@ -51,11 +50,22 @@ public class PersonaFotoEdm {
 		this.tipoDocumentoId = tipoDocumentoId;
 	}
 
+	public byte[] getFoto() {
+		return foto;
+	}
+
+	public void setFoto(byte[] foto) {
+		this.foto = foto;
+	}
+
 	@Override
 	public int hashCode() {
 		final int prime = 31;
 		int result = 1;
-		result = prime * result + ((uuid == null) ? 0 : uuid.hashCode());
+		result = prime * result
+				+ ((numeroDocumento == null) ? 0 : numeroDocumento.hashCode());
+		result = prime * result
+				+ ((tipoDocumentoId == null) ? 0 : tipoDocumentoId.hashCode());
 		return result;
 	}
 
@@ -68,11 +78,17 @@ public class PersonaFotoEdm {
 		if (getClass() != obj.getClass())
 			return false;
 		PersonaFotoEdm other = (PersonaFotoEdm) obj;
-		if (uuid == null) {
-			if (other.uuid != null)
+		if (numeroDocumento == null) {
+			if (other.numeroDocumento != null)
 				return false;
-		} else if (!uuid.equals(other.uuid))
+		} else if (!numeroDocumento.equals(other.numeroDocumento))
+			return false;
+		if (tipoDocumentoId == null) {
+			if (other.tipoDocumentoId != null)
+				return false;
+		} else if (!tipoDocumentoId.equals(other.tipoDocumentoId))
 			return false;
 		return true;
 	}
+
 }

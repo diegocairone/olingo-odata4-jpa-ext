@@ -15,10 +15,10 @@ import com.cairone.odataexample.entities.LocalidadEntity;
 import com.cairone.odataexample.entities.LocalidadPKEntity;
 import com.cairone.odataexample.entities.PersonaEntity;
 import com.cairone.odataexample.entities.PersonaFotoEntity;
+import com.cairone.odataexample.entities.PersonaFotoPKEntity;
 import com.cairone.odataexample.entities.PersonaPKEntity;
 import com.cairone.odataexample.entities.PersonaSectorEntity;
 import com.cairone.odataexample.entities.PersonaSectorPKEntity;
-import com.cairone.odataexample.entities.QPersonaEntity;
 import com.cairone.odataexample.entities.QPersonaSectorEntity;
 import com.cairone.odataexample.entities.SectorEntity;
 import com.cairone.odataexample.entities.TipoDocumentoEntity;
@@ -46,17 +46,6 @@ public class PersonaService {
 	}
 	
 	@Transactional(readOnly=true)
-	public PersonaEntity buscarPorFotoUUID(String uuid) {
-		
-		QPersonaEntity qPersona = QPersonaEntity.personaEntity;
-		BooleanExpression exp = qPersona.fotoUUID.eq(uuid);
-		
-		PersonaEntity personaEntity = personaRepository.findOne(exp);
-		
-		return personaEntity;
-	}
-	
-	@Transactional(readOnly=true)
 	public List<PersonaEntity> ejecutarConsulta(BooleanExpression expression, List<Sort.Order> orderByList) {
 		
 		Iterable<PersonaEntity> personaEntities = orderByList == null || orderByList.size() == 0 ?
@@ -76,15 +65,12 @@ public class PersonaService {
 	}
 	
 	@Transactional(readOnly=true)
-	public PersonaFotoEntity buscarFoto(String uuid) {
-		
-		PersonaFotoEntity personaFotoEntity = personaFotoRepository.findOne(uuid);
-		return personaFotoEntity;
-	}
-
-	@Transactional(readOnly=true)
 	public PersonaFotoEntity buscarFoto(PersonaEntity personaEntity) {
-		return buscarFoto(personaEntity.getFotoUUID());
+		
+		PersonaFotoPKEntity ID = new PersonaFotoPKEntity(personaEntity);
+		PersonaFotoEntity personaFotoEntity = personaFotoRepository.findOne(ID);
+		
+		return personaFotoEntity;
 	}
 
 	@Transactional
@@ -206,68 +192,30 @@ public class PersonaService {
 	}
 	
 	@Transactional
-	public PersonaFotoEntity nuevaFoto(byte[] foto) {
+	public PersonaFotoEntity nuevaFoto(PersonaEntity personaEntity, byte[] foto) {
 		
-		PersonaFotoEntity personaFotoEntity = new PersonaFotoEntity(foto);
+		PersonaFotoPKEntity pk = new PersonaFotoPKEntity(personaEntity);
+		PersonaFotoEntity personaFotoEntity = personaFotoRepository.findOne(pk);
+		
+		if(personaFotoEntity == null) {
+			personaFotoEntity = new PersonaFotoEntity(personaEntity);
+		}
+		
+		personaFotoEntity.setFoto(foto);
 		personaFotoRepository.save(personaFotoEntity);
 		
 		return personaFotoEntity;
 	}
 	
 	@Transactional
-	public void asignarFoto(PersonaEntity personaEntity, PersonaFotoEntity personaFotoEntity) {
-		personaEntity.setFotoUUID(personaFotoEntity.getUuid());
-		personaRepository.save(personaEntity);
-	}
-	
-	@Transactional
-	public PersonaFotoEntity actualizarFoto(PersonaEntity personaEntity, byte[] foto) {
-
-		String uuid = personaEntity.getFotoUUID();
-		PersonaFotoEntity fotoEntity = uuid == null ? null : personaFotoRepository.findOne(uuid);
-		
-		if(fotoEntity == null) {
-			fotoEntity = new PersonaFotoEntity(foto);
-		} else {
-			fotoEntity.setFoto(foto);
-		}
-		
-		personaFotoRepository.save(fotoEntity);
-		
-		if(uuid == null) {
-			personaEntity.setFotoUUID(uuid);
-			personaRepository.save(personaEntity);
-		}
-		
-		return fotoEntity;
-	}
-
-	@Transactional
 	public void quitarFoto(PersonaEntity personaEntity) {
 		
-		if(personaEntity.getFotoUUID() != null) {
-			PersonaFotoEntity fotoEntity = personaFotoRepository.findOne(personaEntity.getFotoUUID());
-			personaEntity.setFotoUUID(null);
-			
-			personaRepository.save(personaEntity);
-			personaFotoRepository.delete(fotoEntity);
+		PersonaFotoPKEntity pk = new PersonaFotoPKEntity(personaEntity);
+		PersonaFotoEntity personaFotoEntity = personaFotoRepository.findOne(pk);
+		
+		if(personaFotoEntity != null) {
+			personaFotoRepository.delete(personaFotoEntity);
 		}
 	}
 	
-	@Transactional
-	public void quitarFoto(String uuid) {
-		
-		QPersonaEntity qPersona = QPersonaEntity.personaEntity;
-		BooleanExpression exp = qPersona.fotoUUID.eq(uuid);
-		
-		PersonaEntity personaEntity = personaRepository.findOne(exp);
-		
-		if(personaEntity != null) {
-			personaEntity.setFotoUUID(null);
-			personaRepository.save(personaEntity);
-		}
-		
-		PersonaFotoEntity personaFotoEntity = personaFotoRepository.findOne(uuid);
-		personaFotoRepository.delete(personaFotoEntity);
-	}
 }

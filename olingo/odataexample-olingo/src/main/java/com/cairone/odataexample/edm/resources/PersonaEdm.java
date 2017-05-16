@@ -42,9 +42,6 @@ public class PersonaEdm {
 	@EdmProperty(name="genero")
 	private GeneroOdataEnum genero = null;
 	
-	@EdmProperty(name="uuid", nullable = false, maxLength=36)
-	private String uuid = null;
-	
 	@EdmNavigationProperty(name="sectores") @ODataJPAProperty("personaSectorEntities")
 	private List<PersonaSectorEdm> sectores = null;
 	
@@ -52,7 +49,7 @@ public class PersonaEdm {
 		this.sectores = new ArrayList<PersonaSectorEdm>();
 	}
 
-	public PersonaEdm(Integer tipoDocumentoId, String numeroDocumento, String nombres, String apellidos, String apodo, LocalidadEdm localidad, LocalDate fechaAlta, GeneroOdataEnum genero, String uuid) {
+	public PersonaEdm(Integer tipoDocumentoId, String numeroDocumento, String nombres, String apellidos, String apodo, LocalidadEdm localidad, LocalDate fechaAlta, GeneroOdataEnum genero) {
 		super();
 		this.tipoDocumentoId = tipoDocumentoId;
 		this.numeroDocumento = numeroDocumento;
@@ -62,12 +59,11 @@ public class PersonaEdm {
 		this.localidad = localidad;
 		this.fechaAlta = fechaAlta;
 		this.genero = genero;
-		this.uuid = uuid;
 		this.sectores = new ArrayList<PersonaSectorEdm>();
 	}
 	
 	public PersonaEdm(PersonaEntity personaEntity) {
-		this(personaEntity.getTipoDocumento().getId(), personaEntity.getNumeroDocumento(), personaEntity.getNombres(), personaEntity.getApellidos(), personaEntity.getApodo(), new LocalidadEdm(personaEntity.getLocalidad()), personaEntity.getFechaAlta(), personaEntity.getGenero().toGeneroOdataEnum(), personaEntity.getFotoUUID());
+		this(personaEntity.getTipoDocumento().getId(), personaEntity.getNumeroDocumento(), personaEntity.getNombres(), personaEntity.getApellidos(), personaEntity.getApodo(), new LocalidadEdm(personaEntity.getLocalidad()), personaEntity.getFechaAlta(), personaEntity.getGenero().toGeneroOdataEnum());
 		
 		if(personaEntity.getPersonaSectorEntities() != null) {
 			this.sectores = PersonaSectorEdm.crearLista(personaEntity.getPersonaSectorEntities());
@@ -136,14 +132,6 @@ public class PersonaEdm {
 
 	public void setGenero(GeneroOdataEnum genero) {
 		this.genero = genero;
-	}
-
-	public String getUuid() {
-		return uuid;
-	}
-
-	public void setUuid(String uuid) {
-		this.uuid = uuid;
 	}
 
 	public List<PersonaSectorEdm> getSectores() {

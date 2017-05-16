@@ -424,6 +424,12 @@ public class OdataexampleEdmProvider extends CsdlAbstractEdmProvider {
 						propertyType = EdmPrimitiveTypeKind.Date.getFullQualifiedName();
 					} else if(fld.getType().isAssignableFrom(Boolean.class)) {
 						propertyType = EdmPrimitiveTypeKind.Boolean.getFullQualifiedName();
+					} else if(fld.getType().isArray()) {
+						Class<?> componentType = fld.getType().getComponentType();
+						String typeName = componentType.getName();
+						if(typeName.equals("byte")) {
+							propertyType = EdmPrimitiveTypeKind.Stream.getFullQualifiedName();
+						}
 					} else {
 						Class<?> enumClazz = fld.getType();
 						EdmEnum edmEnum = enumClazz.getAnnotation(EdmEnum.class);
@@ -443,6 +449,9 @@ public class OdataexampleEdmProvider extends CsdlAbstractEdmProvider {
 						break;
 					case "Edm.Date":
 						propertyType = EdmPrimitiveTypeKind.Date.getFullQualifiedName();
+						break;
+					case "Edm.Stream":
+						propertyType = EdmPrimitiveTypeKind.Stream.getFullQualifiedName();
 						break;
 					}
 				}

@@ -3,7 +3,6 @@ package com.cairone.odataexample.datasources;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
@@ -26,13 +25,11 @@ import com.cairone.odataexample.entities.PersonaFotoEntity;
 import com.cairone.odataexample.services.PersonaService;
 import com.cairone.olingo.ext.jpa.interfaces.DataSource;
 import com.cairone.olingo.ext.jpa.interfaces.DataSourceProvider;
-import com.cairone.olingo.ext.jpa.interfaces.MediaDataSource;
 import com.cairone.olingo.ext.jpa.query.JPQLQuery;
-import com.cairone.olingo.ext.jpa.query.JPQLQueryBuilder;
 import com.google.common.base.CharMatcher;
 
 @Component
-public class PersonaFotoDataSource implements DataSourceProvider, DataSource, MediaDataSource {
+public class PersonaFotoDataSource implements DataSourceProvider, DataSource {
 	
 	private static final String ENTITY_SET_NAME = "PersonasFotos";
 	
@@ -55,130 +52,37 @@ public class PersonaFotoDataSource implements DataSourceProvider, DataSource, Me
 	}
 	
 	@Override
-	public byte[] findMediaResource(Map<String, UriParameter> keyPredicateMap) throws ODataApplicationException {
-
-		String uuid = CharMatcher.is('\'').trimFrom( keyPredicateMap.get("uuid").getText() );
-    	PersonaFotoEntity personaFotoEntity = personaService.buscarFoto(uuid);
-
-    	if(personaFotoEntity == null) {
-    		throw new ODataApplicationException(String.format("NO EXISTE UNA FOTO DE PERSONA CON ID %s", uuid), HttpStatusCode.NOT_FOUND.getStatusCode(), Locale.ENGLISH);
-    	}
-    	
-    	byte[] foto = personaFotoEntity == null ? null : personaFotoEntity.getFoto();
-    	
-    	return foto;
-	}
-
-	@Override
-	public Object createMediaResource(byte[] binary) throws ODataApplicationException {
-		
-		PersonaFotoEntity personaFotoEntity = personaService.nuevaFoto(binary);
-		PersonaFotoEdm personaFotoEdm = new PersonaFotoEdm(personaFotoEntity.getUuid());
-		
-		return personaFotoEdm;
-	}
-
-	@Override
-	public void updateMediaResource(Map<String, UriParameter> keyPredicateMap, byte[] binary) throws ODataApplicationException {
-		
-		String uuid = CharMatcher.is('\'').trimFrom( keyPredicateMap.get("uuid").getText() );
-    	PersonaEntity personaEntity = personaService.buscarPorFotoUUID(uuid);
-    	
-    	personaService.actualizarFoto(personaEntity, binary);
-	}
-
-	@Override
 	public Object create(Object entity) throws ODataException {
 		throw new ODataApplicationException("Not implemented", HttpStatusCode.BAD_REQUEST.getStatusCode(), Locale.ENGLISH);
 	}
 
 	@Override
 	public Object update(Map<String, UriParameter> keyPredicateMap, Object entity, List<String> propertiesInJSON, boolean isPut) throws ODataException {
-		
-		if(entity instanceof PersonaFotoEdm) {
-			
-			PersonaFotoEdm personaFotoEdm = (PersonaFotoEdm) entity;
-			
-			String uuid = CharMatcher.is('\'').trimFrom( keyPredicateMap.get("uuid").getText() );
-			PersonaFotoEntity personaFotoEntity = personaService.buscarFoto(uuid);
-			
-			if(personaFotoEntity == null) {
-				throw new ODataApplicationException(String.format("NO EXISTE UNA FOTO DE PERSONA CO ID %s", uuid), HttpStatusCode.NOT_FOUND.getStatusCode(), Locale.ENGLISH);
-			} else {
-				Integer tipoDocumentoId = personaFotoEdm.getTipoDocumentoId();
-				String numeroDocumento = personaFotoEdm.getNumeroDocumento();
-				PersonaEntity personaEntity = personaService.buscarPorId(tipoDocumentoId, numeroDocumento);
-				
-				if(personaEntity == null) {
-					throw new ODataApplicationException(String.format("LA PERSONA CON ID (TIPODOCUMENTO=%s,NUMERODOCUMENTO=%s) NO EXITE", tipoDocumentoId, numeroDocumento), HttpStatusCode.NOT_FOUND.getStatusCode(), Locale.ENGLISH);
-				} else {
-					personaService.asignarFoto(personaEntity, personaFotoEntity);
-				}
-				
-				personaFotoEdm.setUuid(uuid);
-				
-				return personaFotoEdm;
-			}
-		}
-		
-		throw new ODataApplicationException("LOS DATOS NO CORRESPONDEN A LA ENTIDAD FOTO PERSONA", HttpStatusCode.BAD_REQUEST.getStatusCode(), Locale.ENGLISH);
+		throw new ODataApplicationException("Not implemented", HttpStatusCode.BAD_REQUEST.getStatusCode(), Locale.ENGLISH);
 	}
 
 	@Override
 	public Object delete(Map<String, UriParameter> keyPredicateMap) throws ODataException {
-		
-		String uuid = CharMatcher.is('\'').trimFrom( keyPredicateMap.get("uuid").getText() );
-    	
-    	try {
-    		personaService.quitarFoto(uuid);
-		} catch (Exception e) {
-			throw new ODataApplicationException(
-    			String.format("LA FOTO DE PERSONA CON ID %s NO EXITE", uuid), HttpStatusCode.NOT_FOUND.getStatusCode(), Locale.ENGLISH);
-		}
-    	
-    	return null;
+		throw new ODataApplicationException("Not implemented", HttpStatusCode.BAD_REQUEST.getStatusCode(), Locale.ENGLISH);
 	}
 	
 	@Override
 	public Object readFromKey(Map<String, UriParameter> keyPredicateMap) throws ODataException {
 		
-		String uuid = CharMatcher.is('\'').trimFrom( keyPredicateMap.get("uuid").getText() );
-    	PersonaFotoEntity personaFotoEntity = personaService.buscarFoto(uuid);
+		Integer tipoDocumentoID = Integer.valueOf( keyPredicateMap.get("tipoDocumentoId").getText() );
+		String numeroDocumento = CharMatcher.is('\'').trimFrom( keyPredicateMap.get("numeroDocumento").getText() );
     	
-    	if(personaFotoEntity == null) {
-    		throw new ODataApplicationException(
-        			String.format("LA FOTO DE PERSONA CON ID %s NO EXITE", uuid), HttpStatusCode.NOT_FOUND.getStatusCode(), Locale.ENGLISH);
-    	}
-    	
-    	PersonaEntity personaEntity = personaService.buscarPorFotoUUID(uuid);
-    	
-    	if(personaEntity == null) {
-    		throw new ODataApplicationException(
-        			String.format("LA FOTO %s NO EXITE ASOCIADA A NINGUNA PERSONA", uuid), HttpStatusCode.NOT_FOUND.getStatusCode(), Locale.ENGLISH);
-    	}
-    	
-    	PersonaFotoEdm personaFotoEdm = new PersonaFotoEdm(personaFotoEntity.getUuid());
-    	personaFotoEdm.setTipoDocumentoId(personaEntity.getTipoDocumento().getId());
-    	personaFotoEdm.setNumeroDocumento(personaEntity.getNumeroDocumento());
-    	
-    	return personaFotoEdm;
+		PersonaEntity personaEntity = personaService.buscarPorId(tipoDocumentoID, numeroDocumento);
+		
+		PersonaFotoEntity personaFotoEntity = personaService.buscarFoto(personaEntity);
+		PersonaFotoEdm personaFotoEdm = new PersonaFotoEdm(personaFotoEntity);
+		
+		return personaFotoEdm;
 	}
 
 	@Override
 	public Iterable<?> readAll(ExpandOption expandOption, FilterOption filterOption, OrderByOption orderByOption) throws ODataException {
-
-		JPQLQuery query = new JPQLQueryBuilder()
-			.setDistinct(false)
-			.setClazz(PersonaFotoEdm.class)
-			.setExpandOption(expandOption)
-			.setFilterOption(filterOption)
-			.setOrderByOption(orderByOption)
-			.build();
-	
-		List<PersonaFotoEntity> personaFotoEntities = executeQueryListResult(query);
-		List<PersonaFotoEdm> personaFotoEdms = personaFotoEntities.stream().map(entity -> { return new PersonaFotoEdm(entity.getUuid()); }).collect(Collectors.toList());
-		
-		return personaFotoEdms;
+		throw new ODataApplicationException("Not implemented", HttpStatusCode.BAD_REQUEST.getStatusCode(), Locale.ENGLISH);
 	}
 
     @SuppressWarnings("unchecked")
