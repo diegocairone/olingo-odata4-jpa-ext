@@ -176,7 +176,18 @@ public class PersonaFotoDataSource implements DataSourceProvider, DataSource, Me
 			.build();
 	
 		List<PersonaFotoEntity> personaFotoEntities = executeQueryListResult(query);
-		List<PersonaFotoEdm> personaFotoEdms = personaFotoEntities.stream().map(entity -> { return new PersonaFotoEdm(entity.getUuid()); }).collect(Collectors.toList());
+		List<PersonaFotoEdm> personaFotoEdms = personaFotoEntities.stream().map(entity -> {
+			
+			PersonaEntity personaEntity = personaService.buscarPorFotoUUID(entity.getUuid());
+			PersonaFotoEdm personaFotoEdm = new PersonaFotoEdm(entity.getUuid()); 
+			
+			if(personaEntity != null) {
+				personaFotoEdm.setTipoDocumentoId(personaEntity.getTipoDocumento().getId());
+				personaFotoEdm.setNumeroDocumento(personaEntity.getNumeroDocumento());
+			}
+			
+			return personaFotoEdm; 
+		}).collect(Collectors.toList());
 		
 		return personaFotoEdms;
 	}
