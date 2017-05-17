@@ -25,11 +25,12 @@ import com.cairone.odataexample.entities.PersonaFotoEntity;
 import com.cairone.odataexample.services.PersonaService;
 import com.cairone.olingo.ext.jpa.interfaces.DataSource;
 import com.cairone.olingo.ext.jpa.interfaces.DataSourceProvider;
+import com.cairone.olingo.ext.jpa.interfaces.MediaDataSource;
 import com.cairone.olingo.ext.jpa.query.JPQLQuery;
 import com.google.common.base.CharMatcher;
 
 @Component
-public class PersonaFotoDataSource implements DataSourceProvider, DataSource {
+public class PersonaFotoDataSource implements DataSourceProvider, DataSource, MediaDataSource {
 	
 	private static final String ENTITY_SET_NAME = "PersonasFotos";
 	
@@ -107,4 +108,30 @@ public class PersonaFotoDataSource implements DataSourceProvider, DataSource {
             em.close();
         }
     }
+
+	@Override
+	public byte[] findMediaResource(Map<String, UriParameter> keyPredicateMap) throws ODataApplicationException {
+		
+		Integer tipoDocumentoID = Integer.valueOf( keyPredicateMap.get("tipoDocumentoId").getText() );
+		String numeroDocumento = CharMatcher.is('\'').trimFrom( keyPredicateMap.get("numeroDocumento").getText() );
+    	
+		PersonaEntity personaEntity = personaService.buscarPorId(tipoDocumentoID, numeroDocumento);
+		PersonaFotoEntity personaFotoEntity = personaService.buscarFoto(personaEntity);
+		
+		return personaFotoEntity.getFoto();
+	}
+
+	@Override
+	public Object createMediaResource(byte[] binary)
+			throws ODataApplicationException {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public void updateMediaResource(Map<String, UriParameter> keyPredicateMap,
+			byte[] binary) throws ODataApplicationException {
+		// TODO Auto-generated method stub
+		
+	}
 }

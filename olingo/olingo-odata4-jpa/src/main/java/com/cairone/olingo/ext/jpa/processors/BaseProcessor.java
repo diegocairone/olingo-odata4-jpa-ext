@@ -13,7 +13,6 @@ import java.time.LocalDate;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.Arrays;
-import java.util.Base64;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.GregorianCalendar;
@@ -24,7 +23,6 @@ import java.util.Map.Entry;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import org.apache.commons.codec.binary.StringUtils;
 import org.apache.olingo.commons.api.data.Entity;
 import org.apache.olingo.commons.api.data.EntityCollection;
 import org.apache.olingo.commons.api.data.Link;
@@ -176,9 +174,22 @@ public class BaseProcessor implements Processor {
 							}
 						}
 	            	} else if(value instanceof byte[]) {
-	            		String encoded = StringUtils.newStringUtf8(org.apache.commons.codec.binary.Base64.encodeBase64((byte[])value));
-	            		//String encoded = Base64.getEncoder().encodeToString((byte[])value);
-	            		entity.addProperty(new Property(null, name, ValueType.PRIMITIVE, "data:" + encoded));
+	            		
+	            		Entity streamEntity = new Entity();
+	            		streamEntity.setType("Edm.Stream");
+	            		
+            			try {
+							streamEntity.setMediaContentSource(new URI("/" + name));
+						} catch (URISyntaxException e) {
+							throw new ODataApplicationException(e.getMessage(), HttpStatusCode.INTERNAL_SERVER_ERROR.getStatusCode(), Locale.ENGLISH);
+						}
+	            		
+	            		Link link = new Link();
+						link.setTitle(name);
+						link.setInlineEntity(streamEntity);
+						
+						entity.getNavigationLinks().add(link);
+						
 	            	} else {
 	            		entity.addProperty(new Property(null, name, ValueType.PRIMITIVE, value));
 	            	}

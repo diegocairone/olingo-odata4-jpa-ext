@@ -13,6 +13,7 @@ import com.cairone.odataexample.ctrls.ODataController;
 import com.cairone.olingo.ext.jpa.processors.ActionProcessor;
 import com.cairone.olingo.ext.jpa.processors.BatchRequestProcessor;
 import com.cairone.olingo.ext.jpa.processors.MediaProcessor;
+import com.cairone.olingo.ext.jpa.processors.PrimitiveProcessorImpl;
 import com.cairone.olingo.ext.jpa.providers.OdataexampleEdmProvider;
 
 @SpringBootApplication
@@ -62,6 +63,18 @@ public class OdataExample extends SpringBootServletInitializer
     	return processor;
     }
     */
+
+    @Bean
+    public PrimitiveProcessorImpl getPrimitiveProcessorImpl() throws ODataApplicationException {
+    	
+    	PrimitiveProcessorImpl primitiveProcessorImpl = new PrimitiveProcessorImpl()
+    		.setDefaultEdmPackage(DEFAULT_EDM_PACKAGE)
+    		.setServiceRoot(SERVICE_ROOT)
+    		.initialize(context);
+    	
+    	return primitiveProcessorImpl;
+    }
+    
     @Bean
     public BatchRequestProcessor getBatchRequestProcessor() {
     	BatchRequestProcessor processor = new BatchRequestProcessor();
