@@ -6,17 +6,21 @@ import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.lang.reflect.ParameterizedType;
+import java.lang.reflect.Type;
 import java.math.BigDecimal;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.time.LocalDate;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.GregorianCalendar;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
@@ -292,21 +296,33 @@ public class BaseProcessor implements Processor {
         		Class<?> fieldClass = fld.getType();
 
 				if(Collection.class.isAssignableFrom(fieldClass)) {
-					//FIXME
-				} else {
-
+					
+					Link link = entity.getNavigationLink(propertyName);
+					EntityCollection entityCollection = link.getInlineEntitySet();
+					
+					List<Entity> entities = entityCollection.getEntities();
+					
+					ParameterizedType listType = (ParameterizedType) fld.getGenericType();
+					Type type = listType.getActualTypeArguments()[0];
+			        Class<?> inlineClazz = (Class<?>) type;
+			        
+			        ArrayList<Object> inlineObjectCollection = new ArrayList<Object>();
+					
+					for(Entity inlineEntity : entities) {
+						Object inlineObject = writeObject(inlineClazz, inlineEntity);
+						inlineObjectCollection.add(inlineObject);
+					}
+					
 					fld.setAccessible(true);
-//					Object navpropField = fld.get(object);
-
+					fld.set(object, inlineObjectCollection);
+			        
+				} else {
+					
+					fld.setAccessible(true);
+					
 					com.cairone.olingo.ext.jpa.annotations.EdmEntitySet targetEdmEntitySet = fieldClass.getAnnotation(com.cairone.olingo.ext.jpa.annotations.EdmEntitySet.class);
 					String targetEntitySetName = targetEdmEntitySet.value();
 					Class<?> cl = entitySetMap.get(targetEntitySetName);
-
-//					if(navpropField == null) {
-//						Constructor<?> c = cl.getConstructor();
-//    					navpropField = c.newInstance();
-//    					fld.set(object, navpropField);
-//					}
 					
 					Link link = entity.getNavigationLink(propertyName);
 					if(link != null) {
