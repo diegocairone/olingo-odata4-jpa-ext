@@ -1,6 +1,4 @@
 /**
- * Copyright (c) 2014 All Rights Reserved by the SDL Group.
- *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -56,10 +54,4 @@ public @interface EdmEnum {
      */
     String underlyingType() default "Edm.Int32";
 
-    /**
-     * Indicates if this enum type represents a set of flags.
-     *
-     * @return {@code true} if this enum type represents a set of flags, {@code false} otherwise.
-     */
-    boolean flags() default false;
 }
