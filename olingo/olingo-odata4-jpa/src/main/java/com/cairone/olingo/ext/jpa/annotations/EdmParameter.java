@@ -18,8 +18,6 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
-import com.cairone.olingo.ext.jpa.interfaces.Facets;
-
 
 /**
  * Indicates that the field represents a Function or Action parameter.
@@ -94,7 +92,7 @@ public @interface EdmParameter {
      *
      * @return The maximum length of this parameter.
      */
-    long maxLength() default Facets.MAX_LENGTH_UNSPECIFIED;
+    long maxLength() default Long.MAX_VALUE;
 
     /**
      * The precision of this property. The following special values can be used:
@@ -108,7 +106,7 @@ public @interface EdmParameter {
      *
      * @return The precision of this property.
      */
-    long precision() default Facets.PRECISION_UNSPECIFIED;
+    long precision() default Long.MAX_VALUE;
 
     /**
      * The scale of this property. The following special values can be used:
@@ -123,7 +121,7 @@ public @interface EdmParameter {
      *
      * @return The scale of this property.
      */
-    long scale() default Facets.SCALE_UNSPECIFIED;
+    long scale() default Long.MAX_VALUE;
 
     /**
      * The spatial reference system identifier of this property. The following special values can be used:
@@ -138,7 +136,7 @@ public @interface EdmParameter {
      *
      * @return The spatial reference system identifier of this property.
      */
-    long srid() default Facets.SRID_UNSPECIFIED;
+    long srid() default Long.MAX_VALUE;
 
     /**
      * Indicates if the value of this property is Unicode encoded. If {@code false}, the value of this property

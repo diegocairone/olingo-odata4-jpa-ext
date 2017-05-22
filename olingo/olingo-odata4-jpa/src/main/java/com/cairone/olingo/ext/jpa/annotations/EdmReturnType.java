@@ -18,8 +18,6 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
-import com.cairone.olingo.ext.jpa.interfaces.Facets;
-
 /**
  * Specifies the Return Type of Action or Function.
  *
@@ -67,7 +65,7 @@ public @interface EdmReturnType {
      *
      * @return The maximum length of this return type.
      */
-    int maxLength() default Facets.MAX_LENGTH_UNSPECIFIED;
+    int maxLength() default Integer.MAX_VALUE;
 
     /**
      * The precision of this return type. The following special values can be used:
@@ -81,7 +79,7 @@ public @interface EdmReturnType {
      *
      * @return The precision of this return type.
      */
-    int precision() default Facets.PRECISION_UNSPECIFIED;
+    int precision() default Integer.MAX_VALUE;
 
     /**
      * The scale of this return type. The following special values can be used:
@@ -96,7 +94,7 @@ public @interface EdmReturnType {
      *
      * @return The scale of this return type.
      */
-    int scale() default Facets.SCALE_UNSPECIFIED;
+    int scale() default Integer.MAX_VALUE;
 
     /**
      * The spatial reference system identifier of this return type. The following special values can be used:
@@ -111,6 +109,6 @@ public @interface EdmReturnType {
      *
      * @return The spatial reference system identifier of this return type.
      */
-    long srid() default Facets.SRID_UNSPECIFIED;
+    long srid() default Integer.MAX_VALUE;
 
 }
