@@ -30,12 +30,11 @@ import com.cairone.odataexample.services.LocalidadService;
 import com.cairone.odataexample.utils.SQLExceptionParser;
 import com.cairone.odataexample.utils.ValidatorUtil;
 import com.cairone.olingo.ext.jpa.interfaces.DataSource;
-import com.cairone.olingo.ext.jpa.interfaces.DataSourceProvider;
 import com.cairone.olingo.ext.jpa.query.JPQLQuery;
 import com.cairone.olingo.ext.jpa.query.JPQLQueryBuilder;
 
 @Component
-public class LocalidadDataSource implements DataSourceProvider, DataSource {
+public class LocalidadDataSource implements DataSource {
 
 	private static Logger logger = LoggerFactory.getLogger(LocalidadDataSource.class);
 
@@ -136,11 +135,6 @@ public class LocalidadDataSource implements DataSourceProvider, DataSource {
 	@Override
 	public String isSuitableFor() {
 		return ENTITY_SET_NAME;
-	}
-
-	@Override
-	public DataSource getDataSource() {
-		return this;
 	}
 
 	@Override

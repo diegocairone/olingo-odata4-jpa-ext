@@ -31,7 +31,7 @@ import org.apache.olingo.server.api.uri.UriResource;
 import org.apache.olingo.server.api.uri.UriResourceEntitySet;
 import org.springframework.context.ApplicationContext;
 
-import com.cairone.olingo.ext.jpa.interfaces.DataSourceProvider;
+import com.cairone.olingo.ext.jpa.interfaces.DataSource;
 import com.cairone.olingo.ext.jpa.interfaces.MediaDataSource;
 
 public class MediaProcessor extends EntitySetProcessor implements MediaEntityProcessor {
@@ -64,14 +64,14 @@ public class MediaProcessor extends EntitySetProcessor implements MediaEntityPro
 	    	final UriResourceEntitySet uriResourceEntitySet = (UriResourceEntitySet) firstResoucePart;
 	    	final EdmEntitySet edmEntitySet = uriResourceEntitySet.getEntitySet();
 	    	
-	    	DataSourceProvider dataSourceProvider = dataSourceProviderMap.get(edmEntitySet.getName());
+	    	DataSource dataSource = dataSourceMap.get(edmEntitySet.getName());
 	    	
 	    	List<UriParameter> keyPredicates = uriResourceEntitySet.getKeyPredicates();
 		    Map<String, UriParameter> keyPredicateMap = keyPredicates
 					.stream()
 					.collect(Collectors.toMap(UriParameter::getName, x -> x));
 			
-		    MediaDataSource mediaDataSource = (MediaDataSource) dataSourceProvider;
+		    MediaDataSource mediaDataSource = (MediaDataSource) dataSource;
 		    
 		    try {
 				byte[] binary = mediaDataSource.findMediaResource(keyPredicateMap);
@@ -105,9 +105,9 @@ public class MediaProcessor extends EntitySetProcessor implements MediaEntityPro
 	    	final UriResourceEntitySet uriResourceEntitySet = (UriResourceEntitySet) firstResoucePart;
 	    	final EdmEntitySet edmEntitySet = uriResourceEntitySet.getEntitySet();
 	    	
-	    	DataSourceProvider dataSourceProvider = dataSourceProviderMap.get(edmEntitySet.getName());
+	    	DataSource dataSource = dataSourceMap.get(edmEntitySet.getName());
 	    	
-		    MediaDataSource mediaDataSource = (MediaDataSource) dataSourceProvider;
+		    MediaDataSource mediaDataSource = (MediaDataSource) dataSource;
 		    Entity entity;
 		    
 		    try {
@@ -164,14 +164,14 @@ public class MediaProcessor extends EntitySetProcessor implements MediaEntityPro
 	    	final UriResourceEntitySet uriResourceEntitySet = (UriResourceEntitySet) firstResoucePart;
 	    	final EdmEntitySet edmEntitySet = uriResourceEntitySet.getEntitySet();
 	    	
-	    	DataSourceProvider dataSourceProvider = dataSourceProviderMap.get(edmEntitySet.getName());
+	    	DataSource dataSource = dataSourceMap.get(edmEntitySet.getName());
 	    	
 	    	List<UriParameter> keyPredicates = uriResourceEntitySet.getKeyPredicates();
 		    Map<String, UriParameter> keyPredicateMap = keyPredicates
 					.stream()
 					.collect(Collectors.toMap(UriParameter::getName, x -> x));
 			
-		    MediaDataSource mediaDataSource = (MediaDataSource) dataSourceProvider;
+		    MediaDataSource mediaDataSource = (MediaDataSource) dataSource;
 		    
 		    try {
 		    	byte[] binary = odata.createFixedFormatDeserializer().binary(request.getBody());

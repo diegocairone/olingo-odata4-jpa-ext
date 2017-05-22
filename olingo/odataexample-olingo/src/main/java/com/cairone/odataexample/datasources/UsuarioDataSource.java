@@ -28,13 +28,12 @@ import com.cairone.odataexample.services.UsuarioService;
 import com.cairone.odataexample.utils.SQLExceptionParser;
 import com.cairone.odataexample.utils.ValidatorUtil;
 import com.cairone.olingo.ext.jpa.interfaces.DataSource;
-import com.cairone.olingo.ext.jpa.interfaces.DataSourceProvider;
 import com.cairone.olingo.ext.jpa.query.JPQLQuery;
 import com.cairone.olingo.ext.jpa.query.JPQLQueryBuilder;
 import com.google.common.base.CharMatcher;
 
 @Component
-public class UsuarioDataSource implements DataSourceProvider, DataSource {
+public class UsuarioDataSource implements DataSource {
 
 	private static final String ENTITY_SET_NAME = "Usuarios";
 	
@@ -161,11 +160,6 @@ public class UsuarioDataSource implements DataSourceProvider, DataSource {
 	@Override
 	public String isSuitableFor() {
 		return ENTITY_SET_NAME;
-	}
-
-	@Override
-	public DataSource getDataSource() {
-		return this;
 	}
 
 	@Override

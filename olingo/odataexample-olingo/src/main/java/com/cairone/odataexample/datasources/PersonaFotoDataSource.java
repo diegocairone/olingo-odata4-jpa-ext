@@ -25,14 +25,13 @@ import com.cairone.odataexample.entities.PersonaEntity;
 import com.cairone.odataexample.entities.PersonaFotoEntity;
 import com.cairone.odataexample.services.PersonaService;
 import com.cairone.olingo.ext.jpa.interfaces.DataSource;
-import com.cairone.olingo.ext.jpa.interfaces.DataSourceProvider;
 import com.cairone.olingo.ext.jpa.interfaces.MediaDataSource;
 import com.cairone.olingo.ext.jpa.query.JPQLQuery;
 import com.cairone.olingo.ext.jpa.query.JPQLQueryBuilder;
 import com.google.common.base.CharMatcher;
 
 @Component
-public class PersonaFotoDataSource implements DataSourceProvider, DataSource, MediaDataSource {
+public class PersonaFotoDataSource implements DataSource, MediaDataSource {
 	
 	private static final String ENTITY_SET_NAME = "PersonasFotos";
 	
@@ -49,11 +48,6 @@ public class PersonaFotoDataSource implements DataSourceProvider, DataSource, Me
 		return ENTITY_SET_NAME;
 	}
 
-	@Override
-	public DataSource getDataSource() {
-		return this;
-	}
-	
 	@Override
 	public byte[] findMediaResource(Map<String, UriParameter> keyPredicateMap) throws ODataApplicationException {
 

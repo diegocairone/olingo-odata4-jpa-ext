@@ -55,7 +55,7 @@ import org.springframework.context.annotation.ClassPathScanningCandidateComponen
 import org.springframework.core.type.filter.AnnotationTypeFilter;
 
 import com.cairone.olingo.ext.jpa.annotations.EdmEntity;
-import com.cairone.olingo.ext.jpa.interfaces.DataSourceProvider;
+import com.cairone.olingo.ext.jpa.interfaces.DataSource;
 
 public class BaseProcessor implements Processor {
 
@@ -455,7 +455,7 @@ public class BaseProcessor implements Processor {
 		return createdEntity;
 	}
 	
-	protected void writeNavLinksFromNavBindings(EdmEntitySet edmEntitySet, Entity requestEntity, Map<String, DataSourceProvider> dataSourceProviderMap, String rawBaseUri) throws ODataApplicationException {
+	protected void writeNavLinksFromNavBindings(EdmEntitySet edmEntitySet, Entity requestEntity, Map<String, DataSource> dataSourceMap, String rawBaseUri) throws ODataApplicationException {
 
 		List<Link> navigationBindings = requestEntity.getNavigationBindings();
 		
@@ -468,9 +468,9 @@ public class BaseProcessor implements Processor {
     			final EdmNavigationProperty edmNavigationProperty = edmEntityType.getNavigationProperty(link.getTitle());
 			    final EdmEntitySet targetEntitySet = (EdmEntitySet) edmEntitySet.getRelatedBindingTarget(link.getTitle());
 			    
-			    DataSourceProvider targetDataSourceProvider = dataSourceProviderMap.get(targetEntitySet.getName());
+			    DataSource targetDataSource = dataSourceMap.get(targetEntitySet.getName());
 
-				if(targetDataSourceProvider == null) {
+				if(targetDataSource == null) {
 					throw new ODataApplicationException(String.format("DATASOURCE PROVIDER FOR %s NOT FOUND", edmEntitySet.getName()), HttpStatusCode.INTERNAL_SERVER_ERROR.getStatusCode(), Locale.ENGLISH);
 				}
 				
@@ -505,7 +505,7 @@ public class BaseProcessor implements Processor {
 				    					.collect(Collectors.toMap(UriParameter::getName, x -> x));
 				    		    
 				    			
-				    				Object targetObject = targetDataSourceProvider.readFromKey(keyPredicateMap);
+				    				Object targetObject = targetDataSource.readFromKey(keyPredicateMap);
 				    				
 				    				if(targetObject == null) {
 				    					throw new ODataApplicationException("LA ENTIDAD SOLICITADA NO EXISTE", HttpStatusCode.NOT_FOUND.getStatusCode(), Locale.ENGLISH);
@@ -536,7 +536,7 @@ public class BaseProcessor implements Processor {
 			    					.stream()
 			    					.collect(Collectors.toMap(UriParameter::getName, x -> x));
 			    		    
-			    				Object targetObject = targetDataSourceProvider.readFromKey(keyPredicateMap);
+			    				Object targetObject = targetDataSource.readFromKey(keyPredicateMap);
 			    				
 			    				if(targetObject == null) {
 			    					throw new ODataApplicationException("LA ENTIDAD SOLICITADA NO EXISTE", HttpStatusCode.NOT_FOUND.getStatusCode(), Locale.ENGLISH);

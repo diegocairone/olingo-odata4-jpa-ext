@@ -28,12 +28,11 @@ import com.cairone.odataexample.services.PaisService;
 import com.cairone.odataexample.utils.SQLExceptionParser;
 import com.cairone.odataexample.utils.ValidatorUtil;
 import com.cairone.olingo.ext.jpa.interfaces.DataSource;
-import com.cairone.olingo.ext.jpa.interfaces.DataSourceProvider;
 import com.cairone.olingo.ext.jpa.query.JPQLQuery;
 import com.cairone.olingo.ext.jpa.query.JPQLQueryBuilder;
 
 @Component
-public class PaisDataSource implements DataSource, DataSourceProvider {
+public class PaisDataSource implements DataSource {
 	
 	private static final String ENTITY_SET_NAME = "Paises";
 	
@@ -129,11 +128,6 @@ public class PaisDataSource implements DataSource, DataSourceProvider {
     	return null;
 	}
 	
-	@Override
-	public DataSource getDataSource() {
-		return this;
-	}
-
 	@Override
 	public String isSuitableFor() {
 		return ENTITY_SET_NAME;

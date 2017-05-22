@@ -34,10 +34,9 @@ import com.cairone.odataexample.services.SectorService;
 import com.cairone.odataexample.utils.SQLExceptionParser;
 import com.cairone.odataexample.utils.ValidatorUtil;
 import com.cairone.olingo.ext.jpa.interfaces.DataSource;
-import com.cairone.olingo.ext.jpa.interfaces.DataSourceProvider;
 
 @Component
-public class SectorDataSource implements DataSourceProvider, DataSource {
+public class SectorDataSource implements DataSource {
 
 	private static final String ENTITY_SET_NAME = "Sectores";
 
@@ -127,11 +126,6 @@ public class SectorDataSource implements DataSourceProvider, DataSource {
 	@Override
 	public String isSuitableFor() {
 		return ENTITY_SET_NAME;
-	}
-
-	@Override
-	public DataSource getDataSource() {
-		return this;
 	}
 
 	@Override

@@ -63,23 +63,22 @@ import com.cairone.olingo.ext.jpa.annotations.EdmEntity;
 import com.cairone.olingo.ext.jpa.annotations.EdmFunction;
 import com.cairone.olingo.ext.jpa.annotations.EdmParameter;
 import com.cairone.olingo.ext.jpa.interfaces.DataSource;
-import com.cairone.olingo.ext.jpa.interfaces.DataSourceProvider;
 import com.cairone.olingo.ext.jpa.interfaces.Operation;
 import com.google.common.collect.Iterables;
 
 public class EntitySetProcessor extends BaseProcessor implements EntityProcessor, EntityCollectionProcessor {
 	
-	protected Map<String, DataSourceProvider> dataSourceProviderMap = new HashMap<>();
+	protected Map<String, DataSource> dataSourceMap = new HashMap<>();
 	protected Map<String, Operation<?>> operationsMap = new HashMap<>();
 	
 	public EntitySetProcessor initialize(ApplicationContext context) throws ODataApplicationException {
 		super.initialize(context);
 		
-		context.getBeansOfType(DataSourceProvider.class).entrySet()
+		context.getBeansOfType(DataSource.class).entrySet()
 			.stream()
 			.forEach(entry -> {
-				DataSourceProvider dataSourceProvider = entry.getValue();
-				dataSourceProviderMap.put(dataSourceProvider.isSuitableFor(), dataSourceProvider);
+				DataSource dataSource = entry.getValue();
+				dataSourceMap.put(dataSource.isSuitableFor(), dataSource);
 			});
 		
 		context.getBeansOfType(Operation.class).entrySet()
@@ -117,16 +116,14 @@ public class EntitySetProcessor extends BaseProcessor implements EntityProcessor
 	    EdmEntitySet edmEntitySet = uriResourceEntitySet.getEntitySet();
 		EdmEntityType edmEntityType = edmEntitySet.getEntityType();
 		
-		DataSourceProvider dataSourceProvider = dataSourceProviderMap.get(edmEntitySet.getName());
+		DataSource dataSource = dataSourceMap.get(edmEntitySet.getName());
 		
-		if(dataSourceProvider == null) {
+		if(dataSource == null) {
 			throw new ODataApplicationException(
 					String.format("DATASOURCE PROVIDER FOR %s NOT FOUND", edmEntitySet.getName()), 
 					HttpStatusCode.INTERNAL_SERVER_ERROR.getStatusCode(), 
 					Locale.ENGLISH);
 		}
-		
-		DataSource dataSource = dataSourceProvider.getDataSource();
 		
 		InputStream requestInputStream = request.getBody();
 		ODataDeserializer deserializer = this.odata.createDeserializer(requestFormat);
@@ -143,7 +140,7 @@ public class EntitySetProcessor extends BaseProcessor implements EntityProcessor
     		.collect(Collectors.toMap(x -> x, x -> x));
     	
     	
-    	writeNavLinksFromNavBindings(edmEntitySet, requestEntity, dataSourceProviderMap, request.getRawBaseUri());
+    	writeNavLinksFromNavBindings(edmEntitySet, requestEntity, dataSourceMap, request.getRawBaseUri());
     	
     	try {
     		object = writeObject(clazz, requestEntity);
@@ -245,16 +242,14 @@ public class EntitySetProcessor extends BaseProcessor implements EntityProcessor
 		EdmEntitySet edmEntitySet = uriResourceEntitySet.getEntitySet();
 		EdmEntityType edmEntityType = edmEntitySet.getEntityType();
 
-		DataSourceProvider dataSourceProvider = dataSourceProviderMap.get(edmEntitySet.getName());
+		DataSource dataSource = dataSourceMap.get(edmEntitySet.getName());
 		
-		if(dataSourceProvider == null) {
+		if(dataSource == null) {
 			throw new ODataApplicationException(
 					String.format("DATASOURCE PROVIDER FOR %s NOT FOUND", edmEntitySet.getName()), 
 					HttpStatusCode.INTERNAL_SERVER_ERROR.getStatusCode(), 
 					Locale.ENGLISH);
 		}
-		
-		DataSource dataSource = dataSourceProvider.getDataSource();
 		
 		InputStream requestInputStream = request.getBody();
 		ODataDeserializer deserializer = this.odata.createDeserializer(requestFormat);
@@ -275,7 +270,7 @@ public class EntitySetProcessor extends BaseProcessor implements EntityProcessor
 		Object object;
 
     	
-    	writeNavLinksFromNavBindings(edmEntitySet, requestEntity, dataSourceProviderMap, request.getRawBaseUri());
+    	writeNavLinksFromNavBindings(edmEntitySet, requestEntity, dataSourceMap, request.getRawBaseUri());
     	
     	try {
 	    	object = writeObject(clazz, requestEntity);
@@ -303,16 +298,14 @@ public class EntitySetProcessor extends BaseProcessor implements EntityProcessor
 		UriResourceEntitySet uriResourceEntitySet = (UriResourceEntitySet) resourcePaths.get(0);
 		EdmEntitySet edmEntitySet = uriResourceEntitySet.getEntitySet();
 		
-		DataSourceProvider dataSourceProvider = dataSourceProviderMap.get(edmEntitySet.getName());
+		DataSource dataSource = dataSourceMap.get(edmEntitySet.getName());
 		
-		if(dataSourceProvider == null) {
+		if(dataSource == null) {
 			throw new ODataApplicationException(
 					String.format("DATASOURCE PROVIDER FOR %s NOT FOUND", edmEntitySet.getName()), 
 					HttpStatusCode.INTERNAL_SERVER_ERROR.getStatusCode(), 
 					Locale.ENGLISH);
 		}
-		
-		DataSource dataSource = dataSourceProvider.getDataSource();
 		
 		List<UriParameter> keyPredicates = uriResourceEntitySet.getKeyPredicates();
 		Map<String, UriParameter> keyPredicateMap = keyPredicates
@@ -344,9 +337,9 @@ public class EntitySetProcessor extends BaseProcessor implements EntityProcessor
 	    EdmEntityType edmEntityType = edmEntitySet.getEntityType();
 	    String selectList = odata.createUriHelper().buildContextURLSelectList(edmEntityType, null, selectOption);
 	    
-		DataSourceProvider dataSourceProvider = dataSourceProviderMap.get(edmEntitySet.getName());
+		DataSource dataSource = dataSourceMap.get(edmEntitySet.getName());
 		
-		if(dataSourceProvider == null) {
+		if(dataSource == null) {
 			throw new ODataApplicationException(
 					String.format("DATASOURCE PROVIDER FOR %s NOT FOUND", edmEntitySet.getName()), 
 					HttpStatusCode.INTERNAL_SERVER_ERROR.getStatusCode(), 
@@ -361,7 +354,7 @@ public class EntitySetProcessor extends BaseProcessor implements EntityProcessor
 	    Entity entity;
 	    
 		try {
-			Object object = dataSourceProvider.readFromKey(keyPredicateMap);
+			Object object = dataSource.readFromKey(keyPredicateMap);
 			
 			if(object == null) {
 				throw new ODataApplicationException("LA ENTIDAD SOLICITADA NO EXISTE", HttpStatusCode.NOT_FOUND.getStatusCode(), Locale.ENGLISH);
@@ -536,9 +529,9 @@ public class EntitySetProcessor extends BaseProcessor implements EntityProcessor
 	    String selectList = odata.createUriHelper().buildContextURLSelectList(edmEntityType, null, selectOption);
 	    boolean count = countOption == null ? false : countOption.getValue();
 	    
-		DataSourceProvider dataSourceProvider = dataSourceProviderMap.get(edmEntitySet.getName());
+		DataSource dataSource = dataSourceMap.get(edmEntitySet.getName());
 		
-		if(dataSourceProvider == null) {
+		if(dataSource == null) {
 			throw new ODataApplicationException(
 					String.format("DATASOURCE PROVIDER FOR %s NOT FOUND", edmEntitySet.getName()), 
 					HttpStatusCode.INTERNAL_SERVER_ERROR.getStatusCode(), 
@@ -549,7 +542,7 @@ public class EntitySetProcessor extends BaseProcessor implements EntityProcessor
 		List<Entity> result = entityCollection.getEntities();
 		
 		try {
-			Iterable<?> data = dataSourceProvider.readAll(expandOption, filterOption, orderByOption);
+			Iterable<?> data = dataSource.readAll(expandOption, filterOption, orderByOption);
 			
 			if(count) entityCollection.setCount(Iterables.size(data));
 			

@@ -18,10 +18,19 @@ import java.util.Map;
 
 import org.apache.olingo.commons.api.ex.ODataException;
 import org.apache.olingo.server.api.uri.UriParameter;
+import org.apache.olingo.server.api.uri.queryoption.ExpandOption;
+import org.apache.olingo.server.api.uri.queryoption.FilterOption;
+import org.apache.olingo.server.api.uri.queryoption.OrderByOption;
 
 public interface DataSource {
 
+	String isSuitableFor();
+	
 	Object create(Object entity) throws ODataException;
 	Object update(Map<String, UriParameter> keyPredicateMap, Object entity, List<String> propertiesInJSON, boolean isPut) throws ODataException;
 	Object delete(Map<String, UriParameter> keyPredicateMap) throws ODataException;
+	
+	Object readFromKey(Map<String, UriParameter> keyPredicateMap) throws ODataException;
+	Iterable<?> readAll(ExpandOption expandOption, FilterOption filterOption, OrderByOption orderByOption) throws ODataException;
+	
 }

@@ -30,12 +30,11 @@ import com.cairone.odataexample.services.ProvinciaService;
 import com.cairone.odataexample.utils.SQLExceptionParser;
 import com.cairone.odataexample.utils.ValidatorUtil;
 import com.cairone.olingo.ext.jpa.interfaces.DataSource;
-import com.cairone.olingo.ext.jpa.interfaces.DataSourceProvider;
 import com.cairone.olingo.ext.jpa.query.JPQLQuery;
 import com.cairone.olingo.ext.jpa.query.JPQLQueryBuilder;
 
 @Component
-public class ProvinciaDataSource implements DataSourceProvider, DataSource {
+public class ProvinciaDataSource implements DataSource {
 
 	private static Logger logger = LoggerFactory.getLogger(ProvinciaDataSource.class);
 	
@@ -136,11 +135,6 @@ public class ProvinciaDataSource implements DataSourceProvider, DataSource {
 	@Override
 	public String isSuitableFor() {
 		return ENTITY_SET_NAME;
-	}
-
-	@Override
-	public DataSource getDataSource() {
-		return this;
 	}
 
 	@Override

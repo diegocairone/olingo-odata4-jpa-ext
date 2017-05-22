@@ -34,10 +34,9 @@ import com.cairone.odataexample.services.TipoDocumentoService;
 import com.cairone.odataexample.utils.SQLExceptionParser;
 import com.cairone.odataexample.utils.ValidatorUtil;
 import com.cairone.olingo.ext.jpa.interfaces.DataSource;
-import com.cairone.olingo.ext.jpa.interfaces.DataSourceProvider;
 
 @Component
-public class TipoDocumentoDataSource implements DataSourceProvider, DataSource {
+public class TipoDocumentoDataSource implements DataSource {
 
 	private static final String ENTITY_SET_NAME = "TiposDocumentos";
 
@@ -134,11 +133,6 @@ public class TipoDocumentoDataSource implements DataSourceProvider, DataSource {
 	@Override
 	public String isSuitableFor() {
 		return ENTITY_SET_NAME;
-	}
-
-	@Override
-	public DataSource getDataSource() {
-		return this;
 	}
 
 	@Override

@@ -32,13 +32,12 @@ import com.cairone.odataexample.services.PersonaService;
 import com.cairone.odataexample.utils.SQLExceptionParser;
 import com.cairone.odataexample.utils.ValidatorUtil;
 import com.cairone.olingo.ext.jpa.interfaces.DataSource;
-import com.cairone.olingo.ext.jpa.interfaces.DataSourceProvider;
 import com.cairone.olingo.ext.jpa.query.JPQLQuery;
 import com.cairone.olingo.ext.jpa.query.JPQLQueryBuilder;
 import com.google.common.base.CharMatcher;
 
 @Component
-public class PersonaDataSource implements DataSourceProvider, DataSource {
+public class PersonaDataSource implements DataSource {
 
 	private static Logger logger = LoggerFactory.getLogger(PersonaDataSource.class);
 
@@ -185,11 +184,6 @@ public class PersonaDataSource implements DataSourceProvider, DataSource {
 	}
 
 	@Override
-	public DataSource getDataSource() {
-		return this;
-	}
-
-	@Override
 	public Object readFromKey(Map<String, UriParameter> keyPredicateMap) throws ODataException {
 		
 		Integer tipoDocumentoID = Integer.valueOf( keyPredicateMap.get("tipoDocumentoId").getText() );
@@ -242,38 +236,5 @@ public class PersonaDataSource implements DataSourceProvider, DataSource {
             em.close();
         }
     }
-/*
-	@Override
-	public byte[] findMediaResource(Map<String, UriParameter> keyPredicateMap) throws ODataApplicationException {
-		
-		Integer tipoDocumentoID = Integer.valueOf( keyPredicateMap.get("tipoDocumentoId").getText() );
-		String numeroDocumento = CharMatcher.is('\'').trimFrom( keyPredicateMap.get("numeroDocumento").getText() );
-    	
-    	PersonaEntity personaEntity = personaService.buscarPorId(tipoDocumentoID, numeroDocumento);
-    	byte[] foto = personaService.buscarFoto(personaEntity);
-    	
-    	return foto;
-	}
 
-	@Override
-	public void updateMediaResource(Map<String, UriParameter> keyPredicateMap, byte[] binary) throws ODataApplicationException {
-
-		Integer tipoDocumentoID = Integer.valueOf( keyPredicateMap.get("tipoDocumentoId").getText() );
-		String numeroDocumento = CharMatcher.is('\'').trimFrom( keyPredicateMap.get("numeroDocumento").getText() );
-
-    	PersonaEntity personaEntity = personaService.buscarPorId(tipoDocumentoID, numeroDocumento);
-    	
-    	personaService.actualizarFoto(personaEntity, binary);
-	}
-
-	@Override
-	public void deleteMediaResource(Map<String, UriParameter> keyPredicateMap) throws ODataApplicationException {
-
-		Integer tipoDocumentoID = Integer.valueOf( keyPredicateMap.get("tipoDocumentoId").getText() );
-		String numeroDocumento = CharMatcher.is('\'').trimFrom( keyPredicateMap.get("numeroDocumento").getText() );
-
-    	PersonaEntity personaEntity = personaService.buscarPorId(tipoDocumentoID, numeroDocumento);
-    	
-    	personaService.quitarFoto(personaEntity);
-	}*/
 }

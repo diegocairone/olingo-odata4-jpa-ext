@@ -30,11 +30,10 @@ import com.cairone.odataexample.edm.resources.PermisoEdm;
 import com.cairone.odataexample.entities.PermisoEntity;
 import com.cairone.odataexample.services.PermisoService;
 import com.cairone.olingo.ext.jpa.interfaces.DataSource;
-import com.cairone.olingo.ext.jpa.interfaces.DataSourceProvider;
 import com.google.common.base.CharMatcher;
 
 @Component
-public class PermisoDataSource implements DataSourceProvider, DataSource {
+public class PermisoDataSource implements DataSource {
 
 	private static final String ENTITY_SET_NAME = "Permisos";
 
@@ -61,11 +60,6 @@ public class PermisoDataSource implements DataSourceProvider, DataSource {
 	@Override
 	public String isSuitableFor() {
 		return ENTITY_SET_NAME;
-	}
-
-	@Override
-	public DataSource getDataSource() {
-		return this;
 	}
 
 	@Override
