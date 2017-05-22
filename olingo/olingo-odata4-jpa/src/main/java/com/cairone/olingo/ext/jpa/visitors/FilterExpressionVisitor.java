@@ -24,8 +24,6 @@ import org.apache.olingo.server.api.uri.queryoption.expression.Literal;
 import org.apache.olingo.server.api.uri.queryoption.expression.Member;
 import org.apache.olingo.server.api.uri.queryoption.expression.MethodKind;
 import org.apache.olingo.server.api.uri.queryoption.expression.UnaryOperatorKind;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import com.cairone.olingo.ext.jpa.annotations.EdmProperty;
 import com.cairone.olingo.ext.jpa.annotations.ODataJPAProperty;
@@ -37,7 +35,6 @@ import com.google.common.primitives.Longs;
 
 public class FilterExpressionVisitor implements ExpressionVisitor<Object> {
 	
-	private static Logger logger = LoggerFactory.getLogger(FilterExpressionVisitor.class);
 	private static String DATE_FORMAT = "yyyy-MM-dd";
 	
 	private Class<?> clazz;
@@ -54,8 +51,6 @@ public class FilterExpressionVisitor implements ExpressionVisitor<Object> {
 
 	@Override
 	public Object visitBinaryOperator(BinaryOperatorKind operator, Object left, Object right) throws ExpressionVisitException, ODataApplicationException {
-		
-		logger.info("METHOD: visitBinaryOperator");
 		
 		BinaryOperatorGroup binaryOperatorGroup = BinaryOperatorGroup.from(operator);
 		BinaryOperatorConverter converter = new BinaryOperatorConverter();
@@ -111,7 +106,7 @@ public class FilterExpressionVisitor implements ExpressionVisitor<Object> {
 
 	@Override
 	public Object visitUnaryOperator(UnaryOperatorKind operator, Object operand) throws ExpressionVisitException, ODataApplicationException {
-		logger.info("METHOD: visitUnaryOperator");
+		
 		if(operator.equals(UnaryOperatorKind.NOT)) {
 			return String.format("NOT (%s)", operand.toString());
 		}
@@ -120,7 +115,6 @@ public class FilterExpressionVisitor implements ExpressionVisitor<Object> {
 
 	@Override
 	public Object visitMethodCall(MethodKind methodCall, List<Object> parameters) throws ExpressionVisitException, ODataApplicationException {
-		logger.info("METHOD: visitMethodCall");
 		
 		StringBuilder sb = new StringBuilder();
 		
@@ -165,20 +159,16 @@ public class FilterExpressionVisitor implements ExpressionVisitor<Object> {
 
 	@Override
 	public Object visitLambdaExpression(String lambdaFunction, String lambdaVariable, Expression expression) throws ExpressionVisitException, ODataApplicationException {
-		logger.info("METHOD: visitLambdaExpression");
 		return null;
 	}
 
 	@Override
 	public Object visitLiteral(Literal literal) throws ExpressionVisitException, ODataApplicationException {
-		logger.info("METHOD: visitLiteral");
 		return literal.getText();
 	}
 
 	@Override
 	public Object visitMember(Member member) throws ExpressionVisitException, ODataApplicationException {
-
-		logger.info("METHOD: visitMember");
 		
 		UriInfoResource uriInfoResource = member.getResourcePath();
 		final List<UriResource> uriResourceParts = uriInfoResource.getUriResourceParts();
@@ -207,25 +197,21 @@ public class FilterExpressionVisitor implements ExpressionVisitor<Object> {
 
 	@Override
 	public Object visitAlias(String aliasName) throws ExpressionVisitException, ODataApplicationException {
-		logger.info("METHOD: visitAlias");
 		return null;
 	}
 
 	@Override
 	public Object visitTypeLiteral(EdmType type) throws ExpressionVisitException, ODataApplicationException {
-		logger.info("METHOD: visitTypeLiteral");
 		return null;
 	}
 
 	@Override
 	public Object visitLambdaReference(String variableName) throws ExpressionVisitException, ODataApplicationException {
-		logger.info("METHOD: visitLambdaReference");
 		return null;
 	}
 
 	@Override
 	public Object visitEnum(EdmEnumType type, List<String> enumValues) throws ExpressionVisitException, ODataApplicationException {
-		logger.info("METHOD: visitEnum");
 		return null;
 	}
 	

@@ -13,7 +13,7 @@ import com.cairone.odataexample.ctrls.ODataController;
 import com.cairone.olingo.ext.jpa.processors.ActionProcessor;
 import com.cairone.olingo.ext.jpa.processors.BatchRequestProcessor;
 import com.cairone.olingo.ext.jpa.processors.MediaProcessor;
-import com.cairone.olingo.ext.jpa.providers.OdataexampleEdmProvider;
+import com.cairone.olingo.ext.jpa.providers.EdmProvider;
 
 @SpringBootApplication
 public class OdataExample extends SpringBootServletInitializer
@@ -21,7 +21,6 @@ public class OdataExample extends SpringBootServletInitializer
 	public static final String NAME_SPACE = "com.cairone.odataexample";
 	public static final String CONTAINER_NAME = "ODataExample";
 	public static final String SERVICE_ROOT = "http://localhost:8080/odata/appexample.svc/";
-	//public static final String DEFAULT_EDM_PACKAGE = "com.cairone.odataexample.edm.resources";
 	public static final String DEFAULT_EDM_PACKAGE = "com.cairone.odataexample.edm";
 	
     public static void main( String[] args ) {
@@ -51,18 +50,7 @@ public class OdataExample extends SpringBootServletInitializer
     	
     	return processor;
     }
-    /*
-    @Bean
-    public EntitySetProcessor getEntitySetProcessor() throws ODataApplicationException {
-    	
-    	EntitySetProcessor processor = new EntitySetProcessor()
-    		.setDefaultEdmPackage(DEFAULT_EDM_PACKAGE)
-    		.setServiceRoot(SERVICE_ROOT)
-    		.initialize(context);
-    	
-    	return processor;
-    }
-    */
+    
     @Bean
     public BatchRequestProcessor getBatchRequestProcessor() {
     	BatchRequestProcessor processor = new BatchRequestProcessor();
@@ -70,9 +58,9 @@ public class OdataExample extends SpringBootServletInitializer
     }
     
     @Bean
-    public OdataexampleEdmProvider getOdataexampleEdmProvider() throws ODataApplicationException {
+    public EdmProvider getOdataexampleEdmProvider() throws ODataApplicationException {
     	
-    	OdataexampleEdmProvider provider = new OdataexampleEdmProvider()
+    	EdmProvider provider = new EdmProvider()
     		.setContainerName(CONTAINER_NAME)
     		.setDefaultEdmPackage(DEFAULT_EDM_PACKAGE)
     		.setNameSpace(NAME_SPACE)

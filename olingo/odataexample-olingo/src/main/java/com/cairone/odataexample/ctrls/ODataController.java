@@ -18,14 +18,14 @@ import org.springframework.stereotype.Component;
 import com.cairone.olingo.ext.jpa.processors.ActionProcessor;
 import com.cairone.olingo.ext.jpa.processors.BatchRequestProcessor;
 import com.cairone.olingo.ext.jpa.processors.MediaProcessor;
-import com.cairone.olingo.ext.jpa.providers.OdataexampleEdmProvider;
+import com.cairone.olingo.ext.jpa.providers.EdmProvider;
 
 @Component 
 public class ODataController extends HttpServlet {
 
 	private static final long serialVersionUID = 1L;
 	
-	@Autowired private OdataexampleEdmProvider odataexampleEdmProvider = null;
+	@Autowired private EdmProvider odataexampleEdmProvider = null;
 	@Autowired private ActionProcessor actionProcessor = null;
 	@Autowired private BatchRequestProcessor batchRequestProcessor = null;
 	

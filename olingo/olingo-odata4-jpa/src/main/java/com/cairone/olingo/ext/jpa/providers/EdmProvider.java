@@ -57,7 +57,7 @@ import com.cairone.olingo.ext.jpa.annotations.EdmParameter;
 import com.cairone.olingo.ext.jpa.annotations.EdmProperty;
 import com.cairone.olingo.ext.jpa.annotations.EdmReturnType;
 
-public class OdataexampleEdmProvider extends CsdlAbstractEdmProvider {
+public class EdmProvider extends CsdlAbstractEdmProvider {
 
 	private String NAME_SPACE = null;
 	private String CONTAINER_NAME = null;
@@ -72,7 +72,7 @@ public class OdataexampleEdmProvider extends CsdlAbstractEdmProvider {
 	private HashMap<String, Class<?>> functionImportsMap = new HashMap<String, Class<?>>();
 	private HashMap<String, String> entityTypesMap = new HashMap<>();
 	
-	public OdataexampleEdmProvider initialize() throws ODataApplicationException {
+	public EdmProvider initialize() throws ODataApplicationException {
 
 		ClassPathScanningCandidateComponentProvider provider = createComponentScanner(Arrays.asList(
 				EdmEntitySet.class, 
@@ -741,7 +741,7 @@ public class OdataexampleEdmProvider extends CsdlAbstractEdmProvider {
 		return NAME_SPACE;
 	}
 
-	public OdataexampleEdmProvider setNameSpace(String NameSpace) {
+	public EdmProvider setNameSpace(String NameSpace) {
 		this.NAME_SPACE = NameSpace;
 		return this;
 	}
@@ -750,7 +750,7 @@ public class OdataexampleEdmProvider extends CsdlAbstractEdmProvider {
 		return CONTAINER_NAME;
 	}
 
-	public OdataexampleEdmProvider setContainerName(String containerName) {
+	public EdmProvider setContainerName(String containerName) {
 		CONTAINER_NAME = containerName;
 		return this;
 	}
@@ -759,7 +759,7 @@ public class OdataexampleEdmProvider extends CsdlAbstractEdmProvider {
 		return SERVICE_ROOT;
 	}
 
-	public OdataexampleEdmProvider setServiceRoot(String ServiceRoot) {
+	public EdmProvider setServiceRoot(String ServiceRoot) {
 		SERVICE_ROOT = ServiceRoot;
 		return this;
 	}
@@ -768,7 +768,7 @@ public class OdataexampleEdmProvider extends CsdlAbstractEdmProvider {
 		return DEFAULT_EDM_PACKAGE;
 	}
 
-	public OdataexampleEdmProvider setDefaultEdmPackage(String DefaultEdmPackage) {
+	public EdmProvider setDefaultEdmPackage(String DefaultEdmPackage) {
 		DEFAULT_EDM_PACKAGE = DefaultEdmPackage;
 		return this;
 	}
