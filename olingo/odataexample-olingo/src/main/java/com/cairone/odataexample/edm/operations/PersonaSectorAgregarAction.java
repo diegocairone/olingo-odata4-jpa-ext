@@ -1,4 +1,4 @@
-package com.cairone.odataexample.edm.resources;
+package com.cairone.odataexample.edm.operations;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -11,6 +11,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import com.cairone.odataexample.OdataExample;
+import com.cairone.odataexample.edm.resources.PersonaSectorEdm;
 import com.cairone.odataexample.entities.PersonaEntity;
 import com.cairone.odataexample.entities.PersonaSectorEntity;
 import com.cairone.odataexample.entities.SectorEntity;

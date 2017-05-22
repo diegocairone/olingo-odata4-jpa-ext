@@ -1,4 +1,4 @@
-package com.cairone.odataexample.edm.resources;
+package com.cairone.odataexample.edm.operations;
 
 import java.util.List;
 import java.util.Locale;
@@ -12,6 +12,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import com.cairone.odataexample.OdataExample;
+import com.cairone.odataexample.edm.resources.UsuarioEdm;
 import com.cairone.odataexample.entities.PermisoEntity;
 import com.cairone.odataexample.entities.UsuarioEntity;
 import com.cairone.odataexample.services.PermisoService;

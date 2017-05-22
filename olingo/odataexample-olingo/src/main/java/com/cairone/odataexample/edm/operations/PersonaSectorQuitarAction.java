@@ -1,4 +1,4 @@
-package com.cairone.odataexample.edm.resources;
+package com.cairone.odataexample.edm.operations;
 
 import java.util.Locale;
 import java.util.Map;

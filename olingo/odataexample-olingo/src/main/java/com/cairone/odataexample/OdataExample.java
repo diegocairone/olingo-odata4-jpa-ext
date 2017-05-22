@@ -21,7 +21,8 @@ public class OdataExample extends SpringBootServletInitializer
 	public static final String NAME_SPACE = "com.cairone.odataexample";
 	public static final String CONTAINER_NAME = "ODataExample";
 	public static final String SERVICE_ROOT = "http://localhost:8080/odata/appexample.svc/";
-	public static final String DEFAULT_EDM_PACKAGE = "com.cairone.odataexample.edm.resources";
+	//public static final String DEFAULT_EDM_PACKAGE = "com.cairone.odataexample.edm.resources";
+	public static final String DEFAULT_EDM_PACKAGE = "com.cairone.odataexample.edm";
 	
     public static void main( String[] args ) {
         SpringApplication.run(OdataExample.class, args);
