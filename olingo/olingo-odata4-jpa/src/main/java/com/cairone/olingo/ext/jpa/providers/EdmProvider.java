@@ -773,6 +773,34 @@ public class EdmProvider extends CsdlAbstractEdmProvider {
 		return this;
 	}
 
+	public HashMap<String, Class<?>> getEntitySetsMap() {
+		return entitySetsMap;
+	}
+
+	public HashMap<String, Class<?>> getEnumsMap() {
+		return enumsMap;
+	}
+
+	public HashMap<String, Class<?>> getActionsMap() {
+		return actionsMap;
+	}
+
+	public HashMap<String, Class<?>> getActionImportsMap() {
+		return actionImportsMap;
+	}
+
+	public HashMap<String, Class<?>> getFunctionsMap() {
+		return functionsMap;
+	}
+
+	public HashMap<String, Class<?>> getFunctionImportsMap() {
+		return functionImportsMap;
+	}
+
+	public HashMap<String, String> getEntityTypesMap() {
+		return entityTypesMap;
+	}
+
 	private FullQualifiedName getFullQualifiedName(String namespace, String name) {
 		if(name.startsWith("Collection")) {
 			name = name.subSequence(name.indexOf('(') + 1, name.length() - 1).toString();
