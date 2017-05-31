@@ -5,9 +5,7 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
-import javax.persistence.Query;
 
 import org.apache.olingo.commons.api.ex.ODataException;
 import org.apache.olingo.commons.api.http.HttpStatusCode;
@@ -155,32 +153,9 @@ public class PaisDataSource implements DataSource {
 			.setOrderByOption(orderByOption)
 			.build();
 		
-		List<PaisEntity> paisEntities = executeQueryListResult(query);
+		List<PaisEntity> paisEntities = JPQLQuery.execute(entityManagerFactory, query);
 		List<PaisEdm> paisEdms = paisEntities.stream().map(entity -> { return new PaisEdm(entity); }).collect(Collectors.toList());
 		
 		return paisEdms;
 	}
-
-    @SuppressWarnings("unchecked")
-	protected <T> List<T> executeQueryListResult(JPQLQuery jpaQuery) {
-
-        EntityManager em = entityManagerFactory.createEntityManager();
-
-        String queryString = jpaQuery.getQueryString();
-    	
-        Query query = em.createQuery(queryString);
-        Map<String, Object> queryParams = jpaQuery.getQueryParams();
-
-        try {
-        	em.getTransaction().begin();
-
-            for (Map.Entry<String, Object> entry : queryParams.entrySet()) {
-                query.setParameter(entry.getKey(), entry.getValue());
-            }
-
-            return query.getResultList();
-        } finally {
-            em.close();
-        }
-    }
 }

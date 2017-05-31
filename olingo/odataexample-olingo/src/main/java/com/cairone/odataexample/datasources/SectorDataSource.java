@@ -1,29 +1,21 @@
 package com.cairone.odataexample.datasources;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-import org.apache.olingo.commons.api.edm.EdmProperty;
+import javax.persistence.EntityManagerFactory;
+
 import org.apache.olingo.commons.api.ex.ODataException;
 import org.apache.olingo.commons.api.http.HttpStatusCode;
 import org.apache.olingo.server.api.ODataApplicationException;
-import org.apache.olingo.server.api.uri.UriInfoResource;
 import org.apache.olingo.server.api.uri.UriParameter;
-import org.apache.olingo.server.api.uri.UriResource;
-import org.apache.olingo.server.api.uri.UriResourcePrimitiveProperty;
 import org.apache.olingo.server.api.uri.queryoption.ExpandOption;
 import org.apache.olingo.server.api.uri.queryoption.FilterOption;
 import org.apache.olingo.server.api.uri.queryoption.OrderByOption;
-import org.apache.olingo.server.api.uri.queryoption.expression.Expression;
-import org.apache.olingo.server.api.uri.queryoption.expression.Member;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.MessageSource;
-import org.springframework.data.domain.Sort;
-import org.springframework.data.domain.Sort.Direction;
-import org.springframework.data.domain.Sort.Order;
 import org.springframework.stereotype.Component;
 
 import com.cairone.odataexample.dtos.SectorFrmDto;
@@ -34,6 +26,8 @@ import com.cairone.odataexample.services.SectorService;
 import com.cairone.odataexample.utils.SQLExceptionParser;
 import com.cairone.odataexample.utils.ValidatorUtil;
 import com.cairone.olingo.ext.jpa.interfaces.DataSource;
+import com.cairone.olingo.ext.jpa.query.JPQLQuery;
+import com.cairone.olingo.ext.jpa.query.JPQLQueryBuilder;
 
 @Component
 public class SectorDataSource implements DataSource {
@@ -42,6 +36,9 @@ public class SectorDataSource implements DataSource {
 
 	@Autowired private SectorService sectorService = null;
 	@Autowired private SectorFrmDtoValidator sectorFrmDtoValidator = null;
+	
+	@Autowired
+    private EntityManagerFactory entityManagerFactory;
 	
 	@Autowired
 	private MessageSource messageSource = null;
@@ -142,28 +139,17 @@ public class SectorDataSource implements DataSource {
 	@Override
 	public Iterable<?> readAll(ExpandOption expandOption, FilterOption filterOption, OrderByOption orderByOption) throws ODataException {
 
-		List<Sort.Order> orderByList = new ArrayList<Sort.Order>();
+		JPQLQuery query = new JPQLQueryBuilder()
+			.setDistinct(true)
+			.setClazz(SectorEdm.class)
+			.setExpandOption(expandOption)
+			.setFilterOption(filterOption)
+			.setOrderByOption(orderByOption)
+			.build();
+	
+		List<SectorEntity> sectorEntities = JPQLQuery.execute(entityManagerFactory, query);
+		List<SectorEdm> sectorEdms = sectorEntities.stream().map(entity -> { return new SectorEdm(entity); }).collect(Collectors.toList());
 		
-		if(orderByOption != null) {
-			orderByOption.getOrders().forEach(orderByItem -> {
-				
-				Expression expression = orderByItem.getExpression();
-				if(expression instanceof Member){
-					
-					UriInfoResource resourcePath = ((Member)expression).getResourcePath();
-					UriResource uriResource = resourcePath.getUriResourceParts().get(0);
-					
-				    if (uriResource instanceof UriResourcePrimitiveProperty) {
-				    	EdmProperty edmProperty = ((UriResourcePrimitiveProperty)uriResource).getProperty();
-						Direction direction = orderByItem.isDescending() ? Direction.DESC : Direction.ASC;
-						String property = edmProperty.getName();
-						orderByList.add(new Order(direction, property));
-				    }
-				}
-				
-			});
-		}
-		
-		return sectorService.ejecutarConsulta(null, orderByList).stream().map(e -> new SectorEdm(e)).collect(Collectors.toList());
+		return sectorEdms;
 	}
 }

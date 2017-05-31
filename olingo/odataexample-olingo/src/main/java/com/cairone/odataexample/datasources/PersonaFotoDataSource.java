@@ -5,9 +5,7 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
-import javax.persistence.Query;
 
 import org.apache.olingo.commons.api.ex.ODataException;
 import org.apache.olingo.commons.api.http.HttpStatusCode;
@@ -169,7 +167,7 @@ public class PersonaFotoDataSource implements DataSource, MediaDataSource {
 			.setOrderByOption(orderByOption)
 			.build();
 	
-		List<PersonaFotoEntity> personaFotoEntities = executeQueryListResult(query);
+		List<PersonaFotoEntity> personaFotoEntities = JPQLQuery.execute(entityManagerFactory, query);
 		List<PersonaFotoEdm> personaFotoEdms = personaFotoEntities.stream().map(entity -> {
 			
 			PersonaEntity personaEntity = personaService.buscarPorFotoUUID(entity.getUuid());
@@ -185,27 +183,4 @@ public class PersonaFotoDataSource implements DataSource, MediaDataSource {
 		
 		return personaFotoEdms;
 	}
-
-    @SuppressWarnings("unchecked")
-	protected <T> List<T> executeQueryListResult(JPQLQuery jpaQuery) {
-
-        EntityManager em = entityManagerFactory.createEntityManager();
-
-        String queryString = jpaQuery.getQueryString();
-    	
-        Query query = em.createQuery(queryString);
-        Map<String, Object> queryParams = jpaQuery.getQueryParams();
-
-        try {
-        	em.getTransaction().begin();
-
-            for (Map.Entry<String, Object> entry : queryParams.entrySet()) {
-                query.setParameter(entry.getKey(), entry.getValue());
-            }
-
-            return query.getResultList();
-        } finally {
-            em.close();
-        }
-    }
 }

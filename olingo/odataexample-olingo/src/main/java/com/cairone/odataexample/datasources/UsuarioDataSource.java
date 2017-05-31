@@ -5,9 +5,7 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
-import javax.persistence.Query;
 
 import org.apache.olingo.commons.api.ex.ODataException;
 import org.apache.olingo.commons.api.http.HttpStatusCode;
@@ -185,32 +183,9 @@ public class UsuarioDataSource implements DataSource {
 			.setOrderByOption(orderByOption)
 			.build();
 		
-		List<UsuarioEntity> usuarioEntities = executeQueryListResult(query);
+		List<UsuarioEntity> usuarioEntities = JPQLQuery.execute(entityManagerFactory, query);
 		List<UsuarioEdm> usuarioEdms = usuarioEntities.stream().map(entity -> { return new UsuarioEdm(entity); }).collect(Collectors.toList());
 		
 		return usuarioEdms;
 	}
-
-    @SuppressWarnings("unchecked")
-	protected <T> List<T> executeQueryListResult(JPQLQuery jpaQuery) {
-
-        EntityManager em = entityManagerFactory.createEntityManager();
-
-        String queryString = jpaQuery.getQueryString();
-    	
-        Query query = em.createQuery(queryString);
-        Map<String, Object> queryParams = jpaQuery.getQueryParams();
-
-        try {
-        	em.getTransaction().begin();
-
-            for (Map.Entry<String, Object> entry : queryParams.entrySet()) {
-                query.setParameter(entry.getKey(), entry.getValue());
-            }
-
-            return query.getResultList();
-        } finally {
-            em.close();
-        }
-    }
 }
