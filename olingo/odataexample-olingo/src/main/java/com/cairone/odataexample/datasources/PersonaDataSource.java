@@ -200,7 +200,7 @@ public class PersonaDataSource implements DataSource {
 			.setOrderByOption(orderByOption)
 			.build();
 	
-		List<PersonaEntity> personaEntities = JPQLQuery.execute(entityManagerFactory, query);
+		List<PersonaEntity> personaEntities = JPQLQuery.execute(entityManagerFactory.createEntityManager(), query);
 		List<PersonaEdm> personaEdms = personaEntities.stream().map(entity -> { return new PersonaEdm(entity); }).collect(Collectors.toList());
 		
 		return personaEdms;

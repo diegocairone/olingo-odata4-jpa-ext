@@ -4,7 +4,6 @@ import java.util.List;
 import java.util.Map;
 
 import javax.persistence.EntityManager;
-import javax.persistence.EntityManagerFactory;
 import javax.persistence.Query;
 
 public final class JPQLQuery {
@@ -32,25 +31,17 @@ public final class JPQLQuery {
 	}
 
     @SuppressWarnings("unchecked")
-	public static <T> List<T> execute(EntityManagerFactory emf, JPQLQuery jpaQuery) {
-
-        EntityManager em = emf.createEntityManager();
+	public static <T> List<T> execute(EntityManager em, JPQLQuery jpaQuery) {
 
         String queryString = jpaQuery.getQueryString();
         
         Query query = em.createQuery(queryString);
         Map<String, Object> queryParams = jpaQuery.getQueryParams();
 
-        try {
-        	em.getTransaction().begin();
-
-            for (Map.Entry<String, Object> entry : queryParams.entrySet()) {
-                query.setParameter(entry.getKey(), entry.getValue());
-            }
-
-            return query.getResultList();
-        } finally {
-            em.close();
+        for (Map.Entry<String, Object> entry : queryParams.entrySet()) {
+        	query.setParameter(entry.getKey(), entry.getValue());
         }
+
+        return query.getResultList();
     }
 }

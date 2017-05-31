@@ -155,7 +155,7 @@ public class LocalidadDataSource implements DataSource {
 			.setOrderByOption(orderByOption)
 			.build();
 	
-		List<LocalidadEntity> localidadEntities = JPQLQuery.execute(entityManagerFactory, query);
+		List<LocalidadEntity> localidadEntities = JPQLQuery.execute(entityManagerFactory.createEntityManager(), query);
 		List<LocalidadEdm> localidadEdms = localidadEntities.stream().map(entity -> { return new LocalidadEdm(entity); }).collect(Collectors.toList());
 		
 		return localidadEdms;

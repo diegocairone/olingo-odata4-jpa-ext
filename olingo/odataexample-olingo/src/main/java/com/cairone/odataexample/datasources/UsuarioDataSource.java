@@ -183,7 +183,7 @@ public class UsuarioDataSource implements DataSource {
 			.setOrderByOption(orderByOption)
 			.build();
 		
-		List<UsuarioEntity> usuarioEntities = JPQLQuery.execute(entityManagerFactory, query);
+		List<UsuarioEntity> usuarioEntities = JPQLQuery.execute(entityManagerFactory.createEntityManager(), query);
 		List<UsuarioEdm> usuarioEdms = usuarioEntities.stream().map(entity -> { return new UsuarioEdm(entity); }).collect(Collectors.toList());
 		
 		return usuarioEdms;

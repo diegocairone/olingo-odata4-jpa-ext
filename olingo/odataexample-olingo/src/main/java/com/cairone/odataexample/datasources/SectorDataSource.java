@@ -147,7 +147,7 @@ public class SectorDataSource implements DataSource {
 			.setOrderByOption(orderByOption)
 			.build();
 	
-		List<SectorEntity> sectorEntities = JPQLQuery.execute(entityManagerFactory, query);
+		List<SectorEntity> sectorEntities = JPQLQuery.execute(entityManagerFactory.createEntityManager(), query);
 		List<SectorEdm> sectorEdms = sectorEntities.stream().map(entity -> { return new SectorEdm(entity); }).collect(Collectors.toList());
 		
 		return sectorEdms;

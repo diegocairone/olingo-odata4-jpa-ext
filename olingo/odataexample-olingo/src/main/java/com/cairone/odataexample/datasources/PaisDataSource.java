@@ -5,7 +5,8 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-import javax.persistence.EntityManagerFactory;
+import javax.persistence.EntityManager;
+import javax.persistence.PersistenceContext;
 
 import org.apache.olingo.commons.api.ex.ODataException;
 import org.apache.olingo.commons.api.http.HttpStatusCode;
@@ -37,8 +38,8 @@ public class PaisDataSource implements DataSource {
 	@Autowired private PaisService paisService = null;
 	@Autowired private PaisFrmDtoValidator paisFrmDtoValidator = null;
 	
-	@Autowired
-    private EntityManagerFactory entityManagerFactory;
+	@PersistenceContext
+    private EntityManager entityManager = null;
 		
 	@Autowired
 	private MessageSource messageSource = null;
@@ -153,7 +154,7 @@ public class PaisDataSource implements DataSource {
 			.setOrderByOption(orderByOption)
 			.build();
 		
-		List<PaisEntity> paisEntities = JPQLQuery.execute(entityManagerFactory, query);
+		List<PaisEntity> paisEntities = JPQLQuery.execute(entityManager, query);
 		List<PaisEdm> paisEdms = paisEntities.stream().map(entity -> { return new PaisEdm(entity); }).collect(Collectors.toList());
 		
 		return paisEdms;

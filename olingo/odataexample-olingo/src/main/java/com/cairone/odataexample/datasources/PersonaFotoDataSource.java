@@ -167,7 +167,7 @@ public class PersonaFotoDataSource implements DataSource, MediaDataSource {
 			.setOrderByOption(orderByOption)
 			.build();
 	
-		List<PersonaFotoEntity> personaFotoEntities = JPQLQuery.execute(entityManagerFactory, query);
+		List<PersonaFotoEntity> personaFotoEntities = JPQLQuery.execute(entityManagerFactory.createEntityManager(), query);
 		List<PersonaFotoEdm> personaFotoEdms = personaFotoEntities.stream().map(entity -> {
 			
 			PersonaEntity personaEntity = personaService.buscarPorFotoUUID(entity.getUuid());

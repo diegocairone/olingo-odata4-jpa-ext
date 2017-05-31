@@ -152,7 +152,7 @@ public class ProvinciaDataSource implements DataSource {
 			.setOrderByOption(orderByOption)
 			.build();
 	
-		List<ProvinciaEntity> provinciaEntities = JPQLQuery.execute(entityManagerFactory, query);
+		List<ProvinciaEntity> provinciaEntities = JPQLQuery.execute(entityManagerFactory.createEntityManager(), query);
 		List<ProvinciaEdm> provinciaEdms = provinciaEntities.stream().map(entity -> { return new ProvinciaEdm(entity); }).collect(Collectors.toList());
 		
 		return provinciaEdms;

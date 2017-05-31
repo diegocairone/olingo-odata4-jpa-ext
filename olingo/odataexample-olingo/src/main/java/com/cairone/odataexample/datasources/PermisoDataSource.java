@@ -81,7 +81,7 @@ public class PermisoDataSource implements DataSource {
 			.setOrderByOption(orderByOption)
 			.build();
 
-		List<PermisoEntity> permisoEntities = JPQLQuery.execute(entityManagerFactory, query);
+		List<PermisoEntity> permisoEntities = JPQLQuery.execute(entityManagerFactory.createEntityManager(), query);
 		List<PermisoEdm> permisoEdms = permisoEntities.stream().map(entity -> { return new PermisoEdm(entity); }).collect(Collectors.toList());
 		
 		return permisoEdms;

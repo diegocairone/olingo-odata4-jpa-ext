@@ -154,7 +154,7 @@ public class TipoDocumentoDataSource implements DataSource {
 			.setOrderByOption(orderByOption)
 			.build();
 	
-		List<TipoDocumentoEntity> tipoDocumentoEntities = JPQLQuery.execute(entityManagerFactory, query);
+		List<TipoDocumentoEntity> tipoDocumentoEntities = JPQLQuery.execute(entityManagerFactory.createEntityManager(), query);
 		List<TipoDocumentoEdm> sectorEdms = tipoDocumentoEntities.stream().map(entity -> { return new TipoDocumentoEdm(entity); }).collect(Collectors.toList());
 		
 		return sectorEdms;
