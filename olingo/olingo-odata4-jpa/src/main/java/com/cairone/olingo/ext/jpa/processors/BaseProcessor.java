@@ -8,7 +8,6 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
-import java.math.BigDecimal;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.time.LocalDate;
@@ -23,8 +22,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
-import java.util.Set;
 import java.util.Map.Entry;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.apache.olingo.commons.api.data.Entity;
@@ -360,23 +359,6 @@ public class BaseProcessor implements Processor {
 		for(Class<? extends Annotation> annotationType : annotationTypes) provider.addIncludeFilter(new AnnotationTypeFilter(annotationType));
 		return provider;
     }
-
-	protected String inferEdmType(Field field) {
-		
-		if(field.getType().isAssignableFrom(Integer.class)) {
-			return "Edm.Int32";
-		} else if (field.getType().isAssignableFrom(Long.class)) {
-			return "Edm.Int64";
-		} else if (field.getType().isAssignableFrom(LocalDate.class)) {
-			return "Edm.Date";
-		} else if (field.getType().isAssignableFrom(Boolean.class)) {
-			return "Edm.Boolean";
-		} else if (field.getType().isAssignableFrom(BigDecimal.class)) {
-			return "Edm.Decimal";
-		}
-		
-		return "Edm.String";
-	}
 	
 	protected Object convertEdmType(String edmType, String value) {
 		

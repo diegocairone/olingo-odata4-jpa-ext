@@ -64,6 +64,7 @@ import com.cairone.olingo.ext.jpa.annotations.EdmFunction;
 import com.cairone.olingo.ext.jpa.annotations.EdmParameter;
 import com.cairone.olingo.ext.jpa.interfaces.DataSource;
 import com.cairone.olingo.ext.jpa.interfaces.Operation;
+import com.cairone.olingo.ext.jpa.utilities.Util;
 import com.google.common.collect.Iterables;
 
 public class EntitySetProcessor extends BaseProcessor implements EntityProcessor, EntityCollectionProcessor {
@@ -423,7 +424,7 @@ public class EntitySetProcessor extends BaseProcessor implements EntityProcessor
 			if(edmParameter != null) {
 
 				String parameterName = edmParameter.name().isEmpty() ? fld.getName() : edmParameter.name();
-				String edmType = edmParameter.type().isEmpty() ? inferEdmType(fld) : edmParameter.type();
+				String edmType = edmParameter.type().isEmpty() ? Util.inferEdmType(fld) : edmParameter.type();
 				UriParameter parameter = functionParameters.get(parameterName);
 				Object value = convertEdmType(edmType, parameter.getText());
 				
