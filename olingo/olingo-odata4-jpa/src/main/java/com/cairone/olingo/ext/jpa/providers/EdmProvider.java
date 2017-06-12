@@ -6,6 +6,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -424,6 +425,8 @@ public class EdmProvider extends CsdlAbstractEdmProvider {
 						propertyType = EdmPrimitiveTypeKind.Date.getFullQualifiedName();
 					} else if(fld.getType().isAssignableFrom(Boolean.class)) {
 						propertyType = EdmPrimitiveTypeKind.Boolean.getFullQualifiedName();
+					} else if(fld.getType().isAssignableFrom(BigDecimal.class)) {
+						propertyType = EdmPrimitiveTypeKind.Decimal.getFullQualifiedName();
 					} else {
 						Class<?> enumClazz = fld.getType();
 						EdmEnum edmEnum = enumClazz.getAnnotation(EdmEnum.class);
@@ -444,10 +447,13 @@ public class EdmProvider extends CsdlAbstractEdmProvider {
 					case "Edm.Date":
 						propertyType = EdmPrimitiveTypeKind.Date.getFullQualifiedName();
 						break;
+					case "Edm.Decimal":
+						propertyType = EdmPrimitiveTypeKind.Decimal.getFullQualifiedName();
 					}
 				}
 				
 				CsdlProperty csdlProperty = new CsdlProperty().setName(propertyName).setType(propertyType);
+				if(propertyType.equals(EdmPrimitiveTypeKind.Decimal.getFullQualifiedName())) csdlProperty.setScale(property.scale());
 				csdlProperties.add(csdlProperty);
 			}
 		}
@@ -556,6 +562,8 @@ public class EdmProvider extends CsdlAbstractEdmProvider {
 						parameterType = EdmPrimitiveTypeKind.Date.getFullQualifiedName();
 					} else if(fld.getType().isAssignableFrom(Boolean.class)) {
 						parameterType = EdmPrimitiveTypeKind.Boolean.getFullQualifiedName();
+					} else if(fld.getType().isAssignableFrom(BigDecimal.class)) {
+						parameterType = EdmPrimitiveTypeKind.Decimal.getFullQualifiedName();
 					} else if(fld.getType().isAssignableFrom(List.class)) {
 						fieldIsCollection = true;
 						Type genericType = fld.getGenericType();
@@ -570,14 +578,35 @@ public class EdmProvider extends CsdlAbstractEdmProvider {
 								parameterType = EdmPrimitiveTypeKind.Date.getFullQualifiedName();
 							} else if(t.isAssignableFrom(Boolean.class)) {
 								parameterType = EdmPrimitiveTypeKind.Boolean.getFullQualifiedName();
+							} else if(t.isAssignableFrom(BigDecimal.class)) {
+								parameterType = EdmPrimitiveTypeKind.Decimal.getFullQualifiedName();
+							} else {
+								EdmEnum edmEnum = t.getAnnotation(EdmEnum.class);
+								if(edmEnum != null) {
+									String namespace = edmEnum.namespace().isEmpty() ? NAME_SPACE : edmEnum.namespace();
+									String name = edmEnum.name().isEmpty() ? t.getSimpleName() : edmEnum.name();
+									parameterType = getFullQualifiedName(namespace, name);
+								}
+								EdmEntity edmEntity = t.getAnnotation(EdmEntity.class);
+								if(edmEntity != null) {
+									String namespace = edmEntity.namespace().isEmpty() ? NAME_SPACE : edmEntity.namespace();
+									String name = edmEntity.name().isEmpty() ? t.getSimpleName() : edmEntity.name();
+									parameterType = getFullQualifiedName(namespace, name);
+								}
 							}
 						}
 					} else {
-						Class<?> enumClazz = fld.getType();
-						EdmEnum edmEnum = enumClazz.getAnnotation(EdmEnum.class);
+						Class<?> otherClazz = fld.getType();
+						EdmEnum edmEnum = otherClazz.getAnnotation(EdmEnum.class);
 						if(edmEnum != null) {
 							String namespace = edmEnum.namespace().isEmpty() ? NAME_SPACE : edmEnum.namespace();
-							String name = edmEnum.name().isEmpty() ? enumClazz.getSimpleName() : edmEnum.name();
+							String name = edmEnum.name().isEmpty() ? otherClazz.getSimpleName() : edmEnum.name();
+							parameterType = getFullQualifiedName(namespace, name);
+						}
+						EdmEntity edmEntity = otherClazz.getAnnotation(EdmEntity.class);
+						if(edmEntity != null) {
+							String namespace = edmEntity.namespace().isEmpty() ? NAME_SPACE : edmEntity.namespace();
+							String name = edmEntity.name().isEmpty() ? otherClazz.getSimpleName() : edmEntity.name();
 							parameterType = getFullQualifiedName(namespace, name);
 						}
 					}
@@ -591,6 +620,9 @@ public class EdmProvider extends CsdlAbstractEdmProvider {
 						break;
 					case "Edm.Date":
 						parameterType = EdmPrimitiveTypeKind.Date.getFullQualifiedName();
+						break;
+					case "Edm.Decimal":
+						parameterType = EdmPrimitiveTypeKind.Decimal.getFullQualifiedName();
 						break;
 					}
 				}
@@ -675,6 +707,8 @@ public class EdmProvider extends CsdlAbstractEdmProvider {
 						parameterType = EdmPrimitiveTypeKind.Date.getFullQualifiedName();
 					} else if(fld.getType().isAssignableFrom(Boolean.class)) {
 						parameterType = EdmPrimitiveTypeKind.Boolean.getFullQualifiedName();
+					} else if(fld.getType().isAssignableFrom(BigDecimal.class)) {
+						parameterType = EdmPrimitiveTypeKind.Decimal.getFullQualifiedName();
 					} else {
 						Class<?> enumClazz = fld.getType();
 						EdmEnum edmEnum = enumClazz.getAnnotation(EdmEnum.class);
@@ -694,6 +728,9 @@ public class EdmProvider extends CsdlAbstractEdmProvider {
 						break;
 					case "Edm.Date":
 						parameterType = EdmPrimitiveTypeKind.Date.getFullQualifiedName();
+						break;
+					case "Edm.Decimal":
+						parameterType = EdmPrimitiveTypeKind.Decimal.getFullQualifiedName();
 						break;
 					}
 				}

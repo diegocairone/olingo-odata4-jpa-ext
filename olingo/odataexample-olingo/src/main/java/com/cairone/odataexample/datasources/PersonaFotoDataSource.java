@@ -14,6 +14,7 @@ import org.apache.olingo.server.api.uri.UriParameter;
 import org.apache.olingo.server.api.uri.queryoption.ExpandOption;
 import org.apache.olingo.server.api.uri.queryoption.FilterOption;
 import org.apache.olingo.server.api.uri.queryoption.OrderByOption;
+import org.apache.olingo.server.api.uri.queryoption.SelectOption;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.MessageSource;
 import org.springframework.stereotype.Component;
@@ -132,7 +133,7 @@ public class PersonaFotoDataSource implements DataSource, MediaDataSource {
 	}
 	
 	@Override
-	public Object readFromKey(Map<String, UriParameter> keyPredicateMap) throws ODataException {
+	public Object readFromKey(Map<String, UriParameter> keyPredicateMap, ExpandOption expandOption, SelectOption selectOption) throws ODataException {
 		
 		String uuid = CharMatcher.is('\'').trimFrom( keyPredicateMap.get("uuid").getText() );
     	PersonaFotoEntity personaFotoEntity = personaService.buscarFoto(uuid);

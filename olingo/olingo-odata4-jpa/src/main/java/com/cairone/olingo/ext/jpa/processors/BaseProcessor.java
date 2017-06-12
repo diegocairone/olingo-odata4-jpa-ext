@@ -8,6 +8,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
+import java.math.BigDecimal;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.time.LocalDate;
@@ -167,6 +168,11 @@ public class BaseProcessor implements Processor {
 	            		LocalDate localDateValue = (LocalDate) value;
 	            		entity.addProperty(new Property(null, name, ValueType.PRIMITIVE, GregorianCalendar.from(localDateValue.atStartOfDay(ZoneId.systemDefault()))));
 	            	
+	            	} else if(value instanceof BigDecimal) {
+	            		
+	            		BigDecimal bigDecimalValue = (BigDecimal) value;
+	            		entity.addProperty(new Property(null, name, ValueType.PRIMITIVE, bigDecimalValue));
+	            		
 	            	} else if(value.getClass().isEnum()) {
 	            		
 	            		Class<?> fldClazz = fld.getType();
@@ -370,6 +376,8 @@ public class BaseProcessor implements Processor {
 			DateTimeFormatter formatter = DateTimeFormatter.ofPattern(REGEX_DATE_FORMAT);
 			LocalDate date = LocalDate.parse(value, formatter);
 			return date;
+		} else if(edmType.equals("Edm.Decimal")) {
+			return BigDecimal.valueOf(Double.valueOf(value));
 		} else {
 			return value;
 		}
@@ -453,7 +461,7 @@ public class BaseProcessor implements Processor {
 			    DataSource targetDataSource = dataSourceMap.get(targetEntitySet.getName());
 
 				if(targetDataSource == null) {
-					throw new ODataApplicationException(String.format("DATASOURCE PROVIDER FOR %s NOT FOUND", edmEntitySet.getName()), HttpStatusCode.INTERNAL_SERVER_ERROR.getStatusCode(), Locale.ENGLISH);
+					throw new ODataApplicationException(String.format("DATASOURCE PROVIDER FOR %s NOT FOUND", targetEntitySet.getName()), HttpStatusCode.INTERNAL_SERVER_ERROR.getStatusCode(), Locale.ENGLISH);
 				}
 				
 				Link navLink = requestEntity.getNavigationLink(link.getTitle());
@@ -487,7 +495,7 @@ public class BaseProcessor implements Processor {
 				    					.collect(Collectors.toMap(UriParameter::getName, x -> x));
 				    		    
 				    			
-				    				Object targetObject = targetDataSource.readFromKey(keyPredicateMap);
+				    				Object targetObject = targetDataSource.readFromKey(keyPredicateMap, null, null);
 				    				
 				    				if(targetObject == null) {
 				    					throw new ODataApplicationException("LA ENTIDAD SOLICITADA NO EXISTE", HttpStatusCode.NOT_FOUND.getStatusCode(), Locale.ENGLISH);
@@ -518,7 +526,7 @@ public class BaseProcessor implements Processor {
 			    					.stream()
 			    					.collect(Collectors.toMap(UriParameter::getName, x -> x));
 			    		    
-			    				Object targetObject = targetDataSource.readFromKey(keyPredicateMap);
+			    				Object targetObject = targetDataSource.readFromKey(keyPredicateMap, null, null);
 			    				
 			    				if(targetObject == null) {
 			    					throw new ODataApplicationException("LA ENTIDAD SOLICITADA NO EXISTE", HttpStatusCode.NOT_FOUND.getStatusCode(), Locale.ENGLISH);

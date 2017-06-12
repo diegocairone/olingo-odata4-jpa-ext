@@ -3,9 +3,12 @@ package com.cairone.olingo.ext.jpa.processors;
 import java.io.InputStream;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.ParameterizedType;
+import java.lang.reflect.Type;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.GregorianCalendar;
 import java.util.HashMap;
@@ -243,10 +246,39 @@ public class ActionProcessor extends BaseProcessor implements ActionEntityProces
 	    			if(fld.getType().isAssignableFrom(LocalDate.class) && parameter.getValue() instanceof GregorianCalendar) {
 	    				GregorianCalendar cal = (GregorianCalendar) parameter.getValue();
                 		fld.set(operation, cal.toZonedDateTime().toLocalDate());
+                		
+	    			} else if(Collection.class.isAssignableFrom(fld.getType()) && parameter.getValue() instanceof EntityCollection) {
+	    				
+	    				EntityCollection entityCollection = (EntityCollection) parameter.getValue();
+	    				List<Entity> entities = entityCollection.getEntities();
+						
+						ParameterizedType listType = (ParameterizedType) fld.getGenericType();
+						Type type = listType.getActualTypeArguments()[0];
+				        Class<?> inlineClazz = (Class<?>) type;
+				        
+				        ArrayList<Object> inlineObjectCollection = new ArrayList<Object>();
+						
+						for(Entity inlineEntity : entities) {
+							Object inlineObject = writeObject(inlineClazz, inlineEntity);
+							inlineObjectCollection.add(inlineObject);
+						}
+						
+						fld.setAccessible(true);
+						fld.set(operation, inlineObjectCollection);
+						
 	    			} else {
-	    				fld.set(operation, parameter.getValue());
+	    				if(parameter.getValue() instanceof Entity) {
+	    					Entity entity = (Entity) parameter.getValue();
+	    					String entityTypeName = entity.getType();
+	    					String entitySetName = entityTypeMap.get(entityTypeName);
+	    					Class<?> cl = entitySetMap.get(entitySetName);
+	    					Object object = writeObject(cl, entity);
+	    					fld.set(operation, object);
+	    				} else {
+	    					fld.set(operation, parameter.getValue());
+	    				}
 	    			}
-				} catch (IllegalArgumentException | IllegalAccessException e) {
+				} catch (IllegalArgumentException | IllegalAccessException | NoSuchMethodException | SecurityException | InstantiationException | InvocationTargetException e) {
 					throw new ODataApplicationException(e.getMessage(), HttpStatusCode.INTERNAL_SERVER_ERROR.getStatusCode(), Locale.ENGLISH);
 				}
 			}

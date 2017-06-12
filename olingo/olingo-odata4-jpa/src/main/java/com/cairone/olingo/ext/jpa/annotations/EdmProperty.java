@@ -116,7 +116,7 @@ public @interface EdmProperty {
      *
      * @return The scale of this property.
      */
-    long scale() default Long.MAX_VALUE;
+    int scale() default Integer.MAX_VALUE;
 
     /**
      * The spatial reference system identifier of this property. The following special values can be used:

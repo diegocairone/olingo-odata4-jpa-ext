@@ -32,4 +32,6 @@ public @interface ODataJPAProperty {
 	 * @return The path of the field in JPA entity 
 	 */
 	String value() default "";
+	
+	boolean ignore() default false;
 }

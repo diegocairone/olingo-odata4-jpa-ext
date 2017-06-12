@@ -355,7 +355,7 @@ public class EntitySetProcessor extends BaseProcessor implements EntityProcessor
 	    Entity entity;
 	    
 		try {
-			Object object = dataSource.readFromKey(keyPredicateMap);
+			Object object = dataSource.readFromKey(keyPredicateMap, expandOption, selectOption);
 			
 			if(object == null) {
 				throw new ODataApplicationException("LA ENTIDAD SOLICITADA NO EXISTE", HttpStatusCode.NOT_FOUND.getStatusCode(), Locale.ENGLISH);

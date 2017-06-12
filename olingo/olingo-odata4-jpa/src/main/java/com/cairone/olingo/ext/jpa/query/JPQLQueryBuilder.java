@@ -132,9 +132,9 @@ public final class JPQLQueryBuilder {
     					com.cairone.olingo.ext.jpa.annotations.EdmNavigationProperty annEdmNavigationProperty = field.getAnnotation(com.cairone.olingo.ext.jpa.annotations.EdmNavigationProperty.class);
     					if(annEdmNavigationProperty != null && (annEdmNavigationProperty.name().equals(navPropName) || field.getName().equals(navPropName))) {
     		    			ODataJPAProperty oDataJPAProperty = field.getAnnotation(ODataJPAProperty.class);
-    		    			if(oDataJPAProperty != null && !oDataJPAProperty.value().isEmpty()) {
+    		    			if(oDataJPAProperty != null && !oDataJPAProperty.value().isEmpty() && !oDataJPAProperty.ignore()) {
     		    				sb.append("LEFT JOIN FETCH e." + oDataJPAProperty.value() + " ");
-    		    			} else {
+    		    			} else if(oDataJPAProperty == null || !oDataJPAProperty.ignore()) {
     		    				sb.append("LEFT JOIN FETCH e." + navPropName + " ");
     		    			}
     		    			break;
