@@ -23,7 +23,7 @@ public class LocalidadEdm {
 	@EdmProperty(name="localidadId", nullable = false) @ODataJPAProperty("id")
 	private Integer localidadId = null;
 
-	@EdmNavigationProperty(name="provincia")
+	@EdmNavigationProperty(name="provincia") @ODataJPAProperty("provincia")
 	private ProvinciaEdm provincia = null;
 
 	@EdmProperty(name="nombre", nullable = false, maxLength=100)

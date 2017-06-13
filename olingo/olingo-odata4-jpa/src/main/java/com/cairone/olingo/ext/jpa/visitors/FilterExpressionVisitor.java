@@ -4,17 +4,21 @@ import java.lang.reflect.Field;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import org.apache.olingo.commons.api.edm.EdmEnumType;
+import org.apache.olingo.commons.api.edm.EdmNavigationProperty;
 import org.apache.olingo.commons.api.edm.EdmType;
 import org.apache.olingo.commons.api.http.HttpStatusCode;
 import org.apache.olingo.server.api.ODataApplicationException;
 import org.apache.olingo.server.api.uri.UriInfoResource;
 import org.apache.olingo.server.api.uri.UriResource;
+import org.apache.olingo.server.api.uri.UriResourceNavigation;
 import org.apache.olingo.server.api.uri.UriResourcePrimitiveProperty;
 import org.apache.olingo.server.api.uri.queryoption.expression.BinaryOperatorKind;
 import org.apache.olingo.server.api.uri.queryoption.expression.Expression;
@@ -166,9 +170,66 @@ public class FilterExpressionVisitor implements ExpressionVisitor<Object> {
 	public Object visitLiteral(Literal literal) throws ExpressionVisitException, ODataApplicationException {
 		return literal.getText();
 	}
-
+	
 	@Override
 	public Object visitMember(Member member) throws ExpressionVisitException, ODataApplicationException {
+		
+		UriInfoResource uriInfoResource = member.getResourcePath();
+		final List<UriResource> uriResourceParts = uriInfoResource.getUriResourceParts();
+		
+		Class<?> cl = clazz;
+		List<String> segments = new ArrayList<String>();
+		String canonicalName = null;
+		
+		for(UriResource uriResource : uriResourceParts) {
+			
+			if(uriResource instanceof UriResourceNavigation) {
+				
+				EdmNavigationProperty edmNavigationProperty = ((UriResourceNavigation) uriResource).getProperty();
+				String navPropName = edmNavigationProperty.getName();
+				for(Field field : cl.getDeclaredFields()) {
+					com.cairone.olingo.ext.jpa.annotations.EdmNavigationProperty annEdmNavigationProperty = field.getAnnotation(com.cairone.olingo.ext.jpa.annotations.EdmNavigationProperty.class);
+					if(annEdmNavigationProperty != null && (annEdmNavigationProperty.name().equals(navPropName) || field.getName().equals(navPropName))) {
+						ODataJPAProperty oDataJPAProperty = field.getAnnotation(ODataJPAProperty.class);
+						if(oDataJPAProperty != null && !oDataJPAProperty.value().isEmpty()) {
+							cl = field.getType();
+							segments.add(oDataJPAProperty.value());
+						}
+					}
+				}
+			}
+			
+			if(uriResource instanceof UriResourcePrimitiveProperty) {
+				UriResourcePrimitiveProperty uriResourceProperty = (UriResourcePrimitiveProperty) uriResource;
+				String propertyName = uriResourceProperty.getProperty().getName();
+				for(Field field : cl.getDeclaredFields()) {
+					EdmProperty annEdmProperty = field.getAnnotation(EdmProperty.class);
+					if(annEdmProperty != null && (annEdmProperty.name().equals(propertyName) || field.getName().equals(propertyName))) {
+						ODataJPAProperty oDataJPAProperty = field.getAnnotation(ODataJPAProperty.class);
+						if(oDataJPAProperty != null && !oDataJPAProperty.value().isEmpty()) {
+							propertyName = oDataJPAProperty.value();
+						}
+						canonicalName = field.getType().getCanonicalName();
+						segments.add(propertyName);
+					}
+				}
+			}
+		}
+		
+		String rv = segments.isEmpty() ? null : segments.stream().map(String::toString).collect(Collectors.joining("."));
+		
+		if(rv == null) {
+			throw new ODataApplicationException("NO SEGMENTS IN RESOURCE PATH", HttpStatusCode.NOT_IMPLEMENTED.getStatusCode(), Locale.ENGLISH);
+		} else {
+			rv = "e." + rv;
+			types.put(rv, canonicalName);
+		}
+		
+		return rv;
+	}
+	
+	@Deprecated
+	public Object visitMemberDeprecated(Member member) throws ExpressionVisitException, ODataApplicationException {
 		
 		UriInfoResource uriInfoResource = member.getResourcePath();
 		final List<UriResource> uriResourceParts = uriInfoResource.getUriResourceParts();

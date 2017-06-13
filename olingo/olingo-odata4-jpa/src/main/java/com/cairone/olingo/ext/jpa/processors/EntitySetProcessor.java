@@ -57,6 +57,7 @@ import org.apache.olingo.server.api.uri.queryoption.OrderByOption;
 import org.apache.olingo.server.api.uri.queryoption.SelectOption;
 import org.apache.olingo.server.api.uri.queryoption.SkipOption;
 import org.apache.olingo.server.api.uri.queryoption.TopOption;
+import org.apache.olingo.server.core.uri.queryoption.TopOptionImpl;
 import org.springframework.context.ApplicationContext;
 
 import com.cairone.olingo.ext.jpa.annotations.EdmEntity;
@@ -71,6 +72,7 @@ public class EntitySetProcessor extends BaseProcessor implements EntityProcessor
 	
 	protected Map<String, DataSource> dataSourceMap = new HashMap<>();
 	protected Map<String, Operation<?>> operationsMap = new HashMap<>();
+	protected Integer maxTopOption = null;
 	
 	public EntitySetProcessor initialize(ApplicationContext context) throws ODataApplicationException {
 		super.initialize(context);
@@ -93,6 +95,11 @@ public class EntitySetProcessor extends BaseProcessor implements EntityProcessor
 				}
 			});
 		
+		return this;
+	}
+	
+	public EntitySetProcessor setMaxTopOption(Integer maxTopOption) {
+		this.maxTopOption = maxTopOption;
 		return this;
 	}
 
@@ -526,6 +533,13 @@ public class EntitySetProcessor extends BaseProcessor implements EntityProcessor
 	    TopOption topOption = uriInfo.getTopOption();
 	    OrderByOption orderByOption = uriInfo.getOrderByOption();
 	    FilterOption filterOption = uriInfo.getFilterOption();
+	    
+	    if(topOption == null && maxTopOption != null) {
+	    	topOption = new TopOptionImpl().setValue(maxTopOption);
+	    } else if(topOption != null && maxTopOption != null && topOption.getValue() > maxTopOption) {
+	    	TopOptionImpl topOptionImpl = (TopOptionImpl) topOption;
+	    	topOption = topOptionImpl.setValue(maxTopOption);
+	    }
 	    
 	    String selectList = odata.createUriHelper().buildContextURLSelectList(edmEntityType, null, selectOption);
 	    boolean count = countOption == null ? false : countOption.getValue();
