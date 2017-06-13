@@ -39,7 +39,7 @@ public final class JPQLQueryBuilder {
 	public JPQLQuery build() throws ExpressionVisitException, ODataApplicationException {
 		
 		ODataJPAEntity oDataJPAEntity = clazz.getAnnotation(ODataJPAEntity.class);
-		String entityName = oDataJPAEntity.value().isEmpty() ? clazz.getSimpleName() : oDataJPAEntity.value();
+		String entityName = oDataJPAEntity == null || oDataJPAEntity.value().isEmpty() ? clazz.getSimpleName() : oDataJPAEntity.value();
 		
 		StringBuilder sb = new StringBuilder();
 		
@@ -105,15 +105,19 @@ public final class JPQLQueryBuilder {
     		com.cairone.olingo.ext.jpa.annotations.EdmProperty annEdmProperty = field.getAnnotation(com.cairone.olingo.ext.jpa.annotations.EdmProperty.class);
     		if(annEdmProperty != null && (annEdmProperty.name().equals(fieldName) || field.getName().equals(fieldName))) {
     			ODataJPAProperty oDataJPAProperty = field.getAnnotation(ODataJPAProperty.class);
-    			if(oDataJPAProperty != null && !oDataJPAProperty.value().isEmpty()) {
+    			if(oDataJPAProperty != null && !oDataJPAProperty.value().isEmpty() && !oDataJPAProperty.ignore()) {
     				return oDataJPAProperty.value();
+    			} else if(oDataJPAProperty != null && oDataJPAProperty.ignore()) {
+    				return null;
     			}
     		}
     		com.cairone.olingo.ext.jpa.annotations.EdmNavigationProperty annEdmNavigationProperty = field.getAnnotation(com.cairone.olingo.ext.jpa.annotations.EdmNavigationProperty.class);
     		if(annEdmNavigationProperty != null && (annEdmNavigationProperty.name().equals(fieldName) || field.getName().equals(fieldName))) {
     			ODataJPAProperty oDataJPAProperty = field.getAnnotation(ODataJPAProperty.class);
-    			if(oDataJPAProperty != null && !oDataJPAProperty.value().isEmpty()) {
+    			if(oDataJPAProperty != null && !oDataJPAProperty.value().isEmpty() && !oDataJPAProperty.ignore()) {
     				return oDataJPAProperty.value();
+    			} else if(oDataJPAProperty != null && oDataJPAProperty.ignore()) {
+    				return null;
     			}
     		}
     	}
@@ -182,12 +186,12 @@ public final class JPQLQueryBuilder {
 								if (uriResource instanceof UriResourcePrimitiveProperty) {
 							    	EdmProperty edmProperty = ((UriResourcePrimitiveProperty)uriResource).getProperty();
 							    	String fieldName = substituteByJpaProperty(clazz, edmProperty.getName());
-							    	segments.add(fieldName);
+							    	if(fieldName != null) segments.add(fieldName);
 							    }
 								if (uriResource instanceof UriResourceNavigation) {
 									EdmNavigationProperty edmProperty = ((UriResourceNavigation)uriResource).getProperty();
 									String fieldName = substituteByJpaProperty(clazz, edmProperty.getName());
-							    	segments.add(fieldName);
+									if(fieldName != null) segments.add(fieldName);
 								}
 							}
 						}
@@ -195,12 +199,12 @@ public final class JPQLQueryBuilder {
 						if (uriResourceLast instanceof UriResourcePrimitiveProperty) {
 					    	EdmProperty edmProperty = ((UriResourcePrimitiveProperty)uriResourceLast).getProperty();
 					    	String fieldName = substituteByJpaProperty(clazz, edmProperty.getName());
-					    	segments.add(String.format("%s %s", fieldName, x.isDescending() ? "DESC" : "ASC"));
+					    	if(fieldName != null) segments.add(String.format("%s %s", fieldName, x.isDescending() ? "DESC" : "ASC"));
 					    }
 						if (uriResourceLast instanceof UriResourceNavigation) {
 							EdmNavigationProperty edmProperty = ((UriResourceNavigation)uriResourceLast).getProperty();
 							String fieldName = substituteByJpaProperty(clazz, edmProperty.getName());
-							segments.add(String.format("%s %s", fieldName, x.isDescending() ? "DESC" : "ASC"));
+							if(fieldName != null) segments.add(String.format("%s %s", fieldName, x.isDescending() ? "DESC" : "ASC"));
 						}
 						
 						return segments.stream().collect(Collectors.joining("."));
