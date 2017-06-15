@@ -228,34 +228,6 @@ public class FilterExpressionVisitor implements ExpressionVisitor<Object> {
 		return rv;
 	}
 	
-	@Deprecated
-	public Object visitMemberDeprecated(Member member) throws ExpressionVisitException, ODataApplicationException {
-		
-		UriInfoResource uriInfoResource = member.getResourcePath();
-		final List<UriResource> uriResourceParts = uriInfoResource.getUriResourceParts();
-		
-		for(UriResource uriResource : uriResourceParts) {
-			
-			if(uriResource instanceof UriResourcePrimitiveProperty) {
-				UriResourcePrimitiveProperty uriResourceProperty = (UriResourcePrimitiveProperty) uriResource;
-				String propertyName = uriResourceProperty.getProperty().getName();
-				for(Field field : clazz.getDeclaredFields()) {
-					EdmProperty annEdmProperty = field.getAnnotation(EdmProperty.class);
-					if(annEdmProperty != null && (annEdmProperty.name().equals(propertyName) || field.getName().equals(propertyName))) {
-						ODataJPAProperty oDataJPAProperty = field.getAnnotation(ODataJPAProperty.class);
-						if(oDataJPAProperty != null && !oDataJPAProperty.value().isEmpty()) {
-							propertyName = oDataJPAProperty.value();
-						}
-						types.put("e." + propertyName, field.getType().getCanonicalName());
-						return "e." + propertyName;
-					}
-				}
-			}
-		}
-		
-		throw new ODataApplicationException("NO SEGMENTS IN RESOURCE PATH", HttpStatusCode.NOT_IMPLEMENTED.getStatusCode(), Locale.ENGLISH);
-	}
-
 	@Override
 	public Object visitAlias(String aliasName) throws ExpressionVisitException, ODataApplicationException {
 		return null;

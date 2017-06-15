@@ -44,6 +44,7 @@ import org.apache.olingo.server.api.processor.EntityProcessor;
 import org.apache.olingo.server.api.serializer.EntityCollectionSerializerOptions;
 import org.apache.olingo.server.api.serializer.EntitySerializerOptions;
 import org.apache.olingo.server.api.serializer.ODataSerializer;
+import org.apache.olingo.server.api.serializer.SerializerException;
 import org.apache.olingo.server.api.serializer.SerializerResult;
 import org.apache.olingo.server.api.uri.UriInfo;
 import org.apache.olingo.server.api.uri.UriParameter;
@@ -139,7 +140,7 @@ public class EntitySetProcessor extends BaseProcessor implements EntityProcessor
 		Entity requestEntity = result.getEntity();
 		
 		Class<?> clazz = entitySetMap.get(edmEntitySet.getName());
-		Object object = null, createdObject;
+		Object object = null;
 		
     	EdmEntity edmEntity = clazz.getAnnotation(EdmEntity.class);
     	String[] keys = edmEntity.key();
@@ -158,10 +159,10 @@ public class EntitySetProcessor extends BaseProcessor implements EntityProcessor
 		}
     	
 		Entity createdEntity = new Entity();
+		Object createdObject = dataSource.create(object);
 		
 		try
 		{
-	    	createdObject = dataSource.create(object);
 	    	for(Field fld : createdObject.getClass().getDeclaredFields()) {
 	    		
 	    		com.cairone.olingo.ext.jpa.annotations.EdmProperty edmProperty = fld.getAnnotation(com.cairone.olingo.ext.jpa.annotations.EdmProperty.class);
@@ -205,8 +206,6 @@ public class EntitySetProcessor extends BaseProcessor implements EntityProcessor
 	            	}
 	            }
 	    	}
-		} catch (ODataApplicationException e) {
-			throw e;
 		} catch (Exception e) {
 			throw new ODataApplicationException(e.getMessage(), HttpStatusCode.INTERNAL_SERVER_ERROR.getStatusCode(), Locale.ENGLISH);
 		}
@@ -287,15 +286,8 @@ public class EntitySetProcessor extends BaseProcessor implements EntityProcessor
 			throw new ODataApplicationException(e.getMessage(), HttpStatusCode.INTERNAL_SERVER_ERROR.getStatusCode(), Locale.ENGLISH);
 		}
     	
-		try {
-			dataSource.update(keyPredicateMap, object, propertiesInJSON, request.getMethod().equals(HttpMethod.PUT));
-		} catch (ODataApplicationException e) {
-    		throw e;
-    	} catch (Exception e) {
-			throw new ODataApplicationException(e.getMessage(), HttpStatusCode.INTERNAL_SERVER_ERROR.getStatusCode(), Locale.ENGLISH);
-		}
-
-		response.setStatusCode(HttpStatusCode.NO_CONTENT.getStatusCode());
+    	dataSource.update(keyPredicateMap, object, propertiesInJSON, request.getMethod().equals(HttpMethod.PUT));
+    	response.setStatusCode(HttpStatusCode.NO_CONTENT.getStatusCode());
 	}
 
 	@Override
@@ -320,14 +312,7 @@ public class EntitySetProcessor extends BaseProcessor implements EntityProcessor
 				.stream()
 				.collect(Collectors.toMap(UriParameter::getName, x -> x));
 		
-    	try {
-    		dataSource.delete(keyPredicateMap);
-    	} catch (ODataApplicationException e) {
-    		throw e;
-    	} catch (Exception e) {
-			throw new ODataApplicationException(e.getMessage(), HttpStatusCode.INTERNAL_SERVER_ERROR.getStatusCode(), Locale.ENGLISH);
-		}
-    	
+    	dataSource.delete(keyPredicateMap);
     	response.setStatusCode(HttpStatusCode.NO_CONTENT.getStatusCode());
 	}
 
@@ -343,7 +328,12 @@ public class EntitySetProcessor extends BaseProcessor implements EntityProcessor
 	    ExpandOption expandOption = uriInfo.getExpandOption();
 	    
 	    EdmEntityType edmEntityType = edmEntitySet.getEntityType();
-	    String selectList = odata.createUriHelper().buildContextURLSelectList(edmEntityType, null, selectOption);
+	    String selectList;
+		try {
+			selectList = odata.createUriHelper().buildContextURLSelectList(edmEntityType, null, selectOption);
+		} catch (SerializerException e) {
+			throw new ODataApplicationException(e.getMessage(), HttpStatusCode.INTERNAL_SERVER_ERROR.getStatusCode(), Locale.ENGLISH);
+		}
 	    
 		DataSource dataSource = dataSourceMap.get(edmEntitySet.getName());
 		
@@ -360,17 +350,16 @@ public class EntitySetProcessor extends BaseProcessor implements EntityProcessor
 				.collect(Collectors.toMap(UriParameter::getName, x -> x));
 		
 	    Entity entity;
-	    
-		try {
-			Object object = dataSource.readFromKey(keyPredicateMap, expandOption, selectOption);
-			
-			if(object == null) {
-				throw new ODataApplicationException("LA ENTIDAD SOLICITADA NO EXISTE", HttpStatusCode.NOT_FOUND.getStatusCode(), Locale.ENGLISH);
-			}
-			
+	    Object object = dataSource.readFromKey(keyPredicateMap, expandOption, selectOption);
+		
+		if(object == null) {
+			throw new ODataApplicationException("LA ENTIDAD SOLICITADA NO EXISTE", HttpStatusCode.NOT_FOUND.getStatusCode(), Locale.ENGLISH);
+		}
+		
+		try {	
 			entity = writeEntity(object, expandOption);
 			
-		} catch (ODataException | IllegalArgumentException | IllegalAccessException | NoSuchMethodException | SecurityException | InvocationTargetException e) {
+		} catch (IllegalArgumentException | IllegalAccessException | NoSuchMethodException | SecurityException | InvocationTargetException e) {
 			throw new ODataApplicationException(e.getMessage(), HttpStatusCode.INTERNAL_SERVER_ERROR.getStatusCode(), Locale.ENGLISH);
 		}
 		
@@ -383,12 +372,20 @@ public class EntitySetProcessor extends BaseProcessor implements EntityProcessor
 					.suffix(Suffix.ENTITY)
 					.build();
 		} catch (URISyntaxException e) {
-			throw new ODataApplicationException(e.getMessage(), HttpStatusCode.BAD_REQUEST.getStatusCode(), Locale.ENGLISH);
+			throw new ODataApplicationException(e.getMessage(), HttpStatusCode.INTERNAL_SERVER_ERROR.getStatusCode(), Locale.ENGLISH);
 		}
 	    EntitySerializerOptions options = EntitySerializerOptions.with().contextURL(contextUrl).select(selectOption).expand(expandOption).build();
 	    
-	    ODataSerializer serializer = odata.createSerializer(responseFormat);
-	    SerializerResult serializerResult = serializer.entity(serviceMetadata, edmEntityType, entity, options);
+	    ODataSerializer serializer;
+	    SerializerResult serializerResult;
+	    
+		try {
+			serializer = odata.createSerializer(responseFormat);
+			serializerResult = serializer.entity(serviceMetadata, edmEntityType, entity, options);
+		} catch (SerializerException e) {
+			throw new ODataApplicationException(e.getMessage(), HttpStatusCode.INTERNAL_SERVER_ERROR.getStatusCode(), Locale.ENGLISH);
+		}
+		
 	    InputStream entityStream = serializerResult.getContent();
 
 	    response.setContent(entityStream);
@@ -556,19 +553,19 @@ public class EntitySetProcessor extends BaseProcessor implements EntityProcessor
 		EntityCollection entityCollection = new EntityCollection();
 		List<Entity> result = entityCollection.getEntities();
 		
-		try {
-			Iterable<?> data = dataSource.readAll(expandOption, filterOption, orderByOption);
-			
-			if(count) entityCollection.setCount(Iterables.size(data));
-			
-			if(skipOption != null) {
-				data = Iterables.skip(data, skipOption.getValue());
-			}
-			
-			if(topOption != null) {
-				data = Iterables.limit(data, topOption.getValue()); 
-			}
-			
+		Iterable<?> data = dataSource.readAll(expandOption, filterOption, orderByOption);
+		
+		if(count) entityCollection.setCount(Iterables.size(data));
+		
+		if(skipOption != null) {
+			data = Iterables.skip(data, skipOption.getValue());
+		}
+		
+		if(topOption != null) {
+			data = Iterables.limit(data, topOption.getValue()); 
+		}
+		
+		try {			
 			for(Object object : data) {
 				Entity entity = writeEntity(object, expandOption);
 				result.add(entity);

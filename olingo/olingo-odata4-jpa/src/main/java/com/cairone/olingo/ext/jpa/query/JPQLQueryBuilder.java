@@ -4,11 +4,13 @@ import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.stream.Collectors;
 
 import org.apache.olingo.commons.api.edm.EdmNavigationProperty;
 import org.apache.olingo.commons.api.edm.EdmProperty;
+import org.apache.olingo.commons.api.http.HttpStatusCode;
 import org.apache.olingo.server.api.ODataApplicationException;
 import org.apache.olingo.server.api.uri.UriInfoResource;
 import org.apache.olingo.server.api.uri.UriResource;
@@ -36,7 +38,7 @@ public final class JPQLQueryBuilder {
 	
 	private Map<String, Object> queryParams = new HashMap<String, Object>();
 	
-	public JPQLQuery build() throws ExpressionVisitException, ODataApplicationException {
+	public JPQLQuery build() throws ODataApplicationException {
 		
 		ODataJPAEntity oDataJPAEntity = clazz.getAnnotation(ODataJPAEntity.class);
 		String entityName = oDataJPAEntity == null || oDataJPAEntity.value().isEmpty() ? clazz.getSimpleName() : oDataJPAEntity.value();
@@ -150,17 +152,21 @@ public final class JPQLQueryBuilder {
 		
 	}
 	
-	private void appendFilterOption(StringBuilder sb) throws ExpressionVisitException, ODataApplicationException {
+	private void appendFilterOption(StringBuilder sb) throws ODataApplicationException {
 		
 		if(filterOption != null) {
 			
 			Expression filterExpression = filterOption.getExpression();
 			FilterExpressionVisitor filterExpressionVisitor = new FilterExpressionVisitor(clazz, queryParams);
 			
-			Object visitorResult = filterExpression.accept(filterExpressionVisitor);
-			if(visitorResult != null && visitorResult instanceof String) {
-				String whereClause = visitorResult.toString();
-				if(!whereClause.isEmpty()) sb.append("WHERE " + whereClause);
+			try {
+				Object visitorResult = filterExpression.accept(filterExpressionVisitor);
+				if(visitorResult != null && visitorResult instanceof String) {
+					String whereClause = visitorResult.toString();
+					if(!whereClause.isEmpty()) sb.append("WHERE " + whereClause);
+				}
+			} catch (ExpressionVisitException e) {
+				throw new ODataApplicationException(e.getMessage(), HttpStatusCode.INTERNAL_SERVER_ERROR.getStatusCode(), Locale.ENGLISH);
 			}
 		}
 	}

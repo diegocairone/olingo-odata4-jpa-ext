@@ -78,9 +78,9 @@ public class MediaProcessor extends EntitySetProcessor implements MediaEntityPro
 					.collect(Collectors.toMap(UriParameter::getName, x -> x));
 			
 		    MediaDataSource mediaDataSource = (MediaDataSource) dataSource;
-		    
+		    byte[] binary = mediaDataSource.findMediaResource(keyPredicateMap);
+			
 		    try {
-				byte[] binary = mediaDataSource.findMediaResource(keyPredicateMap);
 				
 				final InputStream responseContent = odata.createFixedFormatSerializer().binary(binary);
 				final String contentType = URLConnection.guessContentTypeFromStream(responseContent);
@@ -91,8 +91,6 @@ public class MediaProcessor extends EntitySetProcessor implements MediaEntityPro
 				
 		        return;
 		        
-			} catch (ODataApplicationException e) {
-				throw e;
 			} catch (IOException e) {
 				throw new ODataApplicationException(e.getMessage(), HttpStatusCode.INTERNAL_SERVER_ERROR.getStatusCode(), Locale.ENGLISH);
 			}
