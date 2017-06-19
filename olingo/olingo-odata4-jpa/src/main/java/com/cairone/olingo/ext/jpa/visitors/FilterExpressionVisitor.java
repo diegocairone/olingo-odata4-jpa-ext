@@ -194,6 +194,9 @@ public class FilterExpressionVisitor implements ExpressionVisitor<Object> {
 						if(oDataJPAProperty != null && !oDataJPAProperty.value().isEmpty()) {
 							cl = field.getType();
 							segments.add(oDataJPAProperty.value());
+						} else if(oDataJPAProperty == null) {
+							cl = field.getType();
+							segments.add(field.getName());
 						}
 					}
 				}
@@ -208,6 +211,8 @@ public class FilterExpressionVisitor implements ExpressionVisitor<Object> {
 						ODataJPAProperty oDataJPAProperty = field.getAnnotation(ODataJPAProperty.class);
 						if(oDataJPAProperty != null && !oDataJPAProperty.value().isEmpty()) {
 							propertyName = oDataJPAProperty.value();
+						} else if(oDataJPAProperty == null) {
+							propertyName = field.getName();
 						}
 						canonicalName = field.getType().getCanonicalName();
 						segments.add(propertyName);

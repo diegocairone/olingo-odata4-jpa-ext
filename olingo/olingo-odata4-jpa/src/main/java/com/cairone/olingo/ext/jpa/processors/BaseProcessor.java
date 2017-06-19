@@ -221,10 +221,12 @@ public class BaseProcessor implements Processor {
     					
     					@SuppressWarnings("unchecked")
 						Collection<Object> objects = (Collection<Object>) inlineEntity;
-    					
-    					for(Object item : objects) {
-    						Entity expandEntity = writeEntity(item, null);
-    						data.getEntities().add(expandEntity);
+
+    					if(objects != null) {
+	    					for(Object item : objects) {
+	    						Entity expandEntity = writeEntity(item, null);
+	    						data.getEntities().add(expandEntity);
+	    					}
     					}
     					
     					link.setInlineEntitySet(data);
