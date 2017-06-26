@@ -148,8 +148,21 @@ public class EntitySetProcessor extends BaseProcessor implements EntityProcessor
     		.stream()
     		.collect(Collectors.toMap(x -> x, x -> x));
     	
+    	List<Link> navLinks = requestEntity.getNavigationLinks();
     	
-    	writeNavLinksFromNavBindings(edmEntitySet, requestEntity, dataSourceMap, request.getRawBaseUri());
+    	for(Link navlink : navLinks) {
+    		if(navlink.getInlineEntity() != null) {
+    			Entity entity = navlink.getInlineEntity();
+    			writeNavLinksFromNavBindings(entity, dataSourceMap, request.getRawBaseUri());
+    		} else if (navlink.getInlineEntitySet() != null) {
+    			EntityCollection entityCollection = navlink.getInlineEntitySet();
+    			for(Entity entity : entityCollection) {
+    				writeNavLinksFromNavBindings(entity, dataSourceMap, request.getRawBaseUri());
+    			}
+    		}
+    	}
+    	
+    	writeNavLinksFromNavBindings(requestEntity, dataSourceMap, request.getRawBaseUri());
     	
     	try {
     		object = writeObject(clazz, requestEntity);
@@ -277,7 +290,8 @@ public class EntitySetProcessor extends BaseProcessor implements EntityProcessor
 		Object object;
 
     	
-    	writeNavLinksFromNavBindings(edmEntitySet, requestEntity, dataSourceMap, request.getRawBaseUri());
+    	//writeNavLinksFromNavBindings(edmEntitySet, requestEntity, dataSourceMap, request.getRawBaseUri());
+		writeNavLinksFromNavBindings(requestEntity, dataSourceMap, request.getRawBaseUri());
     	
     	try {
 	    	object = writeObject(clazz, requestEntity);

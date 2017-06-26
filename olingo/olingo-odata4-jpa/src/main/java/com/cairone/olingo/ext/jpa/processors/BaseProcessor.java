@@ -131,6 +131,14 @@ public class BaseProcessor implements Processor {
 		com.cairone.olingo.ext.jpa.annotations.EdmEntitySet edmEntitySet = clazz.getAnnotation(com.cairone.olingo.ext.jpa.annotations.EdmEntitySet.class);
 		com.cairone.olingo.ext.jpa.annotations.EdmEntity edmEntity = clazz.getAnnotation(com.cairone.olingo.ext.jpa.annotations.EdmEntity.class);
 		
+		if(edmEntitySet == null) {
+			throw new ODataApplicationException(String.format("Class %s is missing @EdmEntitySet annotation", clazz.getName()), HttpStatusCode.INTERNAL_SERVER_ERROR.getStatusCode(), Locale.ENGLISH);
+		}
+		
+		if(edmEntity == null) {
+			throw new ODataApplicationException(String.format("Class %s is missing @EdmEntity annotation", clazz.getName()), HttpStatusCode.INTERNAL_SERVER_ERROR.getStatusCode(), Locale.ENGLISH);
+		}
+		
 		String edmEntitySetName = edmEntitySet.value().isEmpty() ? clazz.getSimpleName() : edmEntitySet.value();
 		
 		String[] keys = edmEntity.key();
@@ -447,6 +455,104 @@ public class BaseProcessor implements Processor {
 		return createdEntity;
 	}
 	
+	protected void writeNavLinksFromNavBindings(Entity requestEntity, Map<String, DataSource> dataSourceMap, String rawBaseUri) throws ODataApplicationException {
+
+		List<Link> navigationBindings = requestEntity.getNavigationBindings();
+		
+    	if(navigationBindings != null && navigationBindings.size() > 0) {
+    		
+    		for(Link link : navigationBindings) {
+    			    							
+				Link navLink = new Link();
+				navLink.setTitle(link.getTitle());
+				requestEntity.getNavigationLinks().add(navLink);
+				
+				
+			    if(link.getBindingLinks().isEmpty()) {
+			    	
+			    	String bindingLink = link.getBindingLink();
+			    	
+			    	try {
+			    		
+				    	UriResourceEntitySet targetUriResourceEntitySet = 
+			    				odata.createUriHelper().parseEntityId(serviceMetadata.getEdm(), bindingLink, rawBaseUri);
+				    	
+				    	EdmEntitySet targetEntitySet = targetUriResourceEntitySet.getEntitySet();
+				    	
+		    			List<UriParameter> keyPredicates = targetUriResourceEntitySet.getKeyPredicates();
+		    		    Map<String, UriParameter> keyPredicateMap = keyPredicates
+		    					.stream()
+		    					.collect(Collectors.toMap(UriParameter::getName, x -> x));
+
+					    DataSource targetDataSource = dataSourceMap.get(targetEntitySet.getName());
+
+						if(targetDataSource == null) {
+							throw new ODataApplicationException(String.format("DATASOURCE PROVIDER FOR %s NOT FOUND", targetEntitySet.getName()), HttpStatusCode.INTERNAL_SERVER_ERROR.getStatusCode(), Locale.ENGLISH);
+						}
+
+	    				Object targetObject = targetDataSource.readFromKey(keyPredicateMap, null, null);
+	    				
+	    				if(targetObject == null) {
+	    					throw new ODataApplicationException("LA ENTIDAD SOLICITADA NO EXISTE", HttpStatusCode.NOT_FOUND.getStatusCode(), Locale.ENGLISH);
+	    				}
+	    				
+	    				Entity targetEntity = writeEntity(targetObject, null);
+	    				navLink.setInlineEntity(targetEntity);
+				    	
+				    	
+	    			} catch (ODataException | IllegalArgumentException | IllegalAccessException | NoSuchMethodException | SecurityException | InvocationTargetException e) {
+	    				throw new ODataApplicationException(e.getMessage(), HttpStatusCode.INTERNAL_SERVER_ERROR.getStatusCode(), Locale.ENGLISH);
+	    			}
+			    	
+			    } else {
+			    	
+			    	EntityCollection entityCollection = navLink.getInlineEntitySet();
+			    	
+			    	if(entityCollection == null) {
+			    		entityCollection = new EntityCollection();
+			    		navLink.setInlineEntitySet(entityCollection);
+			    	}
+			    				    	
+			    	for(final String bindingLink : link.getBindingLinks()) {
+			    		
+			    		try {
+			    			
+				    		UriResourceEntitySet targetUriResourceEntitySet = 
+				    				odata.createUriHelper().parseEntityId(serviceMetadata.getEdm(), bindingLink, rawBaseUri);
+
+					    	EdmEntitySet targetEntitySet = targetUriResourceEntitySet.getEntitySet();
+					    		
+			    			List<UriParameter> keyPredicates = targetUriResourceEntitySet.getKeyPredicates();
+			    		    Map<String, UriParameter> keyPredicateMap = keyPredicates
+			    					.stream()
+			    					.collect(Collectors.toMap(UriParameter::getName, x -> x));
+			    		    
+
+						    DataSource targetDataSource = dataSourceMap.get(targetEntitySet.getName());
+
+							if(targetDataSource == null) {
+								throw new ODataApplicationException(String.format("DATASOURCE PROVIDER FOR %s NOT FOUND", targetEntitySet.getName()), HttpStatusCode.INTERNAL_SERVER_ERROR.getStatusCode(), Locale.ENGLISH);
+							}
+
+		    				Object targetObject = targetDataSource.readFromKey(keyPredicateMap, null, null);
+		    				
+		    				if(targetObject == null) {
+		    					throw new ODataApplicationException("LA ENTIDAD SOLICITADA NO EXISTE", HttpStatusCode.NOT_FOUND.getStatusCode(), Locale.ENGLISH);
+		    				}
+		    				
+		    				Entity targetEntity = writeEntity(targetObject, null);
+		    				entityCollection.getEntities().add(targetEntity);
+				    				
+		    			} catch (ODataException | IllegalArgumentException | IllegalAccessException | NoSuchMethodException | SecurityException | InvocationTargetException e) {
+		    				throw new ODataApplicationException(e.getMessage(), HttpStatusCode.INTERNAL_SERVER_ERROR.getStatusCode(), Locale.ENGLISH);
+		    			}
+			    	}
+			    }
+    		}
+    	}
+	}
+	
+	@Deprecated
 	protected void writeNavLinksFromNavBindings(EdmEntitySet edmEntitySet, Entity requestEntity, Map<String, DataSource> dataSourceMap, String rawBaseUri) throws ODataApplicationException {
 
 		List<Link> navigationBindings = requestEntity.getNavigationBindings();

@@ -419,6 +419,8 @@ public class EdmProvider extends CsdlAbstractEdmProvider {
 				if(property.type().isEmpty()) {					
 					if(fld.getType().isAssignableFrom(Integer.class)) {
 						propertyType = EdmPrimitiveTypeKind.Int32.getFullQualifiedName();
+					} else if(fld.getType().isAssignableFrom(Long.class)) {
+						propertyType = EdmPrimitiveTypeKind.Int64.getFullQualifiedName();
 					} else if(fld.getType().isAssignableFrom(String.class)) {
 						propertyType = EdmPrimitiveTypeKind.String.getFullQualifiedName();
 					} else if(fld.getType().isAssignableFrom(LocalDate.class)) {
@@ -440,6 +442,9 @@ public class EdmProvider extends CsdlAbstractEdmProvider {
 					switch(property.type()) {
 					case "Edm.Int32":
 						propertyType = EdmPrimitiveTypeKind.Int32.getFullQualifiedName();
+						break;
+					case "Edm.Int64":
+						propertyType = EdmPrimitiveTypeKind.Int64.getFullQualifiedName();
 						break;
 					case "Edm.String":
 						propertyType = EdmPrimitiveTypeKind.String.getFullQualifiedName();
