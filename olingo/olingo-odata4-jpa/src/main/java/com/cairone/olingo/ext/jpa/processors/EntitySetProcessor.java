@@ -289,10 +289,8 @@ public class EntitySetProcessor extends BaseProcessor implements EntityProcessor
 		Class<?> clazz = entitySetMap.get(edmEntitySet.getName());
 		Object object;
 
-    	
-    	//writeNavLinksFromNavBindings(edmEntitySet, requestEntity, dataSourceMap, request.getRawBaseUri());
 		writeNavLinksFromNavBindings(requestEntity, dataSourceMap, request.getRawBaseUri());
-    	
+		
     	try {
 	    	object = writeObject(clazz, requestEntity);
     		
