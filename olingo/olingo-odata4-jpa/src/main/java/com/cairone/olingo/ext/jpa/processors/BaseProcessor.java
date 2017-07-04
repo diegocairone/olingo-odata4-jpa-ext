@@ -56,6 +56,7 @@ import org.springframework.core.type.filter.AnnotationTypeFilter;
 
 import com.cairone.olingo.ext.jpa.annotations.EdmEntity;
 import com.cairone.olingo.ext.jpa.interfaces.DataSource;
+import com.cairone.olingo.ext.jpa.interfaces.OdataEnum;
 
 public class BaseProcessor implements Processor {
 
@@ -183,19 +184,9 @@ public class BaseProcessor implements Processor {
 	            		
 	            	} else if(value.getClass().isEnum()) {
 	            		
-	            		Class<?> fldClazz = fld.getType();
-	            		Method getValor = fldClazz.getMethod("getValor");
-						Enum<?>[] enums = (Enum<?>[]) fldClazz.getEnumConstants();
-						
-						Object rvValue = getValor.invoke(value);
-						
-						for(Enum<?> enumeration : enums) {
-							Object rv = getValor.invoke(enumeration);
-							if(rvValue.equals(rv)) {
-	    						entity.addProperty(new Property(null, name, ValueType.ENUM, rv));
-	                    		break;
-							}
-						}
+	            		OdataEnum<?> odataEnum = (OdataEnum<?>) value;
+	            		entity.addProperty(new Property(null, name, ValueType.ENUM, odataEnum.getValor()));
+	            		
 	            	} else {
 	            		entity.addProperty(new Property(null, name, ValueType.PRIMITIVE, value));
 	            	}

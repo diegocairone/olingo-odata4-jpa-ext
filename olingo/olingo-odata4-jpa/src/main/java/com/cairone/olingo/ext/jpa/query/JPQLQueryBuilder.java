@@ -141,7 +141,7 @@ public final class JPQLQueryBuilder {
     		    			if(oDataJPAProperty != null && !oDataJPAProperty.value().isEmpty() && !oDataJPAProperty.ignore()) {
     		    				sb.append("LEFT JOIN FETCH e." + oDataJPAProperty.value() + " ");
     		    			} else if(oDataJPAProperty == null || !oDataJPAProperty.ignore()) {
-    		    				sb.append("LEFT JOIN FETCH e." + navPropName + " ");
+    		    				sb.append("LEFT JOIN FETCH e." + field.getName() + " ");
     		    			}
     		    			break;
     		    		}
