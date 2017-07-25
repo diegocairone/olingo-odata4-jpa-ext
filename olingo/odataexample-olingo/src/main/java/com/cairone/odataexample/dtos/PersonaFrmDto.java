@@ -54,7 +54,7 @@ public class PersonaFrmDto {
 				personaEntity.getLocalidad().getProvincia().getPais().getId(),
 				personaEntity.getLocalidad().getProvincia().getId(),
 				personaEntity.getLocalidad().getId(),
-				personaEntity.getGenero().toGeneroOdataEnum());
+				personaEntity.getGenero());
 	}
 	
 	public Integer getTipoDocumentoId() {

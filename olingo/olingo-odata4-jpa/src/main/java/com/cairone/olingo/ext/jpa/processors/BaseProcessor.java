@@ -252,6 +252,10 @@ public class BaseProcessor implements Processor {
 	
 	protected Object writeObject(Class<?> clazz, Entity entity) throws NoSuchMethodException, SecurityException, InstantiationException, IllegalAccessException, IllegalArgumentException, InvocationTargetException {
 		
+		if(clazz == null || entity == null) {
+			return null;
+		}
+		
 		Constructor<?> constructor = clazz.getConstructor();
 		Object object = constructor.newInstance();
 		
@@ -326,7 +330,7 @@ public class BaseProcessor implements Processor {
 							
 							for(Entity inlineEntity : entities) {
 								Object inlineObject = writeObject(inlineClazz, inlineEntity);
-								inlineObjectCollection.add(inlineObject);
+								if(inlineObject != null) inlineObjectCollection.add(inlineObject);
 							}
 							
 							fld.setAccessible(true);
@@ -345,7 +349,7 @@ public class BaseProcessor implements Processor {
 					Link link = entity.getNavigationLink(propertyName);
 					if(link != null) {
 						Object navpropField = writeObject(cl, link.getInlineEntity());
-						fld.set(object, navpropField);
+						if(navpropField != null) fld.set(object, navpropField);
 					}
 				}
         	}

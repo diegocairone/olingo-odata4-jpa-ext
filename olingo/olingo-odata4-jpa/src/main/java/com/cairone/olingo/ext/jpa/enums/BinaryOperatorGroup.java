@@ -38,7 +38,7 @@ public enum BinaryOperatorGroup {
 		case GT:
 			return COMPARISON_OPERATOR;
 		case HAS:
-			return LOGICAL_OPERATOR;
+			return COMPARISON_OPERATOR;
 		case LE:
 			return COMPARISON_OPERATOR;
 		case LT:

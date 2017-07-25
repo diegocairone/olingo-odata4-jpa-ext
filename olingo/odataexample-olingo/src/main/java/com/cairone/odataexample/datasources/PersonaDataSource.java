@@ -138,7 +138,7 @@ public class PersonaDataSource implements DataSource {
 	    		// *** CAMPO << FECHA GENERO >>
 	    		
 	    		if(propertiesInJSON.contains("genero")) {
-	    			personaEntity.setGenero(persona.getGenero().toGeneroEnum());
+	    			personaEntity.setGenero(persona.getGenero());
 	    		}
 	    		
 	    		personaFrmDto = new PersonaFrmDto(personaEntity);

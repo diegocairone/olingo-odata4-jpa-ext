@@ -40,7 +40,7 @@ public class BinaryOperatorConverter implements OperatorConverter<BinaryOperator
 		case GT:
 			return " > ";
 		case HAS:
-			break;
+			return " = ";
 		case LE:
 			return " <= ";
 		case LT:

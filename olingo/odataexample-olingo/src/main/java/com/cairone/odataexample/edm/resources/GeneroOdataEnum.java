@@ -5,7 +5,7 @@ import com.cairone.olingo.ext.jpa.annotations.EdmEnum;
 import com.cairone.olingo.ext.jpa.interfaces.OdataEnum;
 
 
-@EdmEnum(name="genero")
+@EdmEnum(name="genero", namespace="com.cairone.odataexample")
 public enum GeneroOdataEnum implements OdataEnum<GeneroOdataEnum>{
 	MASCULINO(1), FEMENINO(2);
 

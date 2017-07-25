@@ -12,6 +12,7 @@ import com.cairone.olingo.ext.jpa.annotations.EdmNavigationProperty;
 import com.cairone.olingo.ext.jpa.annotations.EdmProperty;
 import com.cairone.olingo.ext.jpa.annotations.ODataJPAEntity;
 import com.cairone.olingo.ext.jpa.annotations.ODataJPAProperty;
+import com.cairone.olingo.ext.jpa.enums.EnumerationTreatedAs;
 
 @EdmEntity(name = "Persona", key = { "tipoDocumentoId", "numeroDocumento" }, namespace = OdataExample.NAME_SPACE, containerName = OdataExample.CONTAINER_NAME)
 @EdmEntitySet("Personas")
@@ -39,7 +40,7 @@ public class PersonaEdm {
 	@EdmProperty(name="fechaAlta")
 	private LocalDate fechaAlta = null;
 	
-	@EdmProperty(name="genero")
+	@EdmProperty(name="genero") @ODataJPAProperty(value="genero", treatedAs=EnumerationTreatedAs.ENUMERATION)
 	private GeneroOdataEnum genero = null;
 	
 	@EdmProperty(name="uuid", nullable = false, maxLength=36)
@@ -67,7 +68,7 @@ public class PersonaEdm {
 	}
 	
 	public PersonaEdm(PersonaEntity personaEntity) {
-		this(personaEntity.getTipoDocumento().getId(), personaEntity.getNumeroDocumento(), personaEntity.getNombres(), personaEntity.getApellidos(), personaEntity.getApodo(), new LocalidadEdm(personaEntity.getLocalidad()), personaEntity.getFechaAlta(), personaEntity.getGenero().toGeneroOdataEnum(), personaEntity.getFotoUUID());
+		this(personaEntity.getTipoDocumento().getId(), personaEntity.getNumeroDocumento(), personaEntity.getNombres(), personaEntity.getApellidos(), personaEntity.getApodo(), new LocalidadEdm(personaEntity.getLocalidad()), personaEntity.getFechaAlta(), personaEntity.getGenero(), personaEntity.getFotoUUID());
 		
 		if(personaEntity.getPersonaSectorEntities() != null) {
 			this.sectores = PersonaSectorEdm.crearLista(personaEntity.getPersonaSectorEntities());

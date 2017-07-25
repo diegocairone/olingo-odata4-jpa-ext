@@ -14,6 +14,7 @@ import java.util.stream.Collectors;
 import org.apache.olingo.commons.api.edm.EdmEnumType;
 import org.apache.olingo.commons.api.edm.EdmNavigationProperty;
 import org.apache.olingo.commons.api.edm.EdmType;
+import org.apache.olingo.commons.api.edm.FullQualifiedName;
 import org.apache.olingo.commons.api.http.HttpStatusCode;
 import org.apache.olingo.server.api.ODataApplicationException;
 import org.apache.olingo.server.api.uri.UriInfoResource;
@@ -29,10 +30,13 @@ import org.apache.olingo.server.api.uri.queryoption.expression.Member;
 import org.apache.olingo.server.api.uri.queryoption.expression.MethodKind;
 import org.apache.olingo.server.api.uri.queryoption.expression.UnaryOperatorKind;
 
+import com.cairone.olingo.ext.jpa.annotations.EdmEnum;
 import com.cairone.olingo.ext.jpa.annotations.EdmProperty;
 import com.cairone.olingo.ext.jpa.annotations.ODataJPAProperty;
 import com.cairone.olingo.ext.jpa.converters.BinaryOperatorConverter;
 import com.cairone.olingo.ext.jpa.enums.BinaryOperatorGroup;
+import com.cairone.olingo.ext.jpa.enums.EnumerationTreatedAs;
+import com.cairone.olingo.ext.jpa.interfaces.OdataEnum;
 import com.google.common.base.CharMatcher;
 import com.google.common.primitives.Ints;
 import com.google.common.primitives.Longs;
@@ -102,9 +106,12 @@ public class FilterExpressionVisitor implements ExpressionVisitor<Object> {
 			} catch(DateTimeParseException e) {
 				throw new ODataApplicationException(e.getMessage(), HttpStatusCode.BAD_REQUEST.getStatusCode(), Locale.ENGLISH);
 			}
+		} else if(typeName.equals("java.lang.String")) {
+			queryParams.put(param, CharMatcher.is('\'').trimFrom(right.toString()));
+		} else {
+			queryParams.put(param, right);
 		}
 		
-		queryParams.put(param, CharMatcher.is('\'').trimFrom(right.toString()));
 		return sb.toString();
 	}
 
@@ -208,13 +215,18 @@ public class FilterExpressionVisitor implements ExpressionVisitor<Object> {
 				for(Field field : cl.getDeclaredFields()) {
 					EdmProperty annEdmProperty = field.getAnnotation(EdmProperty.class);
 					if(annEdmProperty != null && (annEdmProperty.name().equals(propertyName) || field.getName().equals(propertyName))) {
+						canonicalName = field.getType().getCanonicalName();
 						ODataJPAProperty oDataJPAProperty = field.getAnnotation(ODataJPAProperty.class);
 						if(oDataJPAProperty != null && !oDataJPAProperty.value().isEmpty()) {
 							propertyName = oDataJPAProperty.value();
+							if(field.getType().isEnum() && oDataJPAProperty.treatedAs().equals(EnumerationTreatedAs.NUMERIC)) {
+								canonicalName = "java.lang.Integer";
+							} else if(field.getType().isEnum() && oDataJPAProperty.treatedAs().equals(EnumerationTreatedAs.NAME)) {
+								canonicalName = "java.lang.String";
+							}
 						} else if(oDataJPAProperty == null) {
 							propertyName = field.getName();
 						}
-						canonicalName = field.getType().getCanonicalName();
 						segments.add(propertyName);
 					}
 				}
@@ -250,6 +262,39 @@ public class FilterExpressionVisitor implements ExpressionVisitor<Object> {
 
 	@Override
 	public Object visitEnum(EdmEnumType type, List<String> enumValues) throws ExpressionVisitException, ODataApplicationException {
+		
+		for(Field field : clazz.getDeclaredFields()) {
+			
+			EdmProperty annEdmProperty = field.getAnnotation(EdmProperty.class);
+			Class<?> cl = field.getType();
+			
+			if(cl.isEnum() && annEdmProperty != null) {
+				
+				EdmEnum edmEnum = cl.getAnnotation(EdmEnum.class);
+				
+				FullQualifiedName fqn = new FullQualifiedName(
+						edmEnum.namespace(), 
+						edmEnum.name().isEmpty() ? cl.getSimpleName() : edmEnum.name());
+				
+				if(fqn.equals(type.getFullQualifiedName())) {
+					Object[] constants = cl.getEnumConstants();
+					for(Object object : constants) {
+						if(enumValues.contains(object.toString())) {
+							ODataJPAProperty oDataJPAProperty = field.getAnnotation(ODataJPAProperty.class);
+							if(oDataJPAProperty == null || oDataJPAProperty.treatedAs().equals(EnumerationTreatedAs.ENUMERATION)) {
+								return object;
+							} else if(oDataJPAProperty.treatedAs().equals(EnumerationTreatedAs.NAME)) {
+								return object.toString();
+							} else if(oDataJPAProperty.treatedAs().equals(EnumerationTreatedAs.NUMERIC)) {
+								OdataEnum<?> odataEnum = (OdataEnum<?>) object;
+								return Integer.valueOf(odataEnum.getValor());
+							}
+						}
+					}
+				}
+			}
+		}
+		
 		return null;
 	}
 	

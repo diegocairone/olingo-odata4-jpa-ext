@@ -14,7 +14,7 @@ import javax.persistence.OneToMany;
 import javax.persistence.OneToOne;
 import javax.persistence.Table;
 
-import com.cairone.odataexample.enums.GeneroEnum;
+import com.cairone.odataexample.edm.resources.GeneroOdataEnum;
 
 @Entity @Table(name="personas")
 public class PersonaEntity implements Serializable {
@@ -49,7 +49,7 @@ public class PersonaEntity implements Serializable {
 	private LocalDate fechaAlta = null;
 	
 	@Column(name="genero", nullable = false, length = 1)
-	private GeneroEnum genero = null;
+	private GeneroOdataEnum genero = null;
 	
 	@Column(name="uuid_foto", nullable = true, length = 36)
 	private String fotoUUID = null;
@@ -125,11 +125,11 @@ public class PersonaEntity implements Serializable {
 		this.fechaAlta = fechaAlta;
 	}
 
-	public GeneroEnum getGenero() {
+	public GeneroOdataEnum getGenero() {
 		return genero;
 	}
 
-	public void setGenero(GeneroEnum genero) {
+	public void setGenero(GeneroOdataEnum genero) {
 		this.genero = genero;
 	}
 

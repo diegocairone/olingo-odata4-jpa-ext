@@ -109,7 +109,7 @@ public class PersonaService {
 		personaEntity.setApodo(personaFrmDto.getApodo());
 		personaEntity.setLocalidad(localidadEntity);
 		personaEntity.setFechaAlta(LocalDate.now());
-		personaEntity.setGenero(personaFrmDto.getGenero().toGeneroEnum());
+		personaEntity.setGenero(personaFrmDto.getGenero());
 		
 		personaRepository.save(personaEntity);
 		
@@ -139,7 +139,7 @@ public class PersonaService {
 		personaEntity.setApellidos(personaFrmDto.getApellidos());
 		personaEntity.setApodo(personaFrmDto.getApodo());
 		personaEntity.setLocalidad(localidadEntity);
-		personaEntity.setGenero(personaFrmDto.getGenero().toGeneroEnum());
+		personaEntity.setGenero(personaFrmDto.getGenero());
 		
 		personaRepository.save(personaEntity);
 		

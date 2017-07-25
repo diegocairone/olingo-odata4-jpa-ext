@@ -2,7 +2,6 @@ package com.cairone.odataexample.edm.operations;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 

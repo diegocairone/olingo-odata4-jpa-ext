@@ -18,6 +18,8 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
+import com.cairone.olingo.ext.jpa.enums.EnumerationTreatedAs;
+
 /**
  * Establishes a one to one relationship between a field in an Edm Entity Type and a field in an JPA Entity
  * 
@@ -34,4 +36,6 @@ public @interface ODataJPAProperty {
 	String value() default "";
 	
 	boolean ignore() default false;
+	
+	EnumerationTreatedAs treatedAs() default EnumerationTreatedAs.ENUMERATION;
 }
