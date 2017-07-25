@@ -1,8 +1,10 @@
 package com.cairone.olingo.ext.jpa.processors;
 
 import java.io.InputStream;
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 import java.util.UUID;
 
 import org.apache.olingo.commons.api.format.ContentType;
@@ -55,31 +57,49 @@ public class BatchRequestProcessor extends BaseProcessor implements BatchProcess
 		
 		final List<ODataResponse> responses = new ArrayList<ODataResponse>();
 		
-		return transactionTemplate.execute(new TransactionCallback<ODataResponsePart>() {
-
-			@Override
-			public ODataResponsePart doInTransaction(TransactionStatus status) {
-				
-				try
-				{
-					for(final ODataRequest request : requests) {
-						
-						final ODataResponse response = facade.handleODataRequest(request);
-						final int statusCode = response.getStatusCode();
-						
-						if(statusCode < 400) {
-							responses.add(response);
-						} else {
-							status.setRollbackOnly();
-							return new ODataResponsePart(response, false);
+		try
+		{
+			return transactionTemplate.execute(new TransactionCallback<ODataResponsePart>() {
+	
+				@Override
+				public ODataResponsePart doInTransaction(TransactionStatus status) {
+					
+					try
+					{
+						for(final ODataRequest request : requests) {
+							
+							final ODataResponse response = facade.handleODataRequest(request);
+							final int statusCode = response.getStatusCode();
+							
+							if(statusCode < 400) {
+								responses.add(response);
+							} else {
+								status.setRollbackOnly();
+								return new ODataResponsePart(response, false);
+							}
 						}
-					}
-				} catch(ODataApplicationException | ODataLibraryException e) {
-					status.setRollbackOnly();
-			    }
-				
-				return new ODataResponsePart(responses, true);
+					} catch(Exception e) {
+						status.setRollbackOnly();
+				    }
+					
+					return new ODataResponsePart(responses, true);
+				}
+			});
+			
+		} catch(Exception e) {
+			
+			boolean iterar = true;
+			Exception exception = e;
+			
+			while(iterar){
+				if(exception instanceof SQLException || exception.getCause() == null || ((Exception) exception.getCause()).equals(exception) ) {
+					iterar = false;
+				} else {
+					exception = (Exception) exception.getCause();
+				}
 			}
-		});
+			
+			throw new ODataApplicationException(exception.getMessage(), HttpStatusCode.INTERNAL_SERVER_ERROR.getStatusCode(), Locale.ENGLISH, exception);
+	    }
 	}
 }
