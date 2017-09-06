@@ -8,6 +8,7 @@
   <modules>
     <module>olingo-odata4-jpa</module>
     <module>odataexample-olingo</module>
+    <module>olingo-ext-demo</module>
   </modules>
   <parent>
 		<groupId>org.springframework.boot</groupId>
