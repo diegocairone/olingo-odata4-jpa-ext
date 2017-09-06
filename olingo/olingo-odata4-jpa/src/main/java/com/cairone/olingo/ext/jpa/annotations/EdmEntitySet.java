@@ -35,14 +35,7 @@ public @interface EdmEntitySet {
      *
      * @return The name of the entity set.
      */
-    String name() default "";
-
-    /**
-     * Convenience attribute for the name of the entity set.
-     *
-     * @return The name of the entity set.
-     */
-    String value() default "";
+	String value() default "";
 
     /**
      * Specifies whether this entity set should be included in the service document.
