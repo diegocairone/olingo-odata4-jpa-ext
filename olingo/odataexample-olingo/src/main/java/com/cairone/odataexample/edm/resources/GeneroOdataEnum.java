@@ -15,11 +15,11 @@ public enum GeneroOdataEnum implements OdataEnum<GeneroOdataEnum>{
 		this.valor = valor;
 	}
 
-	public int getValor() {
+	public int getOrdinal() {
 		return valor;
 	}
 	
-	public GeneroOdataEnum setValor(int valor) {
+	public GeneroOdataEnum setOrdinal(int valor) {
 		if(valor == 2) return FEMENINO; else return MASCULINO;
 	}
 

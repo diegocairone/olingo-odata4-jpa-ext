@@ -196,7 +196,7 @@ public class EntitySetProcessor extends BaseProcessor implements EntityProcessor
 		            	} else if(value.getClass().isEnum()) {
 		            		
 		            		Class<?> fldClazz = fld.getType();
-		            		Method getValor = fldClazz.getMethod("getValor");
+		            		Method getValor = fldClazz.getMethod("getOrdinal");
 	    					Enum<?>[] enums = (Enum<?>[]) fldClazz.getEnumConstants();
 	    					
 	    					Object rvValue = getValor.invoke(value);

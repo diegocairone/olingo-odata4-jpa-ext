@@ -2,8 +2,6 @@ package com.cairone.olingo.ext.jpa.providers;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Field;
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.math.BigDecimal;
@@ -483,12 +481,11 @@ public class EdmProvider extends CsdlAbstractEdmProvider {
 				.setUnderlyingType(edmEnum.underlyingType());
 			
 			for(Object obj : constants) {
-				Class<?> sub = obj.getClass();
+				Enum<?> enumObj = (Enum<?>) obj;
 				try {
-					Method mth = sub.getDeclaredMethod("getValor");
-					String val = mth.invoke(obj).toString();
+					String val = String.valueOf(enumObj.ordinal());
 					enumType.getMembers().add(new CsdlEnumMember().setName(obj.toString()).setValue(val));
-				} catch (NoSuchMethodException | SecurityException | IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
+				} catch (SecurityException | IllegalArgumentException e) {
 					throw new ODataException(e.getMessage());
 				}
 			}

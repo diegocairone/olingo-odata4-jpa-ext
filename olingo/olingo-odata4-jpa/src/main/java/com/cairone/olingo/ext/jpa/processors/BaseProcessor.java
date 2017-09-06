@@ -185,7 +185,7 @@ public class BaseProcessor implements Processor {
 	            	} else if(value.getClass().isEnum()) {
 	            		
 	            		OdataEnum<?> odataEnum = (OdataEnum<?>) value;
-	            		entity.addProperty(new Property(null, name, ValueType.ENUM, odataEnum.getValor()));
+	            		entity.addProperty(new Property(null, name, ValueType.ENUM, odataEnum.getOrdinal()));
 	            		
 	            	} else {
 	            		entity.addProperty(new Property(null, name, ValueType.PRIMITIVE, value));
@@ -275,7 +275,7 @@ public class BaseProcessor implements Processor {
     				
     				if(edmEnum != null) {
     					
-    					Method setValor = fldClazz.getMethod("setValor", Integer.TYPE);
+    					Method setValor = fldClazz.getMethod("setOrdinal", Integer.TYPE);
     					Enum<?>[] enums = (Enum<?>[]) fldClazz.getEnumConstants();
     					
     					for(Enum<?> enumeration : enums) {
@@ -421,7 +421,7 @@ public class BaseProcessor implements Processor {
 		            	} else if(value.getClass().isEnum()) {
 		            		
 		            		Class<?> fldClazz = fld.getType();
-		            		Method getValor = fldClazz.getMethod("getValor");
+		            		Method getValor = fldClazz.getMethod("getOrdinal");
 	    					Enum<?>[] enums = (Enum<?>[]) fldClazz.getEnumConstants();
 	    					
 	    					Object rvValue = getValor.invoke(value);

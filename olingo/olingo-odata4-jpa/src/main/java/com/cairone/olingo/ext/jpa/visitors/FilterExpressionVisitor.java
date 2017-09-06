@@ -287,7 +287,7 @@ public class FilterExpressionVisitor implements ExpressionVisitor<Object> {
 								return object.toString();
 							} else if(oDataJPAProperty.treatedAs().equals(EnumerationTreatedAs.NUMERIC)) {
 								OdataEnum<?> odataEnum = (OdataEnum<?>) object;
-								return Integer.valueOf(odataEnum.getValor());
+								return Integer.valueOf(odataEnum.getOrdinal());
 							}
 						}
 					}
