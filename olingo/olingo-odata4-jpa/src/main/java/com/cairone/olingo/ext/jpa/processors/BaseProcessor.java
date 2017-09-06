@@ -23,7 +23,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
-import java.util.Map.Entry;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -57,6 +56,7 @@ import org.springframework.core.type.filter.AnnotationTypeFilter;
 import com.cairone.olingo.ext.jpa.annotations.EdmEntity;
 import com.cairone.olingo.ext.jpa.interfaces.DataSource;
 import com.cairone.olingo.ext.jpa.interfaces.OdataEnum;
+import com.cairone.olingo.ext.jpa.utilities.Util;
 
 public class BaseProcessor implements Processor {
 
@@ -240,7 +240,7 @@ public class BaseProcessor implements Processor {
             }
 		}
 		
-		String entityID = keyValues.entrySet().stream().map(Entry::toString).collect(Collectors.joining(",", "(", ")"));
+		String entityID = Util.formatEntityID(keyValues);
 		try {
 			entity.setId(new URI(edmEntitySetName + entityID));
 		} catch (URISyntaxException e) {

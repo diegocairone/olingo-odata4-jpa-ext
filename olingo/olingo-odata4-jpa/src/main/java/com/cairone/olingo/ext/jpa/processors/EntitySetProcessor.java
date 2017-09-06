@@ -15,7 +15,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
-import java.util.Map.Entry;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -223,7 +222,7 @@ public class EntitySetProcessor extends BaseProcessor implements EntityProcessor
 			throw new ODataApplicationException(e.getMessage(), HttpStatusCode.INTERNAL_SERVER_ERROR.getStatusCode(), Locale.ENGLISH);
 		}
 		
-		String entityID = keyValues.entrySet().stream().map(Entry::toString).collect(Collectors.joining(",", "(", ")"));
+		String entityID = Util.formatEntityID(keyValues);
 		try {
 			createdEntity.setId(new URI(edmEntitySet.getName() + entityID));
 		} catch (URISyntaxException e) {

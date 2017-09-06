@@ -3,6 +3,11 @@ package com.cairone.olingo.ext.jpa.utilities;
 import java.lang.reflect.Field;
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.stream.Collectors;
+
+import com.google.common.base.CharMatcher;
 
 public class Util {
 
@@ -23,4 +28,12 @@ public class Util {
 		return "Edm.String";
 	}
 
+	public static String formatEntityID(Map<String, Object> keyValues) {
+		
+		String entityID = keyValues.entrySet().stream().map(Entry::toString).collect(Collectors.joining(",", "(", ")"));
+		entityID = CharMatcher.is('<').replaceFrom(entityID, "%3C");
+		entityID = CharMatcher.is('>').replaceFrom(entityID, "%3E");
+		
+		return entityID;
+	}
 }
