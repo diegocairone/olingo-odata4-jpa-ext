@@ -102,28 +102,32 @@ public final class JPQLQueryBuilder {
 		return this;
 	}
 	
-	private String substituteByJpaProperty(final Class<?> clazz, final String fieldName) {
+	private String substituteByJpaProperty(final Class<?> clazz, final String propertyName) {
 		for(Field field : clazz.getDeclaredFields()) {
     		com.cairone.olingo.ext.jpa.annotations.EdmProperty annEdmProperty = field.getAnnotation(com.cairone.olingo.ext.jpa.annotations.EdmProperty.class);
-    		if(annEdmProperty != null && (annEdmProperty.name().equals(fieldName) || field.getName().equals(fieldName))) {
+    		if(annEdmProperty != null && (annEdmProperty.name().equals(propertyName) || field.getName().equals(propertyName))) {
     			ODataJPAProperty oDataJPAProperty = field.getAnnotation(ODataJPAProperty.class);
     			if(oDataJPAProperty != null && !oDataJPAProperty.value().isEmpty() && !oDataJPAProperty.ignore()) {
     				return oDataJPAProperty.value();
     			} else if(oDataJPAProperty != null && oDataJPAProperty.ignore()) {
     				return null;
+    			} else {
+    				return field.getName();
     			}
     		}
     		com.cairone.olingo.ext.jpa.annotations.EdmNavigationProperty annEdmNavigationProperty = field.getAnnotation(com.cairone.olingo.ext.jpa.annotations.EdmNavigationProperty.class);
-    		if(annEdmNavigationProperty != null && (annEdmNavigationProperty.name().equals(fieldName) || field.getName().equals(fieldName))) {
+    		if(annEdmNavigationProperty != null && (annEdmNavigationProperty.name().equals(propertyName) || field.getName().equals(propertyName))) {
     			ODataJPAProperty oDataJPAProperty = field.getAnnotation(ODataJPAProperty.class);
     			if(oDataJPAProperty != null && !oDataJPAProperty.value().isEmpty() && !oDataJPAProperty.ignore()) {
     				return oDataJPAProperty.value();
     			} else if(oDataJPAProperty != null && oDataJPAProperty.ignore()) {
     				return null;
+    			} else {
+    				return field.getName();
     			}
     		}
     	}
-		return fieldName;
+		return propertyName;
 	}
 	
 	private void appendExpandOption(StringBuilder sb) {
