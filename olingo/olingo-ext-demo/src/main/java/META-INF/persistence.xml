@@ -4,6 +4,7 @@
 		<class>com.cairone.olingo.ext.demo.converters.GenderConverter</class>
 		<class>com.cairone.olingo.ext.demo.entities.CountryEntity</class>
 		<class>com.cairone.olingo.ext.demo.entities.FormEntity</class>
+		<class>com.cairone.olingo.ext.demo.entities.FormTypeEntity</class>
 		<class>com.cairone.olingo.ext.demo.entities.PersonEntity</class>
 		<class>com.cairone.olingo.ext.demo.entities.RegionEntity</class>
 		<properties>

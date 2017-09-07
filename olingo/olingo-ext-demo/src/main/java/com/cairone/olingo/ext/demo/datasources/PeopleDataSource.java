@@ -82,6 +82,7 @@ public class PeopleDataSource extends AbstractDataSource {
     				if(personFrmDto.getSurname() == null && !propertiesInJSON.contains("Surname")) personFrmDto.setSurname(personEntity.getSurname());
     				if(personFrmDto.getGender() == null && !propertiesInJSON.contains("Gender")) personFrmDto.setGender(personEntity.getGender());
     				if(personFrmDto.getRegion() == null && !propertiesInJSON.contains("Region")) personFrmDto.setRegion(personEntity.getRegion() == null ? null : RegionEnum.fromDb(personEntity.getRegion().getId()));
+    				if(personFrmDto.getFormId() == null && !propertiesInJSON.contains("Form")) personFrmDto.setFormId(personEntity.getForm() == null ? null : personEntity.getForm().getId());
     			}
 				
 				ValidatorUtil.validate(personFrmDtoValidator, messageSource, personFrmDto);			

@@ -11,20 +11,22 @@ public class PersonFrmDto {
 	private String surname = null;
 	private GenderEnum gender = null;
 	private RegionEnum region = null;
+	private String formId = null;
 	
 	public PersonFrmDto() {}
 
-	public PersonFrmDto(Integer id, String name, String surname, GenderEnum gender, RegionEnum region) {
+	public PersonFrmDto(Integer id, String name, String surname, GenderEnum gender, RegionEnum region, String formId) {
 		super();
 		this.id = id;
-		this.name = name;
-		this.surname = surname;
+		this.name = name == null ? null : name.trim().toUpperCase();
+		this.surname = surname == null ? null : surname.trim().toUpperCase();
 		this.gender = gender;
 		this.region = region;
+		this.formId = formId == null ? null : formId.trim().toUpperCase();
 	}
 
 	public PersonFrmDto(PersonEdm personEdm) {
-		this(personEdm.getId(), personEdm.getName(), personEdm.getSurname(), personEdm.getGender(), personEdm.getRegion());
+		this(personEdm.getId(), personEdm.getName(), personEdm.getSurname(), personEdm.getGender(), personEdm.getRegion(), personEdm.getForm() == null ? null : personEdm.getForm().getId());
 	}
 	
 	public Integer getId() {
@@ -40,7 +42,7 @@ public class PersonFrmDto {
 	}
 
 	public void setName(String name) {
-		this.name = name;
+		this.name = name == null ? null : name.trim().toUpperCase();
 	}
 
 	public String getSurname() {
@@ -48,7 +50,7 @@ public class PersonFrmDto {
 	}
 
 	public void setSurname(String surname) {
-		this.surname = surname;
+		this.surname = surname == null ? null : surname.trim().toUpperCase();
 	}
 
 	public GenderEnum getGender() {
@@ -65,5 +67,13 @@ public class PersonFrmDto {
 
 	public void setRegion(RegionEnum region) {
 		this.region = region;
+	}
+
+	public String getFormId() {
+		return formId;
+	}
+
+	public void setFormId(String formId) {
+		this.formId = formId == null ? null : formId.trim().toUpperCase();
 	}
 }

@@ -31,19 +31,23 @@ public class PersonEntity implements Serializable {
 	@OneToOne @JoinColumn(name="region_id", nullable=true)
 	private RegionEntity region = null;
 	
+	@OneToOne @JoinColumn(name="form_name", nullable=true)
+	private FormEntity form = null;
+	
 	public PersonEntity() {}
 
 	public PersonEntity(Integer id, String name, String surname, GenderEnum gender) {
-		this(id, name, surname, gender, null);
+		this(id, name, surname, gender, null, null);
 	}
 	
-	public PersonEntity(Integer id, String name, String surname, GenderEnum gender, RegionEntity regionEntity) {
+	public PersonEntity(Integer id, String name, String surname, GenderEnum gender, RegionEntity regionEntity, FormEntity form) {
 		super();
 		this.id = id;
 		this.name = name;
 		this.surname = surname;
 		this.gender = gender;
 		this.region = regionEntity;
+		this.form = form;
 	}
 
 	public Integer getId() {
@@ -84,6 +88,14 @@ public class PersonEntity implements Serializable {
 
 	public void setRegion(RegionEntity region) {
 		this.region = region;
+	}
+
+	public FormEntity getForm() {
+		return form;
+	}
+
+	public void setForm(FormEntity form) {
+		this.form = form;
 	}
 
 	@Override

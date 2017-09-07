@@ -6,6 +6,7 @@ import com.cairone.olingo.ext.demo.edm.enums.RegionEnum;
 import com.cairone.olingo.ext.demo.entities.PersonEntity;
 import com.cairone.olingo.ext.jpa.annotations.EdmEntity;
 import com.cairone.olingo.ext.jpa.annotations.EdmEntitySet;
+import com.cairone.olingo.ext.jpa.annotations.EdmNavigationProperty;
 import com.cairone.olingo.ext.jpa.annotations.EdmProperty;
 import com.cairone.olingo.ext.jpa.annotations.ODataJPAEntity;
 
@@ -29,19 +30,28 @@ public class PersonEdm {
 	@EdmProperty(name = "Region")
 	private RegionEnum region = null;
 	
+	@EdmNavigationProperty(name = "Form")
+	private FormEdm form = null;
+	
 	public PersonEdm() {}
 
-	public PersonEdm(Integer id, String name, String surname, GenderEnum gender, RegionEnum region) {
+	public PersonEdm(Integer id, String name, String surname, GenderEnum gender, RegionEnum region, FormEdm form) {
 		super();
 		this.id = id;
 		this.name = name;
 		this.surname = surname;
 		this.gender = gender;
 		this.region = region;
+		this.form = form;
 	}
 	
 	public PersonEdm(PersonEntity personEntity) {
-		this(personEntity.getId(), personEntity.getName(), personEntity.getSurname(), personEntity.getGender(), personEntity.getRegion() == null ? null : RegionEnum.fromDb(personEntity.getRegion().getId()));
+		this(personEntity.getId(), 
+				personEntity.getName(), 
+				personEntity.getSurname(), 
+				personEntity.getGender(), 
+				personEntity.getRegion() == null ? null : RegionEnum.fromDb(personEntity.getRegion().getId()),
+				personEntity.getForm() == null ? null : new FormEdm(personEntity.getForm()));
 	}
 
 	public Integer getId() {
@@ -82,6 +92,14 @@ public class PersonEdm {
 
 	public void setRegion(RegionEnum region) {
 		this.region = region;
+	}
+
+	public FormEdm getForm() {
+		return form;
+	}
+
+	public void setForm(FormEdm form) {
+		this.form = form;
 	}
 
 	@Override

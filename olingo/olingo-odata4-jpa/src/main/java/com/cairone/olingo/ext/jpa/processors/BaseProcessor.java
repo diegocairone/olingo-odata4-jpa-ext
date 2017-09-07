@@ -148,6 +148,8 @@ public class BaseProcessor implements Processor {
     		.collect(Collectors.toMap(x -> x, x -> x));
     	
     	Map<String, EdmNavigationProperty> edmNavigationPropertyMap = new HashMap<String, EdmNavigationProperty>();
+    	Map<String, ExpandOption> nestedExpandOptionMap = new HashMap<String, ExpandOption>();
+    	
     	if(expandOption != null && !expandOption.getExpandItems().isEmpty()) {
     		expandOption.getExpandItems().forEach(expandItem -> {
     			UriResource uriResource = expandItem.getResourcePath().getUriResourceParts().get(0);
@@ -155,6 +157,10 @@ public class BaseProcessor implements Processor {
     				EdmNavigationProperty edmNavigationProperty = ((UriResourceNavigation) uriResource).getProperty();
     				String navPropName = edmNavigationProperty.getName();
     				edmNavigationPropertyMap.put(navPropName, edmNavigationProperty);
+    				
+    				if(expandItem.getExpandOption() != null && !expandItem.getExpandOption().getExpandItems().isEmpty()) {
+    					nestedExpandOptionMap.put(edmNavigationProperty.getName(), expandItem.getExpandOption());
+    				}
     			}
     		});
     	}
@@ -231,7 +237,15 @@ public class BaseProcessor implements Processor {
     					link.setInlineEntitySet(data);
     					
     				} else {
-    					Entity expandEntity = writeEntity(inlineEntity, null);
+    					Entity expandEntity = null;
+    					ExpandOption expandNestedOption = nestedExpandOptionMap.get(edmNavigationProperty.name());
+    					
+    					if(expandNestedOption == null || expandNestedOption.getExpandItems().isEmpty()) {
+    						expandEntity = writeEntity(inlineEntity, null);
+    					} else {
+    						expandEntity = writeEntity(inlineEntity, expandNestedOption);
+    					}
+    					
     					link.setInlineEntity(expandEntity);
     				}
 

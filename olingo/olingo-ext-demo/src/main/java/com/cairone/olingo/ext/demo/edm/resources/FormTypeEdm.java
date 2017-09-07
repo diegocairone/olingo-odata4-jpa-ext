@@ -1,45 +1,40 @@
 package com.cairone.olingo.ext.demo.edm.resources;
 
 import com.cairone.olingo.ext.demo.AppDemoConstants;
-import com.cairone.olingo.ext.demo.entities.FormEntity;
+import com.cairone.olingo.ext.demo.entities.FormTypeEntity;
 import com.cairone.olingo.ext.jpa.annotations.EdmEntity;
 import com.cairone.olingo.ext.jpa.annotations.EdmEntitySet;
-import com.cairone.olingo.ext.jpa.annotations.EdmNavigationProperty;
 import com.cairone.olingo.ext.jpa.annotations.EdmProperty;
 import com.cairone.olingo.ext.jpa.annotations.ODataJPAEntity;
 
-@EdmEntity(name = "Form", key = "Name", namespace = AppDemoConstants.NAME_SPACE, containerName = AppDemoConstants.CONTAINER_NAME)
-@EdmEntitySet("Forms")
-@ODataJPAEntity("FormEntity")
-public class FormEdm {
+@EdmEntity(name = "FormType", key = "Id", namespace = AppDemoConstants.NAME_SPACE, containerName = AppDemoConstants.CONTAINER_NAME)
+@EdmEntitySet("FormTypes")
+@ODataJPAEntity("FormTypeEntity")
+public class FormTypeEdm {
+
+	@EdmProperty(name = "Id")
+	private Integer id = null;
 	
 	@EdmProperty(name = "Name")
-	private String id = null;
-	
-	@EdmProperty(name = "Description")
 	private String name = null;
 
-	@EdmNavigationProperty(name = "FormType")
-	private FormTypeEdm formType = null;
-	
-	public FormEdm() {}
+	public FormTypeEdm() {}
 
-	public FormEdm(String id, String name, FormTypeEdm formType) {
+	public FormTypeEdm(Integer id, String name) {
 		super();
 		this.id = id;
 		this.name = name;
-		this.formType = formType;
 	}
 
-	public FormEdm(FormEntity formEntity) {
-		this(formEntity.getId(), formEntity.getName(), new FormTypeEdm(formEntity.getFormType()));
+	public FormTypeEdm(FormTypeEntity formTypeEntity) {
+		this(formTypeEntity.getId(), formTypeEntity.getName());
 	}
-	
-	public String getId() {
+
+	public Integer getId() {
 		return id;
 	}
 
-	public void setId(String id) {
+	public void setId(Integer id) {
 		this.id = id;
 	}
 
@@ -67,7 +62,7 @@ public class FormEdm {
 			return false;
 		if (getClass() != obj.getClass())
 			return false;
-		FormEdm other = (FormEdm) obj;
+		FormTypeEdm other = (FormTypeEdm) obj;
 		if (id == null) {
 			if (other.id != null)
 				return false;
