@@ -326,9 +326,22 @@ public class EntitySetProcessor extends BaseProcessor implements EntityProcessor
     	dataSource.delete(keyPredicateMap);
     	response.setStatusCode(HttpStatusCode.NO_CONTENT.getStatusCode());
 	}
-
+	
 	@Override
 	public void readEntity(ODataRequest request, ODataResponse response, UriInfo uriInfo, ContentType responseFormat) throws ODataApplicationException, ODataLibraryException {
+		
+		final UriResource lastResourceSegment = uriInfo.getUriResourceParts().get( uriInfo.getUriResourceParts().size() - 1 );
+
+		if(lastResourceSegment instanceof UriResourceFunction) {
+			readFunctionImport(request, response, uriInfo, responseFormat);
+		} else if(lastResourceSegment instanceof UriResourceEntitySet) {
+			readEntityInternal(request, response, uriInfo, responseFormat);
+		} else {
+			throw new ODataApplicationException("Not implemented", HttpStatusCode.NOT_IMPLEMENTED.getStatusCode(), Locale.ENGLISH);
+		}
+	}
+
+	public void readEntityInternal(ODataRequest request, ODataResponse response, UriInfo uriInfo, ContentType responseFormat) throws ODataApplicationException, ODataLibraryException {
 		
 		List<UriResource> resourcePaths = uriInfo.getUriResourceParts();
 		
@@ -410,7 +423,7 @@ public class EntitySetProcessor extends BaseProcessor implements EntityProcessor
 		final UriResource lastResourceSegment = uriInfo.getUriResourceParts().get( uriInfo.getUriResourceParts().size() - 1 );
 		
 		if(lastResourceSegment instanceof UriResourceFunction) {
-			readFunctionImportCollection(request, response, uriInfo, responseFormat);
+			readFunctionImport(request, response, uriInfo, responseFormat);
 		} else if(lastResourceSegment instanceof UriResourceEntitySet) {
 			readEntityCollectionInternal(request, response, uriInfo, responseFormat);
 		} else {
@@ -418,7 +431,7 @@ public class EntitySetProcessor extends BaseProcessor implements EntityProcessor
 		}
 	}
 	
-	private void readFunctionImportCollection(ODataRequest request, ODataResponse response, UriInfo uriInfo, ContentType responseFormat) throws ODataApplicationException, ODataLibraryException {
+	private void readFunctionImport(ODataRequest request, ODataResponse response, UriInfo uriInfo, ContentType responseFormat) throws ODataApplicationException, ODataLibraryException {
 		
 		List<UriResource> resourcePaths = uriInfo.getUriResourceParts();
 		UriResourceFunction uriResourceFunction = (UriResourceFunction) resourcePaths.get( uriInfo.getUriResourceParts().size() - 1 );
