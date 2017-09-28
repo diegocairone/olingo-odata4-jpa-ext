@@ -28,11 +28,17 @@ public class Util {
 		return "Edm.String";
 	}
 
+	/**
+	 * Encode special characters to UTF-8 character set 
+	 * @param keyValues
+	 * @return
+	 */
 	public static String formatEntityID(Map<String, Object> keyValues) {
 		
 		String entityID = keyValues.entrySet().stream().map(Entry::toString).collect(Collectors.joining(",", "(", ")"));
 		entityID = CharMatcher.is('<').replaceFrom(entityID, "%3C");
 		entityID = CharMatcher.is('>').replaceFrom(entityID, "%3E");
+		entityID = CharMatcher.is(' ').replaceFrom(entityID, "%20");
 		
 		return entityID;
 	}
