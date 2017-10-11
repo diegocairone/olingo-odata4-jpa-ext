@@ -11,7 +11,9 @@ import java.lang.reflect.Type;
 import java.math.BigDecimal;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.sql.Timestamp;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
@@ -186,6 +188,11 @@ public class BaseProcessor implements Processor {
 	            		LocalDate localDateValue = (LocalDate) value;
 	            		entity.addProperty(new Property(null, name, ValueType.PRIMITIVE, GregorianCalendar.from(localDateValue.atStartOfDay(ZoneId.systemDefault()))));
 	            	
+	            	} else if(value instanceof LocalDateTime) {
+	            		
+	            		LocalDateTime localDateTime = (LocalDateTime) value;
+	            		entity.addProperty(new Property(null, name, ValueType.PRIMITIVE, GregorianCalendar.from(localDateTime.atZone(ZoneId.systemDefault()))));
+	            		
 	            	} else if(value instanceof BigDecimal) {
 	            		
 	            		BigDecimal bigDecimalValue = (BigDecimal) value;
@@ -340,7 +347,13 @@ public class BaseProcessor implements Processor {
 	                		
 	                		fld.setAccessible(true);
 	                		fld.set(object, cal.toZonedDateTime().toLocalDate());
-	                		
+	                	
+	            		} else if(fld.getType().isAssignableFrom(LocalDateTime.class) && property.getValue() instanceof Timestamp) {
+	            			Timestamp timestamp = (Timestamp) property.getValue();
+	            			
+	            			fld.setAccessible(true);
+	                		fld.set(object, timestamp.toLocalDateTime());
+	            			
 	            		} else {
 	
 	                		fld.setAccessible(true);

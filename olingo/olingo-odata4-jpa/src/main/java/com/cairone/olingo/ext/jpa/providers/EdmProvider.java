@@ -6,6 +6,7 @@ import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -475,6 +476,8 @@ public class EdmProvider extends CsdlAbstractEdmProvider {
 						propertyType = EdmPrimitiveTypeKind.String.getFullQualifiedName();
 					} else if(fld.getType().isAssignableFrom(LocalDate.class)) {
 						propertyType = EdmPrimitiveTypeKind.Date.getFullQualifiedName();
+					} else if(fld.getType().isAssignableFrom(LocalDateTime.class)) {
+						propertyType = EdmPrimitiveTypeKind.DateTimeOffset.getFullQualifiedName();
 					} else if(fld.getType().isAssignableFrom(Boolean.class)) {
 						propertyType = EdmPrimitiveTypeKind.Boolean.getFullQualifiedName();
 					} else if(fld.getType().isAssignableFrom(BigDecimal.class)) {
@@ -509,10 +512,6 @@ public class EdmProvider extends CsdlAbstractEdmProvider {
 					case "Edm.Decimal":
 						propertyType = EdmPrimitiveTypeKind.Decimal.getFullQualifiedName();
 					}
-				}
-				
-				if(propertyType == null) {
-					System.out.println("ACA!!");
 				}
 				
 				CsdlProperty csdlProperty = new CsdlProperty().setName(propertyName).setType(propertyType);

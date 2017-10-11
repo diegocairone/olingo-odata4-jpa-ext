@@ -134,13 +134,7 @@ public class EntitySetProcessor extends BaseProcessor implements EntityProcessor
 		
 		Class<?> clazz = entitySetMap.get(edmEntitySet.getName());
 		Object object = null;
-		/*
-    	EdmEntity edmEntity = clazz.getAnnotation(EdmEntity.class);
-    	String[] keys = edmEntity.key();
-    	Map<String, Object> keyValues = Arrays.asList(keys)
-    		.stream()
-    		.collect(Collectors.toMap(x -> x, x -> x));
-    	*/
+		
     	List<Link> navLinks = requestEntity.getNavigationLinks();
     	
     	for(Link navlink : navLinks) {
