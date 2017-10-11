@@ -52,7 +52,9 @@ public class PersonService {
 					String.format("COULD NOT BE FOUND A FORM ENTITY WITH ID %s", formId));
 		}
 		
-		PersonEntity personEntity = new PersonEntity(personFrmDto.getId(), personFrmDto.getName(), personFrmDto.getSurname(), personFrmDto.getGender(), regionEntity, formEntity);
+		PersonEntity personEntity = 
+				new PersonEntity(personFrmDto.getId(), personFrmDto.getName(), personFrmDto.getSurname(), personFrmDto.getGender(), regionEntity, formEntity, personFrmDto.getAddressStreet(), personFrmDto.getAddressNumber());
+		
 		personRepository.save(personEntity);
 		
 		return personEntity;

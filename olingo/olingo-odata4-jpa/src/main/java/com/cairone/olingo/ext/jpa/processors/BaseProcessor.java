@@ -26,6 +26,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import org.apache.olingo.commons.api.data.ComplexValue;
 import org.apache.olingo.commons.api.data.Entity;
 import org.apache.olingo.commons.api.data.EntityCollection;
 import org.apache.olingo.commons.api.data.Link;
@@ -53,6 +54,7 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.ClassPathScanningCandidateComponentProvider;
 import org.springframework.core.type.filter.AnnotationTypeFilter;
 
+import com.cairone.olingo.ext.jpa.annotations.EdmComplex;
 import com.cairone.olingo.ext.jpa.annotations.EdmEntity;
 import com.cairone.olingo.ext.jpa.interfaces.DataSource;
 import com.cairone.olingo.ext.jpa.interfaces.OdataEnum;
@@ -131,18 +133,19 @@ public class BaseProcessor implements Processor {
 		
 		com.cairone.olingo.ext.jpa.annotations.EdmEntitySet edmEntitySet = clazz.getAnnotation(com.cairone.olingo.ext.jpa.annotations.EdmEntitySet.class);
 		com.cairone.olingo.ext.jpa.annotations.EdmEntity edmEntity = clazz.getAnnotation(com.cairone.olingo.ext.jpa.annotations.EdmEntity.class);
+		com.cairone.olingo.ext.jpa.annotations.EdmComplex edmComplex = clazz.getAnnotation(com.cairone.olingo.ext.jpa.annotations.EdmComplex.class);
 		
-		if(edmEntitySet == null) {
+		if(edmEntitySet == null && edmComplex == null) {
 			throw new ODataApplicationException(String.format("Class %s is missing @EdmEntitySet annotation", clazz.getName()), HttpStatusCode.INTERNAL_SERVER_ERROR.getStatusCode(), Locale.ENGLISH);
 		}
 		
-		if(edmEntity == null) {
+		if(edmEntity == null && edmComplex == null) {
 			throw new ODataApplicationException(String.format("Class %s is missing @EdmEntity annotation", clazz.getName()), HttpStatusCode.INTERNAL_SERVER_ERROR.getStatusCode(), Locale.ENGLISH);
 		}
 		
-		String edmEntitySetName = edmEntitySet.value().isEmpty() ? clazz.getSimpleName() : edmEntitySet.value();
+		String edmEntitySetName = edmEntitySet != null && !edmEntitySet.value().isEmpty() ? edmEntitySet.value() : clazz.getSimpleName();
 		
-		String[] keys = edmEntity.key();
+		String[] keys = edmEntity == null ? new String[] {} : edmEntity.key();
     	Map<String, Object> keyValues = Arrays.asList(keys)
     		.stream()
     		.collect(Collectors.toMap(x -> x, x -> x));
@@ -194,7 +197,24 @@ public class BaseProcessor implements Processor {
 	            		entity.addProperty(new Property(null, name, ValueType.ENUM, odataEnum.getOrdinal()));
 	            		
 	            	} else {
-	            		entity.addProperty(new Property(null, name, ValueType.PRIMITIVE, value));
+	            		
+	            		Class<?> cl = fld.getType();
+	    				EdmComplex[] edmComplexArray = cl.getAnnotationsByType(EdmComplex.class);
+	    				boolean isEdmComplex = edmComplexArray.length != 0;
+	    				
+	    				if(isEdmComplex) {
+	    					Entity complexEntity = writeEntity(value, null);
+	    					ComplexValue complexValue = new ComplexValue();
+	    					List<Property> properties = complexValue.getValue();
+	    					
+	    					complexEntity.getProperties().forEach(prop -> {
+	    						properties.add(prop);
+	    					});
+	    					
+	    					entity.addProperty(new Property(null, name, ValueType.COMPLEX, complexValue));
+	    				} else {
+	    					entity.addProperty(new Property(null, name, ValueType.PRIMITIVE, value));
+	    				}
 	            	}
 	            	
 	            	if(keyValues.containsKey(name)) {
@@ -254,9 +274,9 @@ public class BaseProcessor implements Processor {
             }
 		}
 		
-		String entityID = Util.formatEntityID(keyValues);
+		String entityID = keyValues.size() == 0 ? null : Util.formatEntityID(keyValues);
 		try {
-			entity.setId(new URI(edmEntitySetName + entityID));
+			if(entityID != null) entity.setId(new URI(edmEntitySetName + entityID));
 		} catch (URISyntaxException e) {
 			throw new ODataApplicationException(e.getMessage(), HttpStatusCode.INTERNAL_SERVER_ERROR.getStatusCode(), Locale.ENGLISH);
 		}
@@ -286,8 +306,9 @@ public class BaseProcessor implements Processor {
             		
     				Class<?> fldClazz = fld.getType();
     				com.cairone.olingo.ext.jpa.annotations.EdmEnum edmEnum = fldClazz.getAnnotation(com.cairone.olingo.ext.jpa.annotations.EdmEnum.class);
+    				com.cairone.olingo.ext.jpa.annotations.EdmComplex edmComplex = fldClazz.getAnnotation(com.cairone.olingo.ext.jpa.annotations.EdmComplex.class);
     				
-    				if(edmEnum != null) {
+    				if(edmEnum != null && property.asEnum() != null) {
     					
     					Method setValor = fldClazz.getMethod("setOrdinal", Integer.TYPE);
     					Enum<?>[] enums = (Enum<?>[]) fldClazz.getEnumConstants();
@@ -298,6 +319,18 @@ public class BaseProcessor implements Processor {
                     		fld.set(object, rv);
                     		break;
     					}
+    					
+    				} else if(edmComplex != null) {
+    					
+    					Entity complexEntity = new Entity();
+    					
+    					ComplexValue complexValue = (ComplexValue) property.getValue();
+    					complexEntity.getProperties().addAll(complexValue.getValue());
+    					
+    					Object complexObject = writeObject(fldClazz, complexEntity);
+    					
+    					fld.setAccessible(true);
+                		fld.set(object, complexObject);
     					
     				} else {
 	    				

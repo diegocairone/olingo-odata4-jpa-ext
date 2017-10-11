@@ -33,9 +33,12 @@ public class PersonEdm {
 	@EdmNavigationProperty(name = "Form")
 	private FormEdm form = null;
 	
+	@EdmProperty(name = "Address")
+	private PersonAddressEdm address = null;
+	
 	public PersonEdm() {}
 
-	public PersonEdm(Integer id, String name, String surname, GenderEnum gender, RegionEnum region, FormEdm form) {
+	public PersonEdm(Integer id, String name, String surname, GenderEnum gender, RegionEnum region, FormEdm form, PersonAddressEdm address) {
 		super();
 		this.id = id;
 		this.name = name;
@@ -43,6 +46,7 @@ public class PersonEdm {
 		this.gender = gender;
 		this.region = region;
 		this.form = form;
+		this.address = address;
 	}
 	
 	public PersonEdm(PersonEntity personEntity) {
@@ -51,7 +55,14 @@ public class PersonEdm {
 				personEntity.getSurname(), 
 				personEntity.getGender(), 
 				personEntity.getRegion() == null ? null : RegionEnum.fromDb(personEntity.getRegion().getId()),
-				personEntity.getForm() == null ? null : new FormEdm(personEntity.getForm()));
+				personEntity.getForm() == null ? null : new FormEdm(personEntity.getForm()), 
+				null);
+		
+		if(personEntity.getAddressNumber() != null || personEntity.getAddressStreet() != null) {
+			this.address = new PersonAddressEdm();
+			if(personEntity.getAddressStreet() != null) this.address.setName(personEntity.getAddressStreet());
+			if(personEntity.getAddressNumber() != null) this.address.setNumber(personEntity.getAddressNumber());
+		}
 	}
 
 	public Integer getId() {
@@ -100,6 +111,14 @@ public class PersonEdm {
 
 	public void setForm(FormEdm form) {
 		this.form = form;
+	}
+
+	public PersonAddressEdm getAddress() {
+		return address;
+	}
+
+	public void setAddress(PersonAddressEdm address) {
+		this.address = address;
 	}
 
 	@Override

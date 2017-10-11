@@ -29,7 +29,8 @@ public class Util {
 	}
 
 	/**
-	 * Encode special characters to UTF-8 character set 
+	 * Encode special characters to UTF-8 character set
+	 * @see https://www.w3schools.com/TagS/ref_urlencode.asp 
 	 * @param keyValues
 	 * @return
 	 */

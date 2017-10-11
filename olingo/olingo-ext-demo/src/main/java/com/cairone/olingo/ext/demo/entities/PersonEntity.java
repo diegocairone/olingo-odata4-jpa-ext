@@ -34,6 +34,12 @@ public class PersonEntity implements Serializable {
 	@OneToOne @JoinColumn(name="form_name", nullable=true)
 	private FormEntity form = null;
 	
+	@Column(name="address_street", nullable=true, length=100)
+	private String addressStreet = null;
+
+	@Column(name="address_number", nullable=true, length=10)
+	private String addressNumber = null;
+	
 	public PersonEntity() {}
 
 	public PersonEntity(Integer id, String name, String surname, GenderEnum gender) {
@@ -41,6 +47,10 @@ public class PersonEntity implements Serializable {
 	}
 	
 	public PersonEntity(Integer id, String name, String surname, GenderEnum gender, RegionEntity regionEntity, FormEntity form) {
+		this(id, name, surname, gender, regionEntity, form, null, null);
+	}
+	
+	public PersonEntity(Integer id, String name, String surname, GenderEnum gender, RegionEntity regionEntity, FormEntity form, String addressStreet, String addressNumber) {
 		super();
 		this.id = id;
 		this.name = name;
@@ -48,6 +58,8 @@ public class PersonEntity implements Serializable {
 		this.gender = gender;
 		this.region = regionEntity;
 		this.form = form;
+		this.addressStreet = addressStreet;
+		this.addressNumber = addressNumber;
 	}
 
 	public Integer getId() {
@@ -96,6 +108,22 @@ public class PersonEntity implements Serializable {
 
 	public void setForm(FormEntity form) {
 		this.form = form;
+	}
+
+	public String getAddressStreet() {
+		return addressStreet;
+	}
+
+	public void setAddressStreet(String addressStreet) {
+		this.addressStreet = addressStreet;
+	}
+
+	public String getAddressNumber() {
+		return addressNumber;
+	}
+
+	public void setAddressNumber(String addressNumber) {
+		this.addressNumber = addressNumber;
 	}
 
 	@Override

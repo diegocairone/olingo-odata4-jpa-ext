@@ -3,27 +3,22 @@ package com.cairone.olingo.ext.jpa.processors;
 import java.io.InputStream;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.time.LocalDate;
-import java.time.ZoneId;
-import java.util.Arrays;
+import java.util.ArrayList;
 import java.util.Collection;
-import java.util.GregorianCalendar;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
+import org.apache.olingo.commons.api.data.ComplexValue;
 import org.apache.olingo.commons.api.data.ContextURL;
 import org.apache.olingo.commons.api.data.ContextURL.Suffix;
 import org.apache.olingo.commons.api.data.Entity;
 import org.apache.olingo.commons.api.data.EntityCollection;
 import org.apache.olingo.commons.api.data.Link;
-import org.apache.olingo.commons.api.data.Property;
 import org.apache.olingo.commons.api.data.ValueType;
 import org.apache.olingo.commons.api.edm.EdmEntitySet;
 import org.apache.olingo.commons.api.edm.EdmEntityType;
@@ -60,7 +55,6 @@ import org.apache.olingo.server.api.uri.queryoption.TopOption;
 import org.apache.olingo.server.core.uri.queryoption.TopOptionImpl;
 import org.springframework.context.ApplicationContext;
 
-import com.cairone.olingo.ext.jpa.annotations.EdmEntity;
 import com.cairone.olingo.ext.jpa.annotations.EdmFunction;
 import com.cairone.olingo.ext.jpa.annotations.EdmParameter;
 import com.cairone.olingo.ext.jpa.interfaces.DataSource;
@@ -140,13 +134,13 @@ public class EntitySetProcessor extends BaseProcessor implements EntityProcessor
 		
 		Class<?> clazz = entitySetMap.get(edmEntitySet.getName());
 		Object object = null;
-		
+		/*
     	EdmEntity edmEntity = clazz.getAnnotation(EdmEntity.class);
     	String[] keys = edmEntity.key();
     	Map<String, Object> keyValues = Arrays.asList(keys)
     		.stream()
     		.collect(Collectors.toMap(x -> x, x -> x));
-    	
+    	*/
     	List<Link> navLinks = requestEntity.getNavigationLinks();
     	
     	for(Link navlink : navLinks) {
@@ -162,73 +156,18 @@ public class EntitySetProcessor extends BaseProcessor implements EntityProcessor
     	}
     	
     	writeNavLinksFromNavBindings(requestEntity, dataSourceMap, request.getRawBaseUri());
+    	Entity createdEntity;
     	
     	try {
     		object = writeObject(clazz, requestEntity);
+    		
+    		Object createdObject = dataSource.create(object);
+    		createdEntity = writeEntity(createdObject, null);
     		
     	} catch (IllegalArgumentException | IllegalAccessException | NoSuchMethodException | SecurityException | InstantiationException | InvocationTargetException e) {
 			throw new ODataApplicationException(e.getMessage(), HttpStatusCode.INTERNAL_SERVER_ERROR.getStatusCode(), Locale.ENGLISH);
 		}
     	
-		Entity createdEntity = new Entity();
-		Object createdObject = dataSource.create(object);
-		
-		try
-		{
-	    	for(Field fld : createdObject.getClass().getDeclaredFields()) {
-	    		
-	    		com.cairone.olingo.ext.jpa.annotations.EdmProperty edmProperty = fld.getAnnotation(com.cairone.olingo.ext.jpa.annotations.EdmProperty.class);
-				
-	            if (edmProperty != null) {
-	            	
-	            	fld.setAccessible(true);
-	            	
-	            	String name = edmProperty.name().isEmpty() ? fld.getName() : edmProperty.name();
-	            	Object value = fld.get(createdObject);
-	            	
-	            	if(value != null) {
-		            		
-		            	if(value instanceof LocalDate) {
-		            		
-		            		LocalDate localDateValue = (LocalDate) value;
-		            		createdEntity.addProperty(new Property(null, name, ValueType.PRIMITIVE, GregorianCalendar.from(localDateValue.atStartOfDay(ZoneId.systemDefault()))));
-		            	
-		            	} else if(value.getClass().isEnum()) {
-		            		
-		            		Class<?> fldClazz = fld.getType();
-		            		Method getValor = fldClazz.getMethod("getOrdinal");
-	    					Enum<?>[] enums = (Enum<?>[]) fldClazz.getEnumConstants();
-	    					
-	    					Object rvValue = getValor.invoke(value);
-	    					
-	    					for(Enum<?> enumeration : enums) {
-	    						Object rv = getValor.invoke(enumeration);
-	    						if(rvValue.equals(rv)) {
-		    						createdEntity.addProperty(new Property(null, name, ValueType.ENUM, rv));
-		                    		break;
-	    						}
-	    					}
-		            	} else {
-		            		createdEntity.addProperty(new Property(null, name, ValueType.PRIMITIVE, value));
-		            	}
-	            	}
-	            	
-	            	if(keyValues.containsKey(name)) {
-	            		keyValues.put(name, value);
-	            	}
-	            }
-	    	}
-		} catch (Exception e) {
-			throw new ODataApplicationException(e.getMessage(), HttpStatusCode.INTERNAL_SERVER_ERROR.getStatusCode(), Locale.ENGLISH);
-		}
-		
-		String entityID = Util.formatEntityID(keyValues);
-		try {
-			createdEntity.setId(new URI(edmEntitySet.getName() + entityID));
-		} catch (URISyntaxException e) {
-			throw new ODataApplicationException(e.getMessage(), HttpStatusCode.INTERNAL_SERVER_ERROR.getStatusCode(), Locale.ENGLISH);
-		}
-		
 	    ContextURL contextUrl = null;
 		try {
 			contextUrl = ContextURL.with()
@@ -279,11 +218,25 @@ public class EntitySetProcessor extends BaseProcessor implements EntityProcessor
 		Map<String, UriParameter> keyPredicateMap = keyPredicates
 				.stream()
 				.collect(Collectors.toMap(UriParameter::getName, x -> x));
-		
+		/*
 		List<String> propertiesInJSON = Stream.concat(
 				requestEntity.getProperties().stream().map(Property::getName), 
 				requestEntity.getNavigationLinks().stream().map(Link::getTitle))
 			.collect(Collectors.toList());
+		*/
+		List<String> propertiesInJSON = new ArrayList<>();
+		
+		requestEntity.getProperties().forEach(property -> {
+			if(property.getValueType().equals(ValueType.COMPLEX)) {
+				ComplexValue complexValue = (ComplexValue) property.getValue();
+				complexValue.getValue().forEach(complexProperty -> {
+					propertiesInJSON.add(String.format("%s/%s", property.getName(), complexProperty.getName()));
+				});
+			} else {
+				propertiesInJSON.add(property.getName());
+			}
+		});
+		propertiesInJSON.addAll(requestEntity.getNavigationLinks().stream().map(Link::getTitle).collect(Collectors.toList()));
 		
 		Class<?> clazz = entitySetMap.get(edmEntitySet.getName());
 		Object object;

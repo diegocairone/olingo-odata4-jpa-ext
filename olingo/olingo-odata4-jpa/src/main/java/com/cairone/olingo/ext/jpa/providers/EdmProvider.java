@@ -22,6 +22,7 @@ import org.apache.olingo.commons.api.edm.FullQualifiedName;
 import org.apache.olingo.commons.api.edm.provider.CsdlAbstractEdmProvider;
 import org.apache.olingo.commons.api.edm.provider.CsdlAction;
 import org.apache.olingo.commons.api.edm.provider.CsdlActionImport;
+import org.apache.olingo.commons.api.edm.provider.CsdlComplexType;
 import org.apache.olingo.commons.api.edm.provider.CsdlEntityContainer;
 import org.apache.olingo.commons.api.edm.provider.CsdlEntityContainerInfo;
 import org.apache.olingo.commons.api.edm.provider.CsdlEntitySet;
@@ -46,6 +47,7 @@ import org.springframework.core.type.filter.AnnotationTypeFilter;
 
 import com.cairone.olingo.ext.jpa.annotations.EdmAction;
 import com.cairone.olingo.ext.jpa.annotations.EdmActionImport;
+import com.cairone.olingo.ext.jpa.annotations.EdmComplex;
 import com.cairone.olingo.ext.jpa.annotations.EdmEntity;
 import com.cairone.olingo.ext.jpa.annotations.EdmEntitySet;
 import com.cairone.olingo.ext.jpa.annotations.EdmEnum;
@@ -69,6 +71,7 @@ public class EdmProvider extends CsdlAbstractEdmProvider {
 	private HashMap<String, Class<?>> actionImportsMap = new HashMap<String, Class<?>>();
 	private HashMap<String, Class<?>> functionsMap = new HashMap<String, Class<?>>();
 	private HashMap<String, Class<?>> functionImportsMap = new HashMap<String, Class<?>>();
+	private HashMap<String, Class<?>> complexTypesMap = new HashMap<String, Class<?>>();
 	private HashMap<String, String> entityTypesMap = new HashMap<>();
 	
 	public EdmProvider initialize() throws ODataApplicationException {
@@ -79,7 +82,8 @@ public class EdmProvider extends CsdlAbstractEdmProvider {
 				EdmAction.class, 
 				EdmActionImport.class,
 				EdmFunction.class,
-				EdmFunctionImport.class));
+				EdmFunctionImport.class,
+				EdmComplex.class));
 		
 		Set<BeanDefinition> beanDefinitions = provider.findCandidateComponents(DEFAULT_EDM_PACKAGE);
 		
@@ -93,6 +97,7 @@ public class EdmProvider extends CsdlAbstractEdmProvider {
 				EdmActionImport edmActionImport = cl.getAnnotation(EdmActionImport.class);
 				EdmFunction edmFunction = cl.getAnnotation(EdmFunction.class);
 				EdmFunctionImport edmFunctionImport = cl.getAnnotation(EdmFunctionImport.class);
+				EdmComplex edmComplex = cl.getAnnotation(EdmComplex.class);
 				
 				if(edmEntitySet != null) {
 					EdmEntity edmEntity = cl.getAnnotation(EdmEntity.class);
@@ -126,6 +131,11 @@ public class EdmProvider extends CsdlAbstractEdmProvider {
 				if(edmFunctionImport != null) {
 					String name = edmFunctionImport.name().isEmpty() ? cl.getSimpleName() : edmFunctionImport.name();
 					functionImportsMap.put(name, cl);
+				}
+				
+				if(edmComplex != null) {
+					String name = edmComplex.name().isEmpty() ? cl.getSimpleName() : edmComplex.name();
+					complexTypesMap.put(name, cl);
 				}
 			}
 		} catch (ClassNotFoundException e) {
@@ -200,6 +210,19 @@ public class EdmProvider extends CsdlAbstractEdmProvider {
 		}
 		
 		schema.setFunctions(functions);
+		
+		// add complex types
+		List<CsdlComplexType> complexTypes = new ArrayList<CsdlComplexType>();
+
+		for(Map.Entry<String, Class<?>> entry : complexTypesMap.entrySet()) {
+			Class<?> clazz = entry.getValue();
+			EdmComplex edmComplex = clazz.getAnnotation(EdmComplex.class);
+			String namespace = edmComplex.namespace().isEmpty() ? NAME_SPACE : edmComplex.namespace();
+			String name = edmComplex.name().isEmpty() ? clazz.getSimpleName() : edmComplex.name();
+			complexTypes.add(getComplexType(getFullQualifiedName(namespace, name)));
+		}
+		
+		schema.setComplexTypes(complexTypes);
 		
 		// add EntityContainer
 		schema.setEntityContainer(getEntityContainer());
@@ -322,6 +345,30 @@ public class EdmProvider extends CsdlAbstractEdmProvider {
 	}
 	
 	@Override
+	public CsdlComplexType getComplexType(FullQualifiedName complexTypeName) throws ODataException {
+
+		String complexTypeNameString = complexTypeName.getName();
+		Class<?> clazz = complexTypesMap.get(complexTypeNameString);
+		
+		if(clazz == null) return null;
+
+		EdmComplex edmComplex = clazz.getAnnotation(EdmComplex.class);
+
+		Field[] fields = clazz.getDeclaredFields();
+		
+		List<CsdlProperty> csdlProperties = getCsdlProperties(fields);
+		List<CsdlNavigationProperty> csdlNavigationProperties = getCsdlNavigationProperties(fields);
+		
+		CsdlComplexType complexType = new CsdlComplexType()
+				.setName(edmComplex.name())
+				.setProperties(csdlProperties)
+				.setNavigationProperties(csdlNavigationProperties)
+				.setOpenType(edmComplex.open());
+		
+		return complexType;		
+	}
+
+	@Override
 	public CsdlActionImport getActionImport(FullQualifiedName entityContainer, String actionImportName) throws ODataException {
 		
 		Class<?> clazz = actionImportsMap.get(actionImportName);
@@ -409,7 +456,12 @@ public class EdmProvider extends CsdlAbstractEdmProvider {
 		for (Field fld : fields) {
 			
 			EdmProperty property = fld.getAnnotation(EdmProperty.class);
+			
 			if(property != null) {
+				
+				Class<?> enumClazz = fld.getType();
+				EdmComplex[] edmComplexs = enumClazz.getAnnotationsByType(EdmComplex.class);
+				boolean isEdmComplex = edmComplexs.length != 0;
 				
 				String propertyName = property.name().isEmpty() ? fld.getName() : property.name();
 				FullQualifiedName propertyType = null;
@@ -427,14 +479,18 @@ public class EdmProvider extends CsdlAbstractEdmProvider {
 						propertyType = EdmPrimitiveTypeKind.Boolean.getFullQualifiedName();
 					} else if(fld.getType().isAssignableFrom(BigDecimal.class)) {
 						propertyType = EdmPrimitiveTypeKind.Decimal.getFullQualifiedName();
+					} else if(isEdmComplex) {
+						EdmComplex edmComplex = edmComplexs[0];
+						String namespace = edmComplex.namespace().isEmpty() ? NAME_SPACE : edmComplex.namespace();
+						String name = edmComplex.name().isEmpty() ? enumClazz.getSimpleName() : edmComplex.name();
+						propertyType = getFullQualifiedName(namespace, name);
 					} else {
-						Class<?> enumClazz = fld.getType();
 						EdmEnum edmEnum = enumClazz.getAnnotation(EdmEnum.class);
 						if(edmEnum != null) {
 							String namespace = edmEnum.namespace().isEmpty() ? NAME_SPACE : edmEnum.namespace();
 							String name = edmEnum.name().isEmpty() ? enumClazz.getSimpleName() : edmEnum.name();
 							propertyType = getFullQualifiedName(namespace, name);
-						}
+						}						
 					}
 				} else {
 					switch(property.type()) {
@@ -453,6 +509,10 @@ public class EdmProvider extends CsdlAbstractEdmProvider {
 					case "Edm.Decimal":
 						propertyType = EdmPrimitiveTypeKind.Decimal.getFullQualifiedName();
 					}
+				}
+				
+				if(propertyType == null) {
+					System.out.println("ACA!!");
 				}
 				
 				CsdlProperty csdlProperty = new CsdlProperty().setName(propertyName).setType(propertyType);

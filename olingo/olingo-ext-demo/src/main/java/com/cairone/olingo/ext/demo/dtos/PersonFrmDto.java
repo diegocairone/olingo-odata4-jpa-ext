@@ -11,11 +11,13 @@ public class PersonFrmDto {
 	private String surname = null;
 	private GenderEnum gender = null;
 	private RegionEnum region = null;
+	private String addressStreet = null;
+	private String addressNumber = null;
 	private String formId = null;
 	
 	public PersonFrmDto() {}
 
-	public PersonFrmDto(Integer id, String name, String surname, GenderEnum gender, RegionEnum region, String formId) {
+	public PersonFrmDto(Integer id, String name, String surname, GenderEnum gender, RegionEnum region, String formId, String addressStreet, String addressNumber) {
 		super();
 		this.id = id;
 		this.name = name == null ? null : name.trim().toUpperCase();
@@ -23,10 +25,20 @@ public class PersonFrmDto {
 		this.gender = gender;
 		this.region = region;
 		this.formId = formId == null ? null : formId.trim().toUpperCase();
+		this.addressStreet = addressStreet;
+		this.addressNumber = addressNumber;
 	}
 
 	public PersonFrmDto(PersonEdm personEdm) {
-		this(personEdm.getId(), personEdm.getName(), personEdm.getSurname(), personEdm.getGender(), personEdm.getRegion(), personEdm.getForm() == null ? null : personEdm.getForm().getId());
+		this(
+			personEdm.getId(), 
+			personEdm.getName(), 
+			personEdm.getSurname(), 
+			personEdm.getGender(), 
+			personEdm.getRegion(), 
+			personEdm.getForm() == null ? null : personEdm.getForm().getId(),
+			personEdm.getAddress() == null ? null : personEdm.getAddress().getName() == null || personEdm.getAddress().getName().trim().isEmpty() ? null : personEdm.getAddress().getName().trim().toUpperCase(),
+			personEdm.getAddress() == null ? null : personEdm.getAddress().getNumber() == null || personEdm.getAddress().getNumber().trim().isEmpty() ? null : personEdm.getAddress().getNumber().trim().toUpperCase());
 	}
 	
 	public Integer getId() {
@@ -76,4 +88,21 @@ public class PersonFrmDto {
 	public void setFormId(String formId) {
 		this.formId = formId == null ? null : formId.trim().toUpperCase();
 	}
+
+	public String getAddressStreet() {
+		return addressStreet;
+	}
+
+	public void setAddressStreet(String addressStreet) {
+		this.addressStreet = addressStreet == null ? null : addressStreet.trim().toUpperCase();
+	}
+
+	public String getAddressNumber() {
+		return addressNumber;
+	}
+
+	public void setAddressNumber(String addressNumber) {
+		this.addressNumber = addressNumber == null ? null : addressNumber.trim().toUpperCase();
+	}
+	
 }
