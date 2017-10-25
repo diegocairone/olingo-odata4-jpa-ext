@@ -42,6 +42,8 @@ import org.apache.olingo.commons.api.edm.provider.CsdlSchema;
 import org.apache.olingo.commons.api.ex.ODataException;
 import org.apache.olingo.commons.api.http.HttpStatusCode;
 import org.apache.olingo.server.api.ODataApplicationException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.context.annotation.ClassPathScanningCandidateComponentProvider;
 import org.springframework.core.type.filter.AnnotationTypeFilter;
@@ -61,6 +63,8 @@ import com.cairone.olingo.ext.jpa.annotations.EdmReturnType;
 
 public class EdmProvider extends CsdlAbstractEdmProvider {
 
+	private static final Logger LOG = LoggerFactory.getLogger(EdmProvider.class);
+	
 	private String NAME_SPACE = null;
 	private String CONTAINER_NAME = null;
 	private String SERVICE_ROOT = null;
@@ -514,6 +518,8 @@ public class EdmProvider extends CsdlAbstractEdmProvider {
 					}
 				}
 				
+				LOG.debug("CREATING PROPERTRY {} [{}]", propertyName, propertyType);
+				
 				CsdlProperty csdlProperty = new CsdlProperty().setName(propertyName).setType(propertyType);
 				if(propertyType.equals(EdmPrimitiveTypeKind.Decimal.getFullQualifiedName())) csdlProperty.setScale(property.scale());
 				csdlProperties.add(csdlProperty);
@@ -810,6 +816,8 @@ public class EdmProvider extends CsdlAbstractEdmProvider {
 	
 	@Override
 	public CsdlEntityType getEntityType(FullQualifiedName entityTypeName) throws ODataException {
+		
+		LOG.debug("CREATING ENTITY TYPE: {}", entityTypeName);
 		
 		String entityTypeNameString = entityTypeName.getName();
 		String entitySetName = entityTypesMap.get(entityTypeNameString);
