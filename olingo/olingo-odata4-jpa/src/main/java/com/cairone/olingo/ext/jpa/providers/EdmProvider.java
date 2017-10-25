@@ -518,7 +518,7 @@ public class EdmProvider extends CsdlAbstractEdmProvider {
 					}
 				}
 				
-				LOG.debug("CREATING PROPERTRY {} [{}]", propertyName, propertyType);
+				LOG.debug("CREATING PROPERTY {} [{}]", propertyName, propertyType);
 				
 				CsdlProperty csdlProperty = new CsdlProperty().setName(propertyName).setType(propertyType);
 				if(propertyType.equals(EdmPrimitiveTypeKind.Decimal.getFullQualifiedName())) csdlProperty.setScale(property.scale());
@@ -832,6 +832,18 @@ public class EdmProvider extends CsdlAbstractEdmProvider {
 		List<CsdlProperty> csdlProperties = getCsdlProperties(fields);
 		List<CsdlNavigationProperty> csdlNavigationProperties = getCsdlNavigationProperties(fields);
 		List<CsdlPropertyRef> csdlPropertyRefs = Arrays.asList(edmEntity.key()).stream().map(key -> new CsdlPropertyRef().setName(key)).collect(Collectors.toList());
+		
+		// Validate: Each property ref should match a property
+		
+		for(CsdlPropertyRef csdlPropertyRef : csdlPropertyRefs) {
+			final String refName = csdlPropertyRef.getName();
+			final boolean match = csdlProperties.stream().anyMatch(e -> {
+				return e.getName().equals(refName);
+			});
+			if(!match) {
+				throw new ODataException(String.format("THE PROPERTY REF %s [%s] DOES NOT MATCH ANY OF THE ENTITY PROPERTIES", refName, entityTypeName));
+			}
+		}
 		
 		CsdlEntityType entityType = new CsdlEntityType()
 			.setName(edmEntity.name())
