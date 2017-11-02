@@ -520,8 +520,14 @@ public class EdmProvider extends CsdlAbstractEdmProvider {
 				
 				LOG.debug("CREATING PROPERTY {} [{}]", propertyName, propertyType);
 				
-				CsdlProperty csdlProperty = new CsdlProperty().setName(propertyName).setType(propertyType);
+				CsdlProperty csdlProperty = new CsdlProperty()
+						.setName(propertyName)
+						.setType(propertyType)
+						.setNullable(property.nullable());
+				
+				if(propertyType.equals(EdmPrimitiveTypeKind.String.getFullQualifiedName())) csdlProperty.setMaxLength(property.maxLength());
 				if(propertyType.equals(EdmPrimitiveTypeKind.Decimal.getFullQualifiedName())) csdlProperty.setScale(property.scale());
+				
 				csdlProperties.add(csdlProperty);
 			}
 		}

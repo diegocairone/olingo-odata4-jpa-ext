@@ -91,7 +91,7 @@ public @interface EdmProperty {
      *
      * @return The maximum length of this property.
      */
-    long maxLength() default Long.MAX_VALUE;
+    int maxLength() default Integer.MAX_VALUE;
 
     /**
      * The precision of this property. The following special values can be used:
