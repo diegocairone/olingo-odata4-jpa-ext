@@ -525,7 +525,7 @@ public class EdmProvider extends CsdlAbstractEdmProvider {
 						.setType(propertyType)
 						.setNullable(property.nullable());
 				
-				if(propertyType.equals(EdmPrimitiveTypeKind.String.getFullQualifiedName())) csdlProperty.setMaxLength(property.maxLength());
+				if(propertyType.equals(EdmPrimitiveTypeKind.String.getFullQualifiedName()) && property.maxLength() > 0) csdlProperty.setMaxLength(property.maxLength());
 				if(propertyType.equals(EdmPrimitiveTypeKind.Decimal.getFullQualifiedName())) csdlProperty.setScale(property.scale());
 				
 				csdlProperties.add(csdlProperty);
