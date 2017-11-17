@@ -31,5 +31,7 @@ public @interface ODataJPAEntity {
 	 * 
 	 * @return The class path of the JPA entity
 	 */
-	String value();
+	String value() default "";
+	
+	Class<?> entity() default Object.class;
 }

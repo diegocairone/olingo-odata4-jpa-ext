@@ -41,7 +41,8 @@ public final class JPQLQueryBuilder {
 	public JPQLQuery build() throws ODataApplicationException {
 		
 		ODataJPAEntity oDataJPAEntity = clazz.getAnnotation(ODataJPAEntity.class);
-		String entityName = oDataJPAEntity == null || oDataJPAEntity.value().isEmpty() ? clazz.getSimpleName() : oDataJPAEntity.value();
+//		String entityName = oDataJPAEntity == null || oDataJPAEntity.value().isEmpty() ? clazz.getSimpleName() : oDataJPAEntity.value();
+		String entityName = oDataJPAEntity == null ? clazz.getSimpleName() : oDataJPAEntity.value() == null || oDataJPAEntity.value().trim().isEmpty() ? oDataJPAEntity.entity().getSimpleName() : oDataJPAEntity.value();
 		
 		StringBuilder sb = new StringBuilder();
 		

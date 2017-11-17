@@ -9,7 +9,7 @@ import com.cairone.olingo.ext.jpa.annotations.ODataJPAEntity;
 
 @EdmEntity(name = "Country", key = "Id", namespace = AppDemoConstants.NAME_SPACE, containerName = AppDemoConstants.CONTAINER_NAME)
 @EdmEntitySet("Countries")
-@ODataJPAEntity("CountryEntity")
+@ODataJPAEntity(entity=CountryEntity.class)
 public class CountryEdm {
 	
 	@EdmProperty(name = "Id")
