@@ -179,7 +179,7 @@ public final class JPQLQueryBuilder {
 	private void appendOrderByOption(StringBuilder sb) {
 
 		if(orderByOption != null) {
-			sb.append("ORDER BY ");
+			sb.append(" ORDER BY ");
 			String orderby = orderByOption.getOrders()
 				.stream()
 				.map(x -> {
