@@ -12,6 +12,7 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Comparator;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -91,6 +92,7 @@ public class EdmProvider extends CsdlAbstractEdmProvider {
 				EdmComplex.class));
 		
 		Set<BeanDefinition> beanDefinitions = provider.findCandidateComponents(DEFAULT_EDM_PACKAGE);
+		Set<String> nonRepeatableNames = new HashSet<>();
 		
 		try {
 			for(BeanDefinition beanDef : beanDefinitions) {
@@ -110,37 +112,61 @@ public class EdmProvider extends CsdlAbstractEdmProvider {
 					if(edmEntitySet.includedInServiceDocument()) {
 						entitySetsMap.put(edmEntitySet.value(), cl);
 						entityTypesMap.put(edmEntity.name(), edmEntitySet.value());
+						
+						LOG.debug("Found entity type: {}", edmEntity.name());
+						
+						if(nonRepeatableNames.contains(edmEntity.name())) {
+							LOG.error("The name {} for the entity type has already been used", edmEntity.name());
+							throw new ODataApplicationException(
+								String.format("The name {} for the entity type has already been used", edmEntity.name()), HttpStatusCode.INTERNAL_SERVER_ERROR.getStatusCode(), Locale.ENGLISH);
+						} else {
+							nonRepeatableNames.add(edmEntity.name());
+						}
 					}
 				}
 				
 				if(edmEnum != null) {
 					String name = edmEnum.name().isEmpty() ? cl.getSimpleName() : edmEnum.name();
 					enumsMap.put(name, cl);
+					LOG.debug("Found enumeration type: {}", name);
+
+					if(nonRepeatableNames.contains(name)) {
+						LOG.error("The name {} for the entity type has already been used", name);
+						throw new ODataApplicationException(
+							String.format("The name {} for the entity type has already been used", name), HttpStatusCode.INTERNAL_SERVER_ERROR.getStatusCode(), Locale.ENGLISH);
+					} else {
+						nonRepeatableNames.add(name);
+					}
 				}
 				
 				if(edmAction != null) {
 					String name = edmAction.name().isEmpty() ? cl.getSimpleName() : edmAction.name();
 					actionsMap.put(name, cl);
+					LOG.debug("Found action: {}", name);
 				}
 
 				if(edmActionImport != null) {
 					String name = edmActionImport.name().isEmpty() ? cl.getSimpleName() : edmActionImport.name();
 					actionImportsMap.put(name, cl);
+					LOG.debug("Found action import: {}", name);
 				}
 
 				if(edmFunction != null) {
 					String name = edmFunction.name().isEmpty() ? cl.getSimpleName() : edmFunction.name();
 					functionsMap.put(name, cl);
+					LOG.debug("Found function: {}", name);
 				}
 
 				if(edmFunctionImport != null) {
 					String name = edmFunctionImport.name().isEmpty() ? cl.getSimpleName() : edmFunctionImport.name();
 					functionImportsMap.put(name, cl);
+					LOG.debug("Found function type: {}", name);
 				}
 				
 				if(edmComplex != null) {
 					String name = edmComplex.name().isEmpty() ? cl.getSimpleName() : edmComplex.name();
 					complexTypesMap.put(name, cl);
+					LOG.debug("Found complex type: {}", name);
 				}
 			}
 		} catch (ClassNotFoundException e) {
