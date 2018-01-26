@@ -45,9 +45,14 @@ public final class JPQLQueryBuilder {
 	private Map<String, Object> queryParams = new HashMap<String, Object>();
 	
 	public JPQLQuery build() throws ODataApplicationException {
-		
+
 		ODataJPAEntity oDataJPAEntity = clazz.getAnnotation(ODataJPAEntity.class);
 		String entityName = oDataJPAEntity == null ? clazz.getSimpleName() : oDataJPAEntity.value() == null || oDataJPAEntity.value().trim().isEmpty() ? oDataJPAEntity.entity().getSimpleName() : oDataJPAEntity.value();
+		
+		return build(entityName);
+	}
+	
+	public JPQLQuery build(String entityName) throws ODataApplicationException {
 		
 		StringBuilder sb = new StringBuilder();
 		
