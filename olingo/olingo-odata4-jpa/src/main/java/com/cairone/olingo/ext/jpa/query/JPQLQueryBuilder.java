@@ -16,18 +16,24 @@ import org.apache.olingo.server.api.uri.UriInfoResource;
 import org.apache.olingo.server.api.uri.UriResource;
 import org.apache.olingo.server.api.uri.UriResourceNavigation;
 import org.apache.olingo.server.api.uri.UriResourcePrimitiveProperty;
+import org.apache.olingo.server.api.uri.queryoption.ExpandItem;
 import org.apache.olingo.server.api.uri.queryoption.ExpandOption;
 import org.apache.olingo.server.api.uri.queryoption.FilterOption;
 import org.apache.olingo.server.api.uri.queryoption.OrderByOption;
 import org.apache.olingo.server.api.uri.queryoption.expression.Expression;
 import org.apache.olingo.server.api.uri.queryoption.expression.ExpressionVisitException;
 import org.apache.olingo.server.api.uri.queryoption.expression.Member;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.cairone.olingo.ext.jpa.annotations.ODataJPAEntity;
 import com.cairone.olingo.ext.jpa.annotations.ODataJPAProperty;
 import com.cairone.olingo.ext.jpa.visitors.FilterExpressionVisitor;
+import com.google.common.base.Splitter;
 
 public final class JPQLQueryBuilder {
+	
+	protected static final Logger LOG = LoggerFactory.getLogger(JPQLQueryBuilder.class);
 
 	private boolean distinct = true;
 	private Class<?> clazz = null;
@@ -41,7 +47,6 @@ public final class JPQLQueryBuilder {
 	public JPQLQuery build() throws ODataApplicationException {
 		
 		ODataJPAEntity oDataJPAEntity = clazz.getAnnotation(ODataJPAEntity.class);
-//		String entityName = oDataJPAEntity == null || oDataJPAEntity.value().isEmpty() ? clazz.getSimpleName() : oDataJPAEntity.value();
 		String entityName = oDataJPAEntity == null ? clazz.getSimpleName() : oDataJPAEntity.value() == null || oDataJPAEntity.value().trim().isEmpty() ? oDataJPAEntity.entity().getSimpleName() : oDataJPAEntity.value();
 		
 		StringBuilder sb = new StringBuilder();
@@ -131,7 +136,9 @@ public final class JPQLQueryBuilder {
 		return propertyName;
 	}
 	
-	private void appendExpandOption(StringBuilder sb) {
+	@SuppressWarnings("unused")
+	@Deprecated
+	private void appendExpandOptionDeprecated(StringBuilder sb) {
 
     	if(expandOption != null && !expandOption.getExpandItems().isEmpty()) {
     		expandOption.getExpandItems().forEach(expandItem -> {
@@ -155,6 +162,65 @@ public final class JPQLQueryBuilder {
     		});
     	}
 		
+	}
+	
+	private void appendExpandOption(StringBuilder sb) throws ODataApplicationException {
+		
+		if(expandOption != null && !expandOption.getExpandItems().isEmpty()) {
+			
+			List<ExpandItem> expandItems = expandOption.getExpandItems();
+			int count = 0;
+			
+			for(ExpandItem expandItem : expandItems) {
+				UriResource uriResource = expandItem.getResourcePath().getUriResourceParts().get(0);
+    			if(uriResource instanceof UriResourceNavigation) {
+    				EdmNavigationProperty edmNavigationProperty = ((UriResourceNavigation) uriResource).getProperty();
+    				String navPropName = edmNavigationProperty.getName();
+    				for(Field field : clazz.getDeclaredFields()) {
+    					com.cairone.olingo.ext.jpa.annotations.EdmNavigationProperty annEdmNavigationProperty = field.getAnnotation(com.cairone.olingo.ext.jpa.annotations.EdmNavigationProperty.class);
+    					if(annEdmNavigationProperty != null && (annEdmNavigationProperty.name().equals(navPropName) || field.getName().equals(navPropName))) {
+    						ODataJPAProperty oDataJPAProperty = field.getAnnotation(ODataJPAProperty.class);
+    						if(oDataJPAProperty != null && !oDataJPAProperty.value().isEmpty() && !oDataJPAProperty.ignore()) {
+    		    				
+    							String value = oDataJPAProperty.value();
+    							String regex = "^[a-z.][a-zA-Z.0-9]*$";
+    							
+    							if(!value.matches(regex)) {
+    								throw new ODataApplicationException(
+    										String.format("VALUE FOR ODataJPAProperty IN FIELD %s [%s] IS NOT VALID", field.getName(), clazz.getName()), 
+    										HttpStatusCode.INTERNAL_SERVER_ERROR.getStatusCode(), 
+    										Locale.ENGLISH);
+    							}
+    							
+    							Iterable<String> result = Splitter.on('.')
+    								       .omitEmptyStrings()
+    								       .split(value);
+    							
+    							LOG.debug("JPA PROPERTY TO EVALUATE: {}", value);
+    							String joinFetchExpr = "";
+    							boolean isFirst = true;
+    							
+    							for(String fieldName : result) {
+    								count++;
+    								if(isFirst) {
+    									isFirst = false;
+    									joinFetchExpr += "LEFT JOIN FETCH e." + fieldName + " e" + count + " ";
+    								} else {
+    									joinFetchExpr += "LEFT JOIN FETCH e" + (count - 1) + "." + fieldName + " e" + count + " ";
+    								}
+    							}
+    							
+    							LOG.debug("EXPRESSION TO APPEND: {}", joinFetchExpr);
+    							sb.append(joinFetchExpr);
+    							
+    		    			} else if(oDataJPAProperty == null || !oDataJPAProperty.ignore()) {
+    		    				sb.append("LEFT JOIN FETCH e." + field.getName() + " ");
+    		    			}
+    					}
+    				}
+    			}
+			}
+		}
 	}
 	
 	private void appendFilterOption(StringBuilder sb) throws ODataApplicationException {

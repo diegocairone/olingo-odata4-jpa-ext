@@ -12,12 +12,16 @@ import org.apache.olingo.server.api.uri.queryoption.ExpandOption;
 import org.apache.olingo.server.api.uri.queryoption.FilterOption;
 import org.apache.olingo.server.api.uri.queryoption.OrderByOption;
 import org.apache.olingo.server.api.uri.queryoption.SelectOption;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.MessageSource;
 
 import com.cairone.olingo.ext.jpa.interfaces.DataSource;
 
 public abstract class AbstractDataSource implements DataSource {
+	
+	protected static final Logger LOG = LoggerFactory.getLogger(AbstractDataSource.class);
 	
 	@Autowired protected MessageSource messageSource = null;
 	@PersistenceContext protected EntityManager entityManager;
