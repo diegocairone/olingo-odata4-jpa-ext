@@ -493,6 +493,7 @@ public class EdmProvider extends CsdlAbstractEdmProvider {
 				Class<?> enumClazz = fld.getType();
 				EdmComplex[] edmComplexs = enumClazz.getAnnotationsByType(EdmComplex.class);
 				boolean isEdmComplex = edmComplexs.length != 0;
+				boolean isCollection = false;
 				
 				String propertyName = property.name().isEmpty() ? fld.getName() : property.name();
 				FullQualifiedName propertyType = null;
@@ -512,6 +513,30 @@ public class EdmProvider extends CsdlAbstractEdmProvider {
 						propertyType = EdmPrimitiveTypeKind.Boolean.getFullQualifiedName();
 					} else if(fld.getType().isAssignableFrom(BigDecimal.class)) {
 						propertyType = EdmPrimitiveTypeKind.Decimal.getFullQualifiedName();
+					} else if(Collection.class.isAssignableFrom(fld.getType())) {
+						isCollection = true;
+						Type type = fld.getGenericType();
+						if (type instanceof ParameterizedType) {
+							ParameterizedType pt = (ParameterizedType) type;
+							for(Type t : pt.getActualTypeArguments()) {
+								Class<?> clazz = (Class<?>) t;
+								if(clazz.isAssignableFrom(Integer.class)) {
+									propertyType = getFullQualifiedName("Edm", "Int32");
+								} else if(clazz.isAssignableFrom(Long.class)) {
+									propertyType = getFullQualifiedName("Edm", "Int64");
+								} else if(clazz.isAssignableFrom(String.class)) {
+									propertyType = getFullQualifiedName("Edm", "String");
+								} else if(clazz.isAssignableFrom(LocalDate.class)) {
+									propertyType = getFullQualifiedName("Edm", "Date");
+								} else if(clazz.isAssignableFrom(LocalDateTime.class)) {
+									propertyType = getFullQualifiedName("Edm", "DateTimeOffset");
+								} else if(clazz.isAssignableFrom(Boolean.class)) {
+									propertyType = getFullQualifiedName("Edm", "Boolean");
+								} else if(clazz.isAssignableFrom(BigDecimal.class)) {
+									propertyType = getFullQualifiedName("Edm", "Decimal");
+								}
+							}
+						}
 					} else if(isEdmComplex) {
 						EdmComplex edmComplex = edmComplexs[0];
 						String namespace = edmComplex.namespace().isEmpty() ? NAME_SPACE : edmComplex.namespace();
@@ -549,6 +574,7 @@ public class EdmProvider extends CsdlAbstractEdmProvider {
 				CsdlProperty csdlProperty = new CsdlProperty()
 						.setName(propertyName)
 						.setType(propertyType)
+						.setCollection(isCollection)
 						.setNullable(property.nullable());
 				
 				if(propertyType.equals(EdmPrimitiveTypeKind.String.getFullQualifiedName()) && property.maxLength() > 0) csdlProperty.setMaxLength(property.maxLength());

@@ -208,6 +208,7 @@ public class BaseProcessor implements Processor {
 	            		Class<?> cl = fld.getType();
 	    				EdmComplex[] edmComplexArray = cl.getAnnotationsByType(EdmComplex.class);
 	    				boolean isEdmComplex = edmComplexArray.length != 0;
+	    				boolean isCollection = Collection.class.isAssignableFrom(fld.getType());
 	    				
 	    				if(isEdmComplex) {
 	    					Entity complexEntity = writeEntity(value, null);
@@ -219,6 +220,8 @@ public class BaseProcessor implements Processor {
 	    					});
 	    					
 	    					entity.addProperty(new Property(null, name, ValueType.COMPLEX, complexValue));
+	    				} else if(isCollection) {
+	    					entity.addProperty(new Property(null, name, ValueType.COLLECTION_PRIMITIVE, value));
 	    				} else {
 	    					entity.addProperty(new Property(null, name, ValueType.PRIMITIVE, value));
 	    				}
@@ -338,6 +341,11 @@ public class BaseProcessor implements Processor {
     					
     					fld.setAccessible(true);
                 		fld.set(object, complexObject);
+    				
+    				} else if(Collection.class.isAssignableFrom(fld.getType())) {
+    					
+    					fld.setAccessible(true);
+						fld.set(object, property.getValue());
     					
     				} else {
 	    				

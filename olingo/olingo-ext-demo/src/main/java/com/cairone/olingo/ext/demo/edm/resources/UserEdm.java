@@ -1,5 +1,8 @@
 package com.cairone.olingo.ext.demo.edm.resources;
 
+import java.util.Arrays;
+import java.util.List;
+
 import com.cairone.olingo.ext.demo.AppDemoConstants;
 import com.cairone.olingo.ext.demo.entities.UserEntity;
 import com.cairone.olingo.ext.jpa.annotations.EdmEntity;
@@ -32,10 +35,15 @@ public class UserEdm {
 	@EdmProperty(name = "Password")
 	private String password = null;
 	
-	public UserEdm() {}
+	@EdmProperty(name = "Tags")
+	private List<String> tags = null;
+	
+	public UserEdm() {
+		this.tags = Arrays.asList("TAG-1", "TAG-2", "TAG-3");
+	}
 
 	public UserEdm(Integer id, String name, String surname, FormEdm form, String username, String password) {
-		super();
+		this();
 		this.id = id;
 		this.name = name;
 		this.surname = surname;
