@@ -35,6 +35,7 @@ import org.apache.olingo.commons.api.data.Link;
 import org.apache.olingo.commons.api.data.Parameter;
 import org.apache.olingo.commons.api.data.Property;
 import org.apache.olingo.commons.api.data.ValueType;
+import org.apache.olingo.commons.api.edm.EdmBindingTarget;
 import org.apache.olingo.commons.api.edm.EdmEntitySet;
 import org.apache.olingo.commons.api.edm.EdmEntityType;
 import org.apache.olingo.commons.api.edm.EdmNavigationProperty;
@@ -51,6 +52,8 @@ import org.apache.olingo.server.api.uri.UriResource;
 import org.apache.olingo.server.api.uri.UriResourceEntitySet;
 import org.apache.olingo.server.api.uri.UriResourceNavigation;
 import org.apache.olingo.server.api.uri.queryoption.ExpandOption;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.ClassPathScanningCandidateComponentProvider;
@@ -74,6 +77,8 @@ public class BaseProcessor implements Processor {
 	
 	protected Map<String, Class<?>> entitySetMap = new HashMap<>();
 	protected Map<String, String> entityTypeMap = new HashMap<>();
+	
+	protected static final Logger LOG = LoggerFactory.getLogger(BaseProcessor.class);
 	
 	@Override
 	public void init(OData odata, ServiceMetadata serviceMetadata) {
@@ -124,6 +129,10 @@ public class BaseProcessor implements Processor {
 	public BaseProcessor setDefaultEdmPackage(String DefaultEdmPackage) {
 		DEFAULT_EDM_PACKAGE = DefaultEdmPackage;
 		return this;
+	}
+	
+	protected Entity writeEntity(Object object) throws IllegalArgumentException, IllegalAccessException, NoSuchMethodException, SecurityException, InvocationTargetException, ODataApplicationException {
+		return writeEntity(object, null);
 	}
 
 	protected Entity writeEntity(Object object, ExpandOption expandOption) throws IllegalArgumentException, IllegalAccessException, NoSuchMethodException, SecurityException, InvocationTargetException, ODataApplicationException {
@@ -713,5 +722,25 @@ public class BaseProcessor implements Processor {
 			    }
     		}
     	}
+	}
+	
+	protected EdmEntitySet getNavigationTargetEntitySet(EdmEntitySet startEdmEntitySet, EdmNavigationProperty edmNavigationProperty) throws ODataApplicationException {
+
+		EdmEntitySet navigationTargetEntitySet = null;
+
+		String navPropName = edmNavigationProperty.getName();
+		EdmBindingTarget edmBindingTarget = startEdmEntitySet.getRelatedBindingTarget(navPropName);
+
+		if (edmBindingTarget == null) {
+			throw new ODataApplicationException("Not supported.", HttpStatusCode.NOT_IMPLEMENTED.getStatusCode(), Locale.ROOT);
+		}
+
+		if (edmBindingTarget instanceof EdmEntitySet) {
+			navigationTargetEntitySet = (EdmEntitySet) edmBindingTarget;
+		} else {
+			throw new ODataApplicationException("Not supported.", HttpStatusCode.NOT_IMPLEMENTED.getStatusCode(), Locale.ROOT);
+		}
+
+		return navigationTargetEntitySet;
 	}
 }

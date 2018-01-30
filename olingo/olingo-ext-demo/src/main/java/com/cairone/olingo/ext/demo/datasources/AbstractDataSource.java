@@ -43,5 +43,4 @@ public abstract class AbstractDataSource implements DataSource {
 
 	@Override
 	public abstract Iterable<?> readAll(ExpandOption expandOption, FilterOption filterOption, OrderByOption orderByOption) throws ODataApplicationException;
-
 }

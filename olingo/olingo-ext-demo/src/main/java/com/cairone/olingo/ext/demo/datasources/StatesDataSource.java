@@ -15,6 +15,7 @@ import org.springframework.stereotype.Component;
 
 import com.cairone.olingo.ext.demo.dtos.StateFrmDto;
 import com.cairone.olingo.ext.demo.dtos.validators.StateFrmDtoValidator;
+import com.cairone.olingo.ext.demo.edm.resources.CountryEdm;
 import com.cairone.olingo.ext.demo.edm.resources.StateEdm;
 import com.cairone.olingo.ext.demo.entities.StateEntity;
 import com.cairone.olingo.ext.demo.exceptions.ODataBadRequestException;
@@ -25,7 +26,7 @@ import com.cairone.olingo.ext.jpa.query.JPQLQuery;
 import com.cairone.olingo.ext.jpa.query.JPQLQueryBuilder;
 
 @Component
-public class StatesDataSource extends AbstractDataSource {
+public class StatesDataSource extends AbstractConditionalDataSource {
 
 	private static final String ENTITY_SET_NAME = "States";
 	
@@ -139,6 +140,33 @@ public class StatesDataSource extends AbstractDataSource {
 		List<StateEdm> stateEdms = stateEntities.stream()
 			.map(entity -> { 
 				StateEdm stateEdm = new StateEdm(entity);
+				return stateEdm;
+			})
+			.collect(Collectors.toList());
+		
+		return stateEdms;
+	}
+	
+	@Override
+	public Iterable<?> readConditioned(ExpandOption expandOption, FilterOption filterOption, OrderByOption orderByOption, Object conditionalEntity) throws ODataApplicationException {
+
+		JPQLQuery query = new JPQLQueryBuilder()
+			.setDistinct(false)
+			.setClazz(StateEdm.class)
+			.setExpandOption(expandOption)
+			.setFilterOption(filterOption)
+			.setOrderByOption(orderByOption)
+			.build();
+	
+		List<StateEntity> stateEntities = JPQLQuery.execute(entityManager, query);
+		CountryEdm target = (CountryEdm) conditionalEntity;
+		
+		List<StateEdm> stateEdms = stateEntities.stream()
+			.filter(stateEntity -> {
+				return stateEntity.getCountry().getId().equals(target.getId());
+			})
+			.map(stateEntity -> { 
+				StateEdm stateEdm = new StateEdm(stateEntity);
 				return stateEdm;
 			})
 			.collect(Collectors.toList());

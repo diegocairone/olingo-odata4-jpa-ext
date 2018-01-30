@@ -22,6 +22,7 @@ import org.apache.olingo.commons.api.data.Link;
 import org.apache.olingo.commons.api.data.ValueType;
 import org.apache.olingo.commons.api.edm.EdmEntitySet;
 import org.apache.olingo.commons.api.edm.EdmEntityType;
+import org.apache.olingo.commons.api.edm.EdmNavigationProperty;
 import org.apache.olingo.commons.api.ex.ODataException;
 import org.apache.olingo.commons.api.format.ContentType;
 import org.apache.olingo.commons.api.http.HttpHeader;
@@ -45,6 +46,7 @@ import org.apache.olingo.server.api.uri.UriParameter;
 import org.apache.olingo.server.api.uri.UriResource;
 import org.apache.olingo.server.api.uri.UriResourceEntitySet;
 import org.apache.olingo.server.api.uri.UriResourceFunction;
+import org.apache.olingo.server.api.uri.UriResourceNavigation;
 import org.apache.olingo.server.api.uri.queryoption.CountOption;
 import org.apache.olingo.server.api.uri.queryoption.ExpandOption;
 import org.apache.olingo.server.api.uri.queryoption.FilterOption;
@@ -57,6 +59,7 @@ import org.springframework.context.ApplicationContext;
 
 import com.cairone.olingo.ext.jpa.annotations.EdmFunction;
 import com.cairone.olingo.ext.jpa.annotations.EdmParameter;
+import com.cairone.olingo.ext.jpa.interfaces.ConditionalDataSource;
 import com.cairone.olingo.ext.jpa.interfaces.DataSource;
 import com.cairone.olingo.ext.jpa.interfaces.Operation;
 import com.cairone.olingo.ext.jpa.utilities.Util;
@@ -283,6 +286,8 @@ public class EntitySetProcessor extends BaseProcessor implements EntityProcessor
 			readFunctionImport(request, response, uriInfo, responseFormat);
 		} else if(lastResourceSegment instanceof UriResourceEntitySet) {
 			readEntityInternal(request, response, uriInfo, responseFormat);
+		} else if(lastResourceSegment instanceof UriResourceNavigation) {
+			readNavigationEntityInternal(request, response, uriInfo, responseFormat);
 		} else {
 			throw new ODataApplicationException("Not implemented", HttpStatusCode.NOT_IMPLEMENTED.getStatusCode(), Locale.ENGLISH);
 		}
@@ -373,9 +378,147 @@ public class EntitySetProcessor extends BaseProcessor implements EntityProcessor
 			readFunctionImport(request, response, uriInfo, responseFormat);
 		} else if(lastResourceSegment instanceof UriResourceEntitySet) {
 			readEntityCollectionInternal(request, response, uriInfo, responseFormat);
+		} else if(lastResourceSegment instanceof UriResourceNavigation) {
+			readNavigationCollectionInternal(request, response, uriInfo, responseFormat);
 		} else {
+			LOG.warn("NO IMPLEMENTATION FOR {}", lastResourceSegment.getClass());
 			throw new ODataApplicationException("Not implemented", HttpStatusCode.NOT_IMPLEMENTED.getStatusCode(), Locale.ENGLISH);
 		}
+	}
+	
+	private void readNavigationCollectionInternal(ODataRequest request, ODataResponse response, UriInfo uriInfo, ContentType responseFormat) throws ODataApplicationException, ODataLibraryException {
+		
+		List<UriResource> resourcePaths = uriInfo.getUriResourceParts();
+		
+		if(resourcePaths.size() != 2) {
+			throw new ODataApplicationException("Not supported", HttpStatusCode.NOT_IMPLEMENTED.getStatusCode(), Locale.ROOT);
+		}
+		
+		UriResourceEntitySet uriResourceEntitySet = (UriResourceEntitySet) resourcePaths.get(0);
+		UriResourceNavigation uriResourceNavigation = (UriResourceNavigation) resourcePaths.get(1);
+		
+		LOG.debug("EntitySet [First segment]: {}", uriResourceEntitySet);
+		LOG.debug("NavProperty [Second segment]: {}", uriResourceNavigation);
+		
+		EdmEntitySet edmEntitySet = uriResourceEntitySet.getEntitySet();
+		
+	    DataSource dsEntitySet = dataSourceMap.get(edmEntitySet.getName());
+		
+		if(dsEntitySet == null) {
+			throw new ODataApplicationException(
+					String.format("DATASOURCE PROVIDER FOR %s NOT FOUND", edmEntitySet.getName()), 
+					HttpStatusCode.INTERNAL_SERVER_ERROR.getStatusCode(), 
+					Locale.ENGLISH);
+		}
+		
+		List<UriParameter> keyPredicates = uriResourceEntitySet.getKeyPredicates();
+	    Map<String, UriParameter> keyPredicateMap = keyPredicates
+				.stream()
+				.collect(Collectors.toMap(UriParameter::getName, x -> x));
+		
+	    Object object = dsEntitySet.readFromKey(keyPredicateMap, null, null);
+		
+		if(object == null) {
+			throw new ODataApplicationException("LA ENTIDAD SOLICITADA NO EXISTE", HttpStatusCode.NOT_FOUND.getStatusCode(), Locale.ENGLISH);
+		}
+		
+		LOG.debug("EDM found: {}", object);
+		
+		// *** SECOND SEGMENT
+		
+		EdmNavigationProperty edmNavigationProperty = uriResourceNavigation.getProperty();
+		EdmEntitySet responseEdmEntitySet  = getNavigationTargetEntitySet(edmEntitySet, edmNavigationProperty);
+		
+		EdmEntityType edmEntityType = responseEdmEntitySet.getEntityType();
+		
+
+	    SelectOption selectOption = uriInfo.getSelectOption();
+	    ExpandOption expandOption = uriInfo.getExpandOption();
+	    CountOption countOption = uriInfo.getCountOption();
+	    SkipOption skipOption = uriInfo.getSkipOption();
+	    TopOption topOption = uriInfo.getTopOption();
+	    OrderByOption orderByOption = uriInfo.getOrderByOption();
+	    FilterOption filterOption = uriInfo.getFilterOption();
+	    
+	    if(topOption == null && maxTopOption != null) {
+	    	topOption = new TopOptionImpl().setValue(maxTopOption);
+	    } else if(topOption != null && maxTopOption != null && topOption.getValue() > maxTopOption) {
+	    	TopOptionImpl topOptionImpl = (TopOptionImpl) topOption;
+	    	topOption = topOptionImpl.setValue(maxTopOption);
+	    }
+	    
+	    String selectList = odata.createUriHelper().buildContextURLSelectList(edmEntityType, null, selectOption);
+	    boolean count = countOption == null ? false : countOption.getValue();
+	    
+		DataSource dsSecondSegment = dataSourceMap.get(responseEdmEntitySet.getName());
+		
+		if(dsSecondSegment == null) {
+			throw new ODataApplicationException(
+					String.format("DATASOURCE PROVIDER FOR %s NOT FOUND", edmEntitySet.getName()), 
+					HttpStatusCode.INTERNAL_SERVER_ERROR.getStatusCode(), 
+					Locale.ENGLISH);
+		}
+		
+		ConditionalDataSource conditionalDataSource = (ConditionalDataSource) dsSecondSegment;
+
+		EntityCollection entityCollection = new EntityCollection();
+		List<Entity> result = entityCollection.getEntities();
+		
+		Iterable<?> data = conditionalDataSource.readConditioned(expandOption, filterOption, orderByOption, object);
+		
+		if(count) entityCollection.setCount(Iterables.size(data));
+		
+		if(skipOption != null) {
+			data = Iterables.skip(data, skipOption.getValue());
+		}
+		
+		if(topOption != null) {
+			data = Iterables.limit(data, topOption.getValue()); 
+		}
+		
+		try {			
+			for(Object targetObject : data) {
+				Entity entity = writeEntity(targetObject, expandOption);
+				result.add(entity);
+			}
+		} catch (Exception e) {
+			throw new ODataApplicationException(e.getMessage(), HttpStatusCode.INTERNAL_SERVER_ERROR.getStatusCode(), Locale.ENGLISH);
+		}
+		
+		
+		ODataSerializer serializer = odata.createSerializer(responseFormat);
+
+	    ContextURL contextUrl = null;
+		try {
+			contextUrl = ContextURL.with()
+					.serviceRoot(new URI(SERVICE_ROOT))
+					.entitySet(edmEntitySet)
+					.selectList(selectList)
+					.build();
+		} catch (URISyntaxException e) {
+			throw new ODataApplicationException(e.getMessage(), HttpStatusCode.BAD_REQUEST.getStatusCode(), Locale.ENGLISH);
+		}
+		
+		final String id = request.getRawBaseUri() + "/" + edmEntitySet.getName();
+		
+		EntityCollectionSerializerOptions opts = EntityCollectionSerializerOptions.with()
+			.id(id)
+			.contextURL(contextUrl)
+			.count(countOption)
+			.select(selectOption)
+			.expand(expandOption).build();
+		
+		SerializerResult serializerResult = serializer.entityCollection(serviceMetadata, edmEntityType, entityCollection, opts);
+		InputStream serializedContent = serializerResult.getContent();
+
+		response.setContent(serializedContent);
+		response.setStatusCode(HttpStatusCode.OK.getStatusCode());
+		response.setHeader(HttpHeader.CONTENT_TYPE, responseFormat.toContentTypeString());
+	}
+	
+	private void readNavigationEntityInternal(ODataRequest request, ODataResponse response, UriInfo uriInfo, ContentType responseFormat) throws ODataApplicationException, ODataLibraryException {
+		//TODO NOT IMPLEMENTED
+		throw new ODataApplicationException("Not implemented", HttpStatusCode.NOT_IMPLEMENTED.getStatusCode(), Locale.ENGLISH);
 	}
 	
 	private void readFunctionImport(ODataRequest request, ODataResponse response, UriInfo uriInfo, ContentType responseFormat) throws ODataApplicationException, ODataLibraryException {
