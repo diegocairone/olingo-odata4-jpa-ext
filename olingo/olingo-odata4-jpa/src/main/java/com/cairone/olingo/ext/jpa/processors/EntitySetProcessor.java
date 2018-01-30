@@ -59,7 +59,6 @@ import org.springframework.context.ApplicationContext;
 
 import com.cairone.olingo.ext.jpa.annotations.EdmFunction;
 import com.cairone.olingo.ext.jpa.annotations.EdmParameter;
-import com.cairone.olingo.ext.jpa.interfaces.ConditionalDataSource;
 import com.cairone.olingo.ext.jpa.interfaces.DataSource;
 import com.cairone.olingo.ext.jpa.interfaces.Operation;
 import com.cairone.olingo.ext.jpa.utilities.Util;
@@ -158,7 +157,7 @@ public class EntitySetProcessor extends BaseProcessor implements EntityProcessor
     	try {
     		object = writeObject(clazz, requestEntity);
     		
-    		Object createdObject = dataSource.create(object);
+    		Object createdObject = dataSource.create(object, null);
     		createdEntity = writeEntity(createdObject, null);
     		
     	} catch (IllegalArgumentException | IllegalAccessException | NoSuchMethodException | SecurityException | InstantiationException | InvocationTargetException e) {
@@ -247,7 +246,7 @@ public class EntitySetProcessor extends BaseProcessor implements EntityProcessor
 			throw new ODataApplicationException(e.getMessage(), HttpStatusCode.INTERNAL_SERVER_ERROR.getStatusCode(), Locale.ENGLISH);
 		}
     	
-    	dataSource.update(keyPredicateMap, object, propertiesInJSON, request.getMethod().equals(HttpMethod.PUT));
+    	dataSource.update(keyPredicateMap, object, null, propertiesInJSON, request.getMethod().equals(HttpMethod.PUT));
     	response.setStatusCode(HttpStatusCode.NO_CONTENT.getStatusCode());
 	}
 
@@ -273,7 +272,7 @@ public class EntitySetProcessor extends BaseProcessor implements EntityProcessor
 				.stream()
 				.collect(Collectors.toMap(UriParameter::getName, x -> x));
 		
-    	dataSource.delete(keyPredicateMap);
+    	dataSource.delete(keyPredicateMap, null);
     	response.setStatusCode(HttpStatusCode.NO_CONTENT.getStatusCode());
 	}
 	
@@ -326,7 +325,7 @@ public class EntitySetProcessor extends BaseProcessor implements EntityProcessor
 				.collect(Collectors.toMap(UriParameter::getName, x -> x));
 		
 	    Entity entity;
-	    Object object = dataSource.readFromKey(keyPredicateMap, expandOption, selectOption);
+	    Object object = dataSource.readFromKey(keyPredicateMap, expandOption, selectOption, null);
 		
 		if(object == null) {
 			throw new ODataApplicationException("LA ENTIDAD SOLICITADA NO EXISTE", HttpStatusCode.NOT_FOUND.getStatusCode(), Locale.ENGLISH);
@@ -416,7 +415,7 @@ public class EntitySetProcessor extends BaseProcessor implements EntityProcessor
 				.stream()
 				.collect(Collectors.toMap(UriParameter::getName, x -> x));
 		
-	    Object object = dsEntitySet.readFromKey(keyPredicateMap, null, null);
+	    Object object = dsEntitySet.readFromKey(keyPredicateMap, null, null, null);
 		
 		if(object == null) {
 			throw new ODataApplicationException("LA ENTIDAD SOLICITADA NO EXISTE", HttpStatusCode.NOT_FOUND.getStatusCode(), Locale.ENGLISH);
@@ -459,12 +458,10 @@ public class EntitySetProcessor extends BaseProcessor implements EntityProcessor
 					Locale.ENGLISH);
 		}
 		
-		ConditionalDataSource conditionalDataSource = (ConditionalDataSource) dsSecondSegment;
-
 		EntityCollection entityCollection = new EntityCollection();
 		List<Entity> result = entityCollection.getEntities();
 		
-		Iterable<?> data = conditionalDataSource.readConditioned(expandOption, filterOption, orderByOption, object);
+		Iterable<?> data = dsSecondSegment.readAll(expandOption, filterOption, orderByOption, null);
 		
 		if(count) entityCollection.setCount(Iterables.size(data));
 		
@@ -667,7 +664,7 @@ public class EntitySetProcessor extends BaseProcessor implements EntityProcessor
 		EntityCollection entityCollection = new EntityCollection();
 		List<Entity> result = entityCollection.getEntities();
 		
-		Iterable<?> data = dataSource.readAll(expandOption, filterOption, orderByOption);
+		Iterable<?> data = dataSource.readAll(expandOption, filterOption, orderByOption, null);
 		
 		if(count) entityCollection.setCount(Iterables.size(data));
 		

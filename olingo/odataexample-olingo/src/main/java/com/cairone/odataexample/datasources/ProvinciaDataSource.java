@@ -44,7 +44,7 @@ public class ProvinciaDataSource implements DataSource {
     private EntityManagerFactory entityManagerFactory;
 	
 	@Override
-	public Object create(Object entity) throws ODataApplicationException {
+	public Object create(Object entity, Object superentity) throws ODataApplicationException {
 
 		if(entity instanceof ProvinciaEdm) {
 			
@@ -65,7 +65,7 @@ public class ProvinciaDataSource implements DataSource {
 	}
 
 	@Override
-	public Object update(Map<String, UriParameter> keyPredicateMap, Object entity, List<String> propertiesInJSON, boolean isPut) throws ODataApplicationException {
+	public Object update(Map<String, UriParameter> keyPredicateMap, Object entity, Object superentity, List<String> propertiesInJSON, boolean isPut) throws ODataApplicationException {
 
     	if(entity instanceof ProvinciaEdm) {
     		
@@ -109,7 +109,7 @@ public class ProvinciaDataSource implements DataSource {
 	}
 
 	@Override
-	public Object delete(Map<String, UriParameter> keyPredicateMap) throws ODataApplicationException {
+	public Object delete(Map<String, UriParameter> keyPredicateMap, Object superentity) throws ODataApplicationException {
 
     	Integer provinciaID = Integer.valueOf( keyPredicateMap.get("id").getText() );
     	Integer paisID = Integer.valueOf( keyPredicateMap.get("paisId").getText() );
@@ -130,7 +130,7 @@ public class ProvinciaDataSource implements DataSource {
 	}
 
 	@Override
-	public Object readFromKey(Map<String, UriParameter> keyPredicateMap, ExpandOption expandOption, SelectOption selectOption) throws ODataApplicationException {
+	public Object readFromKey(Map<String, UriParameter> keyPredicateMap, ExpandOption expandOption, SelectOption selectOption, Object superentity) throws ODataApplicationException {
 		
 		Integer provinciaID = Integer.valueOf( keyPredicateMap.get("id").getText() );
     	Integer paisID = Integer.valueOf( keyPredicateMap.get("paisId").getText() );
@@ -142,7 +142,7 @@ public class ProvinciaDataSource implements DataSource {
 	}
 
 	@Override
-	public Iterable<?> readAll(ExpandOption expandOption, FilterOption filterOption, OrderByOption orderByOption) throws ODataApplicationException {
+	public Iterable<?> readAll(ExpandOption expandOption, FilterOption filterOption, OrderByOption orderByOption, Object superentity) throws ODataApplicationException {
 
 		JPQLQuery query = new JPQLQueryBuilder()
 			.setDistinct(true)

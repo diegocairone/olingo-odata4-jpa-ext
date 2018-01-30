@@ -562,7 +562,7 @@ public class BaseProcessor implements Processor {
 							throw new ODataApplicationException(String.format("DATASOURCE PROVIDER FOR %s NOT FOUND", targetEntitySet.getName()), HttpStatusCode.INTERNAL_SERVER_ERROR.getStatusCode(), Locale.ENGLISH);
 						}
 
-	    				Object targetObject = targetDataSource.readFromKey(keyPredicateMap, null, null);
+	    				Object targetObject = targetDataSource.readFromKey(keyPredicateMap, null, null, null);
 	    				
 	    				if(targetObject == null) {
 	    					throw new ODataApplicationException("LA ENTIDAD SOLICITADA NO EXISTE", HttpStatusCode.NOT_FOUND.getStatusCode(), Locale.ENGLISH);
@@ -606,7 +606,7 @@ public class BaseProcessor implements Processor {
 								throw new ODataApplicationException(String.format("DATASOURCE PROVIDER FOR %s NOT FOUND", targetEntitySet.getName()), HttpStatusCode.INTERNAL_SERVER_ERROR.getStatusCode(), Locale.ENGLISH);
 							}
 
-		    				Object targetObject = targetDataSource.readFromKey(keyPredicateMap, null, null);
+		    				Object targetObject = targetDataSource.readFromKey(keyPredicateMap, null, null, null);
 		    				
 		    				if(targetObject == null) {
 		    					throw new ODataApplicationException("LA ENTIDAD SOLICITADA NO EXISTE", HttpStatusCode.NOT_FOUND.getStatusCode(), Locale.ENGLISH);
@@ -675,7 +675,7 @@ public class BaseProcessor implements Processor {
 				    					.collect(Collectors.toMap(UriParameter::getName, x -> x));
 				    		    
 				    			
-				    				Object targetObject = targetDataSource.readFromKey(keyPredicateMap, null, null);
+				    				Object targetObject = targetDataSource.readFromKey(keyPredicateMap, null, null, null);
 				    				
 				    				if(targetObject == null) {
 				    					throw new ODataApplicationException("LA ENTIDAD SOLICITADA NO EXISTE", HttpStatusCode.NOT_FOUND.getStatusCode(), Locale.ENGLISH);
@@ -706,7 +706,7 @@ public class BaseProcessor implements Processor {
 			    					.stream()
 			    					.collect(Collectors.toMap(UriParameter::getName, x -> x));
 			    		    
-			    				Object targetObject = targetDataSource.readFromKey(keyPredicateMap, null, null);
+			    				Object targetObject = targetDataSource.readFromKey(keyPredicateMap, null, null, null);
 			    				
 			    				if(targetObject == null) {
 			    					throw new ODataApplicationException("LA ENTIDAD SOLICITADA NO EXISTE", HttpStatusCode.NOT_FOUND.getStatusCode(), Locale.ENGLISH);

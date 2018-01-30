@@ -38,7 +38,7 @@ public class PeopleCheckLogsDataSource extends AbstractDataSource {
 	}
 
 	@Override
-	public Object create(Object entity) throws ODataApplicationException {
+	public Object create(Object entity, Object parentEntity) throws ODataApplicationException {
 
 		if(entity instanceof PersonCheckLogEdm) {
 			
@@ -61,7 +61,7 @@ public class PeopleCheckLogsDataSource extends AbstractDataSource {
 	}
 
 	@Override
-	public Object update(Map<String, UriParameter> keyPredicateMap, Object entity, List<String> propertiesInJSON, boolean isPut) throws ODataApplicationException {
+	public Object update(Map<String, UriParameter> keyPredicateMap, Object entity, Object parentEntity, List<String> propertiesInJSON, boolean isPut) throws ODataApplicationException {
 
 		if(entity instanceof PersonCheckLogEdm) {
 
@@ -96,7 +96,7 @@ public class PeopleCheckLogsDataSource extends AbstractDataSource {
 	}
 
 	@Override
-	public Object delete(Map<String, UriParameter> keyPredicateMap) throws ODataApplicationException {
+	public Object delete(Map<String, UriParameter> keyPredicateMap, Object parentEntity) throws ODataApplicationException {
 
 		Long eventID = Long.valueOf( keyPredicateMap.get("Id").getText() );
 
@@ -111,7 +111,7 @@ public class PeopleCheckLogsDataSource extends AbstractDataSource {
 	}
 
 	@Override
-	public Object readFromKey(Map<String, UriParameter> keyPredicateMap, ExpandOption expandOption, SelectOption selectOption) throws ODataApplicationException {
+	public Object readFromKey(Map<String, UriParameter> keyPredicateMap, ExpandOption expandOption, SelectOption selectOption, Object parentEntity) throws ODataApplicationException {
 
 		Long eventID = Long.valueOf( keyPredicateMap.get("Id").getText() );
 		
@@ -126,7 +126,7 @@ public class PeopleCheckLogsDataSource extends AbstractDataSource {
 	}
 
 	@Override
-	public Iterable<?> readAll(ExpandOption expandOption, FilterOption filterOption, OrderByOption orderByOption) throws ODataApplicationException {
+	public Iterable<?> readAll(ExpandOption expandOption, FilterOption filterOption, OrderByOption orderByOption, Object parentEntity) throws ODataApplicationException {
 
 		JPQLQuery query = new JPQLQueryBuilder()
 			.setDistinct(false)

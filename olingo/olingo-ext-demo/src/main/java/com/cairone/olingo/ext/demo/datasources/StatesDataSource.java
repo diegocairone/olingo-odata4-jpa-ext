@@ -26,7 +26,7 @@ import com.cairone.olingo.ext.jpa.query.JPQLQuery;
 import com.cairone.olingo.ext.jpa.query.JPQLQueryBuilder;
 
 @Component
-public class StatesDataSource extends AbstractConditionalDataSource {
+public class StatesDataSource extends AbstractDataSource {
 
 	private static final String ENTITY_SET_NAME = "States";
 	
@@ -39,7 +39,7 @@ public class StatesDataSource extends AbstractConditionalDataSource {
 	}
 
 	@Override
-	public Object create(Object entity) throws ODataApplicationException {
+	public Object create(Object entity, Object parentEntity) throws ODataApplicationException {
 
 		if(entity instanceof StateEdm) {
 			
@@ -62,7 +62,7 @@ public class StatesDataSource extends AbstractConditionalDataSource {
 	}
 
 	@Override
-	public Object update(Map<String, UriParameter> keyPredicateMap, Object entity, List<String> propertiesInJSON, boolean isPut) throws ODataApplicationException {
+	public Object update(Map<String, UriParameter> keyPredicateMap, Object entity, Object parentEntity, List<String> propertiesInJSON, boolean isPut) throws ODataApplicationException {
 
 		if(entity instanceof StateEdm) {
 
@@ -96,7 +96,7 @@ public class StatesDataSource extends AbstractConditionalDataSource {
 	}
 
 	@Override
-	public Object delete(Map<String, UriParameter> keyPredicateMap) throws ODataApplicationException {
+	public Object delete(Map<String, UriParameter> keyPredicateMap, Object parentEntity) throws ODataApplicationException {
 
 		Integer stateID = Integer.valueOf( keyPredicateMap.get("Id").getText() );
 
@@ -111,7 +111,7 @@ public class StatesDataSource extends AbstractConditionalDataSource {
 	}
 
 	@Override
-	public Object readFromKey(Map<String, UriParameter> keyPredicateMap, ExpandOption expandOption, SelectOption selectOption) throws ODataApplicationException {
+	public Object readFromKey(Map<String, UriParameter> keyPredicateMap, ExpandOption expandOption, SelectOption selectOption, Object parentEntity) throws ODataApplicationException {
 
 		Integer stateID = Integer.valueOf( keyPredicateMap.get("Id").getText() );
 		
@@ -124,9 +124,9 @@ public class StatesDataSource extends AbstractConditionalDataSource {
 			throw OdataExceptionParser.parse(e);
 		}
 	}
-
+	
 	@Override
-	public Iterable<?> readAll(ExpandOption expandOption, FilterOption filterOption, OrderByOption orderByOption) throws ODataApplicationException {
+	public Iterable<?> readAll(ExpandOption expandOption, FilterOption filterOption, OrderByOption orderByOption, Object parentEntity) throws ODataApplicationException {
 
 		JPQLQuery query = new JPQLQueryBuilder()
 			.setDistinct(false)
@@ -137,33 +137,11 @@ public class StatesDataSource extends AbstractConditionalDataSource {
 			.build();
 	
 		List<StateEntity> stateEntities = JPQLQuery.execute(entityManager, query);
-		List<StateEdm> stateEdms = stateEntities.stream()
-			.map(entity -> { 
-				StateEdm stateEdm = new StateEdm(entity);
-				return stateEdm;
-			})
-			.collect(Collectors.toList());
-		
-		return stateEdms;
-	}
-	
-	@Override
-	public Iterable<?> readConditioned(ExpandOption expandOption, FilterOption filterOption, OrderByOption orderByOption, Object conditionalEntity) throws ODataApplicationException {
-
-		JPQLQuery query = new JPQLQueryBuilder()
-			.setDistinct(false)
-			.setClazz(StateEdm.class)
-			.setExpandOption(expandOption)
-			.setFilterOption(filterOption)
-			.setOrderByOption(orderByOption)
-			.build();
-	
-		List<StateEntity> stateEntities = JPQLQuery.execute(entityManager, query);
-		CountryEdm target = (CountryEdm) conditionalEntity;
+		CountryEdm target = parentEntity == null ? null : (CountryEdm) parentEntity;
 		
 		List<StateEdm> stateEdms = stateEntities.stream()
 			.filter(stateEntity -> {
-				return stateEntity.getCountry().getId().equals(target.getId());
+				return target == null ? true : stateEntity.getCountry().getId().equals(target.getId());
 			})
 			.map(stateEntity -> { 
 				StateEdm stateEdm = new StateEdm(stateEntity);

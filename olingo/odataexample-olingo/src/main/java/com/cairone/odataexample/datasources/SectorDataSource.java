@@ -44,7 +44,7 @@ public class SectorDataSource implements DataSource {
 	private MessageSource messageSource = null;
 
 	@Override
-	public Object create(Object entity) throws ODataApplicationException {
+	public Object create(Object entity, Object superentity) throws ODataApplicationException {
 
 		if(entity instanceof SectorEdm) {
 			
@@ -65,7 +65,7 @@ public class SectorDataSource implements DataSource {
 	}
 
 	@Override
-	public Object update(Map<String, UriParameter> keyPredicateMap, Object entity, List<String> propertiesInJSON, boolean isPut) throws ODataApplicationException {
+	public Object update(Map<String, UriParameter> keyPredicateMap, Object entity, Object superentity, List<String> propertiesInJSON, boolean isPut) throws ODataApplicationException {
 
     	if(entity instanceof SectorEdm) {
     		
@@ -107,7 +107,7 @@ public class SectorDataSource implements DataSource {
 	}
 
 	@Override
-	public Object delete(Map<String, UriParameter> keyPredicateMap) throws ODataApplicationException {
+	public Object delete(Map<String, UriParameter> keyPredicateMap, Object superentity) throws ODataApplicationException {
 
 		Integer sectorID = Integer.valueOf( keyPredicateMap.get("id").getText() );
 
@@ -126,7 +126,7 @@ public class SectorDataSource implements DataSource {
 	}
 
 	@Override
-	public Object readFromKey(Map<String, UriParameter> keyPredicateMap, ExpandOption expandOption, SelectOption selectOption) throws ODataApplicationException {
+	public Object readFromKey(Map<String, UriParameter> keyPredicateMap, ExpandOption expandOption, SelectOption selectOption, Object superentity) throws ODataApplicationException {
 		
 		Integer sectorID = Integer.valueOf( keyPredicateMap.get("id").getText() );
 		
@@ -137,7 +137,7 @@ public class SectorDataSource implements DataSource {
 	}
 
 	@Override
-	public Iterable<?> readAll(ExpandOption expandOption, FilterOption filterOption, OrderByOption orderByOption) throws ODataApplicationException {
+	public Iterable<?> readAll(ExpandOption expandOption, FilterOption filterOption, OrderByOption orderByOption, Object superentity) throws ODataApplicationException {
 
 		JPQLQuery query = new JPQLQueryBuilder()
 			.setDistinct(true)

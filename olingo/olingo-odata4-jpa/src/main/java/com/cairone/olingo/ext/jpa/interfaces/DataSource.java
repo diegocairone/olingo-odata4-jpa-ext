@@ -27,10 +27,10 @@ public interface DataSource {
 
 	String isSuitableFor();
 	
-	Object create(Object entity) throws ODataApplicationException;
-	Object update(Map<String, UriParameter> keyPredicateMap, Object entity, List<String> propertiesInJSON, boolean isPut) throws ODataApplicationException;
-	Object delete(Map<String, UriParameter> keyPredicateMap) throws ODataApplicationException;
+	Object create(Object entity, Object superentity) throws ODataApplicationException;
+	Object update(Map<String, UriParameter> keyPredicateMap, Object entity, Object superentity, List<String> propertiesInJSON, boolean isPut) throws ODataApplicationException;
+	Object delete(Map<String, UriParameter> keyPredicateMap, Object superentity) throws ODataApplicationException;
 	
-	Object readFromKey(Map<String, UriParameter> keyPredicateMap, ExpandOption expandOption, SelectOption selectOption) throws ODataApplicationException;
-	Iterable<?> readAll(ExpandOption expandOption, FilterOption filterOption, OrderByOption orderByOption) throws ODataApplicationException;
+	Object readFromKey(Map<String, UriParameter> keyPredicateMap, ExpandOption expandOption, SelectOption selectOption, Object superentity) throws ODataApplicationException;
+	Iterable<?> readAll(ExpandOption expandOption, FilterOption filterOption, OrderByOption orderByOption, Object parentEntity) throws ODataApplicationException;
 }

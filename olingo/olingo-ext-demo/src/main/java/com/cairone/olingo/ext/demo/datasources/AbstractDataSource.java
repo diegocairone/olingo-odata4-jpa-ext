@@ -30,17 +30,17 @@ public abstract class AbstractDataSource implements DataSource {
 	public abstract String isSuitableFor();
 
 	@Override
-	public abstract Object create(Object entity) throws ODataApplicationException;
+	public abstract Object create(Object entity, Object superentity) throws ODataApplicationException;
 
 	@Override
-	public abstract Object update(Map<String, UriParameter> keyPredicateMap, Object entity, List<String> propertiesInJSON, boolean isPut) throws ODataApplicationException;
+	public abstract Object update(Map<String, UriParameter> keyPredicateMap, Object entity, Object superentity, List<String> propertiesInJSON, boolean isPut) throws ODataApplicationException;
 
 	@Override
-	public abstract Object delete(Map<String, UriParameter> keyPredicateMap) throws ODataApplicationException;
+	public abstract Object delete(Map<String, UriParameter> keyPredicateMap, Object superentity) throws ODataApplicationException;
 
 	@Override
-	public abstract Object readFromKey(Map<String, UriParameter> keyPredicateMap, ExpandOption expandOption, SelectOption selectOption) throws ODataApplicationException;
+	public abstract Object readFromKey(Map<String, UriParameter> keyPredicateMap, ExpandOption expandOption, SelectOption selectOption, Object superentity) throws ODataApplicationException;
 
 	@Override
-	public abstract Iterable<?> readAll(ExpandOption expandOption, FilterOption filterOption, OrderByOption orderByOption) throws ODataApplicationException;
+	public abstract Iterable<?> readAll(ExpandOption expandOption, FilterOption filterOption, OrderByOption orderByOption, Object parentEntity) throws ODataApplicationException;
 }

@@ -80,12 +80,12 @@ public class PersonaFotoDataSource implements DataSource, MediaDataSource {
 	}
 
 	@Override
-	public Object create(Object entity) throws ODataApplicationException {
+	public Object create(Object entity, Object superentity) throws ODataApplicationException {
 		throw new ODataApplicationException("Not implemented", HttpStatusCode.BAD_REQUEST.getStatusCode(), Locale.ENGLISH);
 	}
 
 	@Override
-	public Object update(Map<String, UriParameter> keyPredicateMap, Object entity, List<String> propertiesInJSON, boolean isPut) throws ODataApplicationException {
+	public Object update(Map<String, UriParameter> keyPredicateMap, Object entity, Object superentity, List<String> propertiesInJSON, boolean isPut) throws ODataApplicationException {
 		
 		if(entity instanceof PersonaFotoEdm) {
 			
@@ -117,7 +117,7 @@ public class PersonaFotoDataSource implements DataSource, MediaDataSource {
 	}
 
 	@Override
-	public Object delete(Map<String, UriParameter> keyPredicateMap) throws ODataApplicationException {
+	public Object delete(Map<String, UriParameter> keyPredicateMap, Object superentity) throws ODataApplicationException {
 		
 		String uuid = CharMatcher.is('\'').trimFrom( keyPredicateMap.get("uuid").getText() );
     	
@@ -132,7 +132,7 @@ public class PersonaFotoDataSource implements DataSource, MediaDataSource {
 	}
 	
 	@Override
-	public Object readFromKey(Map<String, UriParameter> keyPredicateMap, ExpandOption expandOption, SelectOption selectOption) throws ODataApplicationException {
+	public Object readFromKey(Map<String, UriParameter> keyPredicateMap, ExpandOption expandOption, SelectOption selectOption, Object superentity) throws ODataApplicationException {
 		
 		String uuid = CharMatcher.is('\'').trimFrom( keyPredicateMap.get("uuid").getText() );
     	PersonaFotoEntity personaFotoEntity = personaService.buscarFoto(uuid);
@@ -157,7 +157,7 @@ public class PersonaFotoDataSource implements DataSource, MediaDataSource {
 	}
 
 	@Override
-	public Iterable<?> readAll(ExpandOption expandOption, FilterOption filterOption, OrderByOption orderByOption) throws ODataApplicationException {
+	public Iterable<?> readAll(ExpandOption expandOption, FilterOption filterOption, OrderByOption orderByOption, Object superentity) throws ODataApplicationException {
 
 		JPQLQuery query = new JPQLQueryBuilder()
 			.setDistinct(false)
