@@ -1,52 +1,45 @@
 package com.cairone.olingo.ext.demo.edm.resources;
 
-import java.util.List;
-import java.util.stream.Collectors;
-
 import com.cairone.olingo.ext.demo.AppDemoConstants;
-import com.cairone.olingo.ext.demo.entities.CountryEntity;
+import com.cairone.olingo.ext.demo.entities.StateEntity;
 import com.cairone.olingo.ext.jpa.annotations.EdmEntity;
 import com.cairone.olingo.ext.jpa.annotations.EdmEntitySet;
 import com.cairone.olingo.ext.jpa.annotations.EdmNavigationProperty;
 import com.cairone.olingo.ext.jpa.annotations.EdmProperty;
 import com.cairone.olingo.ext.jpa.annotations.ODataJPAEntity;
 
-@EdmEntity(name = "Country", key = "Id", namespace = AppDemoConstants.NAME_SPACE, containerName = AppDemoConstants.CONTAINER_NAME)
-@EdmEntitySet("Countries")
-@ODataJPAEntity(entity=CountryEntity.class)
-public class CountryEdm {
-	
+@EdmEntity(name = "State", key = "Id", namespace = AppDemoConstants.NAME_SPACE, containerName = AppDemoConstants.CONTAINER_NAME)
+@EdmEntitySet("States")
+@ODataJPAEntity(entity=StateEntity.class)
+public class StateEdm {
+
 	@EdmProperty(name = "Id")
-	private Integer id = null;
-	
-	@EdmProperty(name = "Name")
-	private String name = null;
-	
-	@EdmNavigationProperty(name = "States")
-	private List<StateEdm> states = null;
+	private Integer id;
 
-	public CountryEdm() {}
-
-	public CountryEdm(Integer id, String name) {
+	@EdmProperty(name = "Name", nullable= false, maxLength=200)
+	private String name;
+	
+	@EdmNavigationProperty(name = "Country")
+	private CountryEdm country = null;
+	
+	public StateEdm() {}
+	
+	public StateEdm(Integer id, String name) {
 		this(id, name, null);
 	}
-	
-	public CountryEdm(Integer id, String name, List<StateEdm> states) {
+
+	public StateEdm(Integer id, String name, CountryEdm country) {
 		super();
 		this.id = id;
 		this.name = name;
-		this.states = states;
+		this.country = country;
 	}
-
-	public CountryEdm(CountryEntity countryEntity) {
-		this(countryEntity.getId(), countryEntity.getName());
-		if(!countryEntity.getStates().isEmpty()) {
-			this.states = countryEntity.getStates()
-					.stream().map(stateEntity -> {
-						return new StateEdm(stateEntity.getId(), stateEntity.getName());
-					})
-					.collect(Collectors.toList());
-		}
+	
+	public StateEdm(StateEntity stateEntity) {
+		this(	stateEntity.getId(),
+				stateEntity.getName(),
+				new CountryEdm(stateEntity.getCountry())
+		);
 	}
 
 	public Integer getId() {
@@ -65,12 +58,12 @@ public class CountryEdm {
 		this.name = name;
 	}
 
-	public List<StateEdm> getStates() {
-		return states;
+	public CountryEdm getCountry() {
+		return country;
 	}
 
-	public void setStates(List<StateEdm> states) {
-		this.states = states;
+	public void setCountry(CountryEdm country) {
+		this.country = country;
 	}
 
 	@Override
@@ -89,12 +82,17 @@ public class CountryEdm {
 			return false;
 		if (getClass() != obj.getClass())
 			return false;
-		CountryEdm other = (CountryEdm) obj;
+		StateEdm other = (StateEdm) obj;
 		if (id == null) {
 			if (other.id != null)
 				return false;
 		} else if (!id.equals(other.id))
 			return false;
 		return true;
+	}
+
+	@Override
+	public String toString() {
+		return "StateEdm [id=" + id + ", name=" + name + "]";
 	}
 }

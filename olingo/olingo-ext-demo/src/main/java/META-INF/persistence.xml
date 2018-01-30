@@ -9,6 +9,7 @@
 		<class>com.cairone.olingo.ext.demo.entities.PersonCheckLogEntity</class>
 		<class>com.cairone.olingo.ext.demo.entities.PersonEntity</class>
 		<class>com.cairone.olingo.ext.demo.entities.RegionEntity</class>
+		<class>com.cairone.olingo.ext.demo.entities.StateEntity</class>
 		<class>com.cairone.olingo.ext.demo.entities.UserEntity</class>
 		<properties>
 			<property name="javax.persistence.jdbc.url" value="jdbc:mysql://localhost:3306/olingo-ext-demo"/>

@@ -13,24 +13,24 @@ import org.apache.olingo.server.api.uri.queryoption.SelectOption;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import com.cairone.olingo.ext.demo.dtos.CountryFrmDto;
-import com.cairone.olingo.ext.demo.dtos.validators.CountryFrmDtoValidator;
-import com.cairone.olingo.ext.demo.edm.resources.CountryEdm;
-import com.cairone.olingo.ext.demo.entities.CountryEntity;
+import com.cairone.olingo.ext.demo.dtos.StateFrmDto;
+import com.cairone.olingo.ext.demo.dtos.validators.StateFrmDtoValidator;
+import com.cairone.olingo.ext.demo.edm.resources.StateEdm;
+import com.cairone.olingo.ext.demo.entities.StateEntity;
 import com.cairone.olingo.ext.demo.exceptions.ODataBadRequestException;
-import com.cairone.olingo.ext.demo.services.CountryService;
+import com.cairone.olingo.ext.demo.services.StateService;
 import com.cairone.olingo.ext.demo.utils.OdataExceptionParser;
 import com.cairone.olingo.ext.demo.utils.ValidatorUtil;
 import com.cairone.olingo.ext.jpa.query.JPQLQuery;
 import com.cairone.olingo.ext.jpa.query.JPQLQueryBuilder;
 
 @Component
-public class CountriesDataSource extends AbstractDataSource {
+public class StatesDataSource extends AbstractDataSource {
 
-	private static final String ENTITY_SET_NAME = "Countries";
-
-	@Autowired private CountryService countryService = null;
-	@Autowired private CountryFrmDtoValidator countryFrmDtoValidator = null;
+	private static final String ENTITY_SET_NAME = "States";
+	
+	@Autowired private StateService stateService = null;
+	@Autowired private StateFrmDtoValidator stateFrmDtoValidator = null;
 	
 	@Override
 	public String isSuitableFor() {
@@ -40,67 +40,68 @@ public class CountriesDataSource extends AbstractDataSource {
 	@Override
 	public Object create(Object entity) throws ODataApplicationException {
 
-		if(entity instanceof CountryEdm) {
+		if(entity instanceof StateEdm) {
 			
-			CountryEdm country = (CountryEdm) entity;
-			CountryFrmDto countryFrmDto = new CountryFrmDto(country);
+			StateEdm state = (StateEdm) entity;
+			StateFrmDto stateFrmDto = new StateFrmDto(state);
 			
 			try
 			{
-				ValidatorUtil.validate(countryFrmDtoValidator, messageSource, countryFrmDto);			
-				CountryEntity countryEntity = countryService.save(countryFrmDto);
+				ValidatorUtil.validate(stateFrmDtoValidator, messageSource, stateFrmDto);			
+				StateEntity stateEntity = stateService.save(stateFrmDto);
 				
-				return new CountryEdm(countryEntity);
+				return new StateEdm(stateEntity);
 				
 			} catch (Exception e) {
 				throw OdataExceptionParser.parse(e);
 			}
 		}
 		
-		throw new ODataBadRequestException("REQUEST DATA DOES NOT MATCH COUNTRY ENTITY");
+		throw new ODataBadRequestException("REQUEST DATA DOES NOT MATCH STATE ENTITY");
 	}
 
 	@Override
 	public Object update(Map<String, UriParameter> keyPredicateMap, Object entity, List<String> propertiesInJSON, boolean isPut) throws ODataApplicationException {
 
-		if(entity instanceof CountryEdm) {
+		if(entity instanceof StateEdm) {
 
-			Integer countryID = Integer.valueOf( keyPredicateMap.get("Id").getText() );
+			Integer stateID = Integer.valueOf( keyPredicateMap.get("Id").getText() );
 			
-			CountryEdm country = (CountryEdm) entity;
-			CountryFrmDto countryFrmDto = new CountryFrmDto(country);
+			StateEdm state = (StateEdm) entity;
+			StateFrmDto stateFrmDto = new StateFrmDto(state);
 			
-			countryFrmDto.setId(countryID);
+			stateFrmDto.setId(stateID);
 			
 			try
 			{
-				CountryEntity countryEntity = countryService.findOne(countryID);
+				StateEntity stateEntity = stateService.findOne(stateID);
 
     			if(!isPut) {
-    				if(countryFrmDto.getName() == null && !propertiesInJSON.contains("Name")) countryFrmDto.setName(countryEntity.getName());
+    				if(stateFrmDto.getName() == null && !propertiesInJSON.contains("Name")) stateFrmDto.setName(stateEntity.getName());
+    				if(stateFrmDto.getCountryId() == null && !propertiesInJSON.contains("Country")) stateFrmDto.setCountryId(stateEntity.getCountry().getId());
     			}
 				
-				ValidatorUtil.validate(countryFrmDtoValidator, messageSource, countryFrmDto);			
-				countryEntity = countryService.save(countryFrmDto);
+				ValidatorUtil.validate(stateFrmDtoValidator, messageSource, stateFrmDto);			
+				stateEntity = stateService.save(stateFrmDto);
 				
-				return new CountryEdm(countryEntity);
+				return new StateEdm(stateEntity);
 				
 			} catch (Exception e) {
 				throw OdataExceptionParser.parse(e);
 			}
 		}
 		
-		throw new ODataBadRequestException("REQUEST DATA DOES NOT MATCH COUNTRY ENTITY");
+		throw new ODataBadRequestException("REQUEST DATA DOES NOT MATCH STATE ENTITY");
 	}
 
 	@Override
 	public Object delete(Map<String, UriParameter> keyPredicateMap) throws ODataApplicationException {
-		
-		Integer countryID = Integer.valueOf( keyPredicateMap.get("Id").getText() );
+
+		Integer stateID = Integer.valueOf( keyPredicateMap.get("Id").getText() );
 
 		try {
-			CountryEntity countryEntity = countryService.findOne(countryID);
-			countryService.delete(countryEntity);
+			StateEntity stateEntity = stateService.findOne(stateID);
+			stateService.delete(stateEntity);
 		} catch (Exception e) {
 			throw OdataExceptionParser.parse(e);
 		}
@@ -111,13 +112,13 @@ public class CountriesDataSource extends AbstractDataSource {
 	@Override
 	public Object readFromKey(Map<String, UriParameter> keyPredicateMap, ExpandOption expandOption, SelectOption selectOption) throws ODataApplicationException {
 
-		Integer countryID = Integer.valueOf( keyPredicateMap.get("Id").getText() );
+		Integer stateID = Integer.valueOf( keyPredicateMap.get("Id").getText() );
 		
 		try {
-			CountryEntity countryEntity = countryService.findOne(countryID);
-			CountryEdm countryEdm = new CountryEdm(countryEntity);
+			StateEntity stateEntity = stateService.findOne(stateID);
+			StateEdm stateEdm = new StateEdm(stateEntity);
 			
-			return countryEdm;
+			return stateEdm;
 		} catch (Exception e) {
 			throw OdataExceptionParser.parse(e);
 		}
@@ -127,23 +128,21 @@ public class CountriesDataSource extends AbstractDataSource {
 	public Iterable<?> readAll(ExpandOption expandOption, FilterOption filterOption, OrderByOption orderByOption) throws ODataApplicationException {
 
 		JPQLQuery query = new JPQLQueryBuilder()
-			.setDistinct(true)
-			.setClazz(CountryEdm.class)
+			.setDistinct(false)
+			.setClazz(StateEdm.class)
 			.setExpandOption(expandOption)
 			.setFilterOption(filterOption)
 			.setOrderByOption(orderByOption)
 			.build();
 	
-		LOG.debug("JPQLQuery: {}", query);
-		
-		List<CountryEntity> countryEntities = JPQLQuery.execute(entityManager, query);
-		List<CountryEdm> countryEdms = countryEntities.stream()
+		List<StateEntity> stateEntities = JPQLQuery.execute(entityManager, query);
+		List<StateEdm> stateEdms = stateEntities.stream()
 			.map(entity -> { 
-				CountryEdm countryEdm = new CountryEdm(entity);
-				return countryEdm;
+				StateEdm stateEdm = new StateEdm(entity);
+				return stateEdm;
 			})
 			.collect(Collectors.toList());
 		
-		return countryEdms;
+		return stateEdms;
 	}
 }

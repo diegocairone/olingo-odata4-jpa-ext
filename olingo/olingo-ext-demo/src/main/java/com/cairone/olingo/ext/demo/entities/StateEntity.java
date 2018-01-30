@@ -1,35 +1,35 @@
 package com.cairone.olingo.ext.demo.entities;
 
 import java.io.Serializable;
-import java.util.List;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
-import javax.persistence.FetchType;
 import javax.persistence.Id;
-import javax.persistence.OneToMany;
+import javax.persistence.JoinColumn;
+import javax.persistence.ManyToOne;
 import javax.persistence.Table;
 
-@Entity @Table(name="countries")
-public class CountryEntity implements Serializable {
-	
+@Entity @Table(name="states")
+public class StateEntity implements Serializable {
+
 	private static final long serialVersionUID = 1L;
 
-	@Id @Column(name="country_id")
+	@Id @Column(name="state_id")
 	private Integer id;
 
-	@Column(name="name", unique=true, nullable=false)
+	@Column(name="name", nullable=false, length=200)
 	private String name;
-	
-	@OneToMany(mappedBy="country", fetch=FetchType.EAGER)
-	private List<StateEntity> states = null;
-	
-	public CountryEntity() {}
 
-	public CountryEntity(Integer id, String name) {
+	@ManyToOne @JoinColumn(name="country_id", nullable=false)
+	private CountryEntity country = null;
+	
+	public StateEntity() {}
+
+	public StateEntity(Integer id, String name, CountryEntity country) {
 		super();
 		this.id = id;
 		this.name = name;
+		this.country = country;
 	}
 
 	public Integer getId() {
@@ -48,12 +48,12 @@ public class CountryEntity implements Serializable {
 		this.name = name;
 	}
 
-	public List<StateEntity> getStates() {
-		return states;
+	public CountryEntity getCountry() {
+		return country;
 	}
 
-	public void setStates(List<StateEntity> states) {
-		this.states = states;
+	public void setCountry(CountryEntity country) {
+		this.country = country;
 	}
 
 	@Override
@@ -72,7 +72,7 @@ public class CountryEntity implements Serializable {
 			return false;
 		if (getClass() != obj.getClass())
 			return false;
-		CountryEntity other = (CountryEntity) obj;
+		StateEntity other = (StateEntity) obj;
 		if (id == null) {
 			if (other.id != null)
 				return false;
@@ -83,6 +83,6 @@ public class CountryEntity implements Serializable {
 
 	@Override
 	public String toString() {
-		return "CountryEntity [id=" + id + ", name=" + name + "]";
+		return "StateEntity [id=" + id + ", name=" + name + "]";
 	}
 }
