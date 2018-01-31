@@ -110,9 +110,116 @@ public class EntitySetProcessor extends BaseProcessor implements EntityProcessor
 		super.setDefaultEdmPackage(DefaultEdmPackage);
 		return this;
 	}
-
+	
 	@Override
 	public void createEntity(ODataRequest request, ODataResponse response, UriInfo uriInfo, ContentType requestFormat, ContentType responseFormat) throws ODataApplicationException, ODataLibraryException {
+
+		final UriResource lastResourceSegment = uriInfo.getUriResourceParts().get( uriInfo.getUriResourceParts().size() - 1 );
+
+		if(lastResourceSegment instanceof UriResourceEntitySet) {
+			createEntityInternal(request, response, uriInfo, requestFormat, responseFormat);
+		} else if(lastResourceSegment instanceof UriResourceNavigation) {
+			createEntityNavigation(request, response, uriInfo, requestFormat, responseFormat);
+		} else {
+			throw new ODataApplicationException("Not implemented", HttpStatusCode.NOT_IMPLEMENTED.getStatusCode(), Locale.ENGLISH);
+		}
+	}
+	
+	private void createEntityNavigation(ODataRequest request, ODataResponse response, UriInfo uriInfo, ContentType requestFormat, ContentType responseFormat) throws ODataApplicationException, ODataLibraryException {
+
+		List<UriResource> resourcePaths = uriInfo.getUriResourceParts();
+		
+		if(resourcePaths.size() != 2) {
+			throw new ODataApplicationException("Not supported", HttpStatusCode.NOT_IMPLEMENTED.getStatusCode(), Locale.ROOT);
+		}
+		
+		UriResourceEntitySet uriResourceEntitySet = (UriResourceEntitySet) resourcePaths.get(0);
+		UriResourceNavigation uriResourceNavigation = (UriResourceNavigation) resourcePaths.get(1);
+		
+		LOG.debug("EntitySet [First segment]: {}", uriResourceEntitySet);
+		LOG.debug("NavProperty [Second segment]: {}", uriResourceNavigation);
+		
+		Object parentobject = readFromEntitySet(uriResourceEntitySet);
+
+		if(parentobject == null) {
+			throw new ODataApplicationException("LA ENTIDAD SOLICITADA NO EXISTE", HttpStatusCode.NOT_FOUND.getStatusCode(), Locale.ENGLISH);
+		}
+		
+		LOG.debug("EDM found: {}", parentobject);
+
+		// *** SECOND SEGMENT
+		
+		EdmEntitySet edmEntitySet = getNavigationTargetEntitySet(uriResourceEntitySet.getEntitySet(), uriResourceNavigation.getProperty());
+		EdmEntityType edmEntityType = edmEntitySet.getEntityType();
+
+		DataSource dataSource = dataSourceMap.get(edmEntitySet.getName());
+		
+		if(dataSource == null) {
+			throw new ODataApplicationException(
+					String.format("DATASOURCE PROVIDER FOR %s NOT FOUND", edmEntitySet.getName()), 
+					HttpStatusCode.INTERNAL_SERVER_ERROR.getStatusCode(), 
+					Locale.ENGLISH);
+		}
+		
+		InputStream requestInputStream = request.getBody();
+		ODataDeserializer deserializer = this.odata.createDeserializer(requestFormat);
+		DeserializerResult result = deserializer.entity(requestInputStream, edmEntityType);
+		Entity requestEntity = result.getEntity();
+		
+		Class<?> clazz = entitySetMap.get(edmEntitySet.getName());
+		Object object = null;
+		
+    	List<Link> navLinks = requestEntity.getNavigationLinks();
+    	
+    	for(Link navlink : navLinks) {
+    		if(navlink.getInlineEntity() != null) {
+    			Entity entity = navlink.getInlineEntity();
+    			writeNavLinksFromNavBindings(entity, dataSourceMap, request.getRawBaseUri());
+    		} else if (navlink.getInlineEntitySet() != null) {
+    			EntityCollection entityCollection = navlink.getInlineEntitySet();
+    			for(Entity entity : entityCollection) {
+    				writeNavLinksFromNavBindings(entity, dataSourceMap, request.getRawBaseUri());
+    			}
+    		}
+    	}
+    	
+    	writeNavLinksFromNavBindings(requestEntity, dataSourceMap, request.getRawBaseUri());
+    	Entity createdEntity;
+    	
+    	try {
+    		object = writeObject(clazz, requestEntity);
+    		
+    		Object createdObject = dataSource.create(object, parentobject);
+    		createdEntity = writeEntity(createdObject, null);
+    		
+    	} catch (IllegalArgumentException | IllegalAccessException | NoSuchMethodException | SecurityException | InstantiationException | InvocationTargetException e) {
+			throw new ODataApplicationException(e.getMessage(), HttpStatusCode.INTERNAL_SERVER_ERROR.getStatusCode(), Locale.ENGLISH);
+		}
+    	
+	    ContextURL contextUrl = null;
+		try {
+			contextUrl = ContextURL.with()
+					.serviceRoot(new URI(SERVICE_ROOT))
+					.entitySet(edmEntitySet)
+					.suffix(Suffix.ENTITY)
+					.build();
+		} catch (URISyntaxException e) {
+			throw new ODataApplicationException(e.getMessage(), HttpStatusCode.BAD_REQUEST.getStatusCode(), Locale.ENGLISH);
+		}
+		EntitySerializerOptions options = EntitySerializerOptions.with().contextURL(contextUrl).build();
+		
+		ODataSerializer serializer = this.odata.createSerializer(responseFormat);
+		SerializerResult serializedResponse = serializer.entity(serviceMetadata, edmEntityType, createdEntity, options);
+
+		final String location = request.getRawBaseUri() + '/' + odata.createUriHelper().buildCanonicalURL(edmEntitySet, createdEntity);
+		
+		response.setContent(serializedResponse.getContent());
+		response.setStatusCode(HttpStatusCode.CREATED.getStatusCode());
+		response.setHeader(HttpHeader.LOCATION, location);
+		response.setHeader(HttpHeader.CONTENT_TYPE, responseFormat.toContentTypeString());
+	}
+
+	private void createEntityInternal(ODataRequest request, ODataResponse response, UriInfo uriInfo, ContentType requestFormat, ContentType responseFormat) throws ODataApplicationException, ODataLibraryException {
 		
 		List<UriResource> resourcePaths = uriInfo.getUriResourceParts();
 
@@ -189,6 +296,95 @@ public class EntitySetProcessor extends BaseProcessor implements EntityProcessor
 
 	@Override
 	public void updateEntity(ODataRequest request, ODataResponse response, UriInfo uriInfo, ContentType requestFormat, ContentType responseFormat) throws ODataApplicationException, ODataLibraryException {
+
+		final UriResource lastResourceSegment = uriInfo.getUriResourceParts().get( uriInfo.getUriResourceParts().size() - 1 );
+
+		if(lastResourceSegment instanceof UriResourceEntitySet) {
+			updateEntityInternal(request, response, uriInfo, requestFormat, responseFormat);
+		} else if(lastResourceSegment instanceof UriResourceNavigation) {
+			updateEntityNavigation(request, response, uriInfo, requestFormat, responseFormat);
+		} else {
+			throw new ODataApplicationException("Not implemented", HttpStatusCode.NOT_IMPLEMENTED.getStatusCode(), Locale.ENGLISH);
+		}
+	}
+	
+	private void updateEntityNavigation(ODataRequest request, ODataResponse response, UriInfo uriInfo, ContentType requestFormat, ContentType responseFormat) throws ODataApplicationException, ODataLibraryException {
+
+		List<UriResource> resourcePaths = uriInfo.getUriResourceParts();
+		
+		if(resourcePaths.size() != 2) {
+			throw new ODataApplicationException("Not supported", HttpStatusCode.NOT_IMPLEMENTED.getStatusCode(), Locale.ROOT);
+		}
+		
+		UriResourceEntitySet uriResourceEntitySet = (UriResourceEntitySet) resourcePaths.get(0);
+		UriResourceNavigation uriResourceNavigation = (UriResourceNavigation) resourcePaths.get(1);
+		
+		LOG.debug("EntitySet [First segment]: {}", uriResourceEntitySet);
+		LOG.debug("NavProperty [Second segment]: {}", uriResourceNavigation);
+		
+		Object parentobject = readFromEntitySet(uriResourceEntitySet);
+
+		if(parentobject == null) {
+			throw new ODataApplicationException("LA ENTIDAD SOLICITADA NO EXISTE", HttpStatusCode.NOT_FOUND.getStatusCode(), Locale.ENGLISH);
+		}
+		
+		LOG.debug("EDM found: {}", parentobject);
+
+		// *** SECOND SEGMENT
+
+		EdmEntitySet edmEntitySet = getNavigationTargetEntitySet(uriResourceEntitySet.getEntitySet(), uriResourceNavigation.getProperty());
+		EdmEntityType edmEntityType = edmEntitySet.getEntityType();
+
+		DataSource dataSource = dataSourceMap.get(edmEntitySet.getName());
+		
+		if(dataSource == null) {
+			throw new ODataApplicationException(
+					String.format("DATASOURCE PROVIDER FOR %s NOT FOUND", edmEntitySet.getName()), 
+					HttpStatusCode.INTERNAL_SERVER_ERROR.getStatusCode(), 
+					Locale.ENGLISH);
+		}
+		
+		InputStream requestInputStream = request.getBody();
+		ODataDeserializer deserializer = this.odata.createDeserializer(requestFormat);
+		DeserializerResult result = deserializer.entity(requestInputStream, edmEntityType);
+		Entity requestEntity = result.getEntity();
+
+		List<UriParameter> keyPredicates = uriResourceNavigation.getKeyPredicates();
+		Map<String, UriParameter> keyPredicateMap = keyPredicates
+				.stream()
+				.collect(Collectors.toMap(UriParameter::getName, x -> x));
+		
+		List<String> propertiesInJSON = new ArrayList<>();
+		
+		requestEntity.getProperties().forEach(property -> {
+			if(property.getValueType().equals(ValueType.COMPLEX)) {
+				ComplexValue complexValue = (ComplexValue) property.getValue();
+				complexValue.getValue().forEach(complexProperty -> {
+					propertiesInJSON.add(String.format("%s/%s", property.getName(), complexProperty.getName()));
+				});
+			} else {
+				propertiesInJSON.add(property.getName());
+			}
+		});
+		propertiesInJSON.addAll(requestEntity.getNavigationLinks().stream().map(Link::getTitle).collect(Collectors.toList()));
+		
+		Class<?> clazz = entitySetMap.get(edmEntitySet.getName());
+		Object object;
+
+		writeNavLinksFromNavBindings(requestEntity, dataSourceMap, request.getRawBaseUri());
+		
+    	try {
+	    	object = writeObject(clazz, requestEntity);
+    		
+    	} catch (IllegalArgumentException | IllegalAccessException | NoSuchMethodException | SecurityException | InstantiationException | InvocationTargetException e) {
+			throw new ODataApplicationException(e.getMessage(), HttpStatusCode.INTERNAL_SERVER_ERROR.getStatusCode(), Locale.ENGLISH);
+		}
+    	
+    	dataSource.update(keyPredicateMap, object, parentobject, propertiesInJSON, request.getMethod().equals(HttpMethod.PUT));
+    	response.setStatusCode(HttpStatusCode.NO_CONTENT.getStatusCode());
+	}
+	
+	private void updateEntityInternal(ODataRequest request, ODataResponse response, UriInfo uriInfo, ContentType requestFormat, ContentType responseFormat) throws ODataApplicationException, ODataLibraryException {
 		
 		List<UriResource> resourcePaths = uriInfo.getUriResourceParts();
 		
@@ -214,12 +410,7 @@ public class EntitySetProcessor extends BaseProcessor implements EntityProcessor
 		Map<String, UriParameter> keyPredicateMap = keyPredicates
 				.stream()
 				.collect(Collectors.toMap(UriParameter::getName, x -> x));
-		/*
-		List<String> propertiesInJSON = Stream.concat(
-				requestEntity.getProperties().stream().map(Property::getName), 
-				requestEntity.getNavigationLinks().stream().map(Link::getTitle))
-			.collect(Collectors.toList());
-		*/
+		
 		List<String> propertiesInJSON = new ArrayList<>();
 		
 		requestEntity.getProperties().forEach(property -> {
@@ -249,9 +440,66 @@ public class EntitySetProcessor extends BaseProcessor implements EntityProcessor
     	dataSource.update(keyPredicateMap, object, null, propertiesInJSON, request.getMethod().equals(HttpMethod.PUT));
     	response.setStatusCode(HttpStatusCode.NO_CONTENT.getStatusCode());
 	}
-
+	
 	@Override
 	public void deleteEntity(ODataRequest request, ODataResponse response, UriInfo uriInfo) throws ODataApplicationException, ODataLibraryException {
+
+		final UriResource lastResourceSegment = uriInfo.getUriResourceParts().get( uriInfo.getUriResourceParts().size() - 1 );
+
+		if(lastResourceSegment instanceof UriResourceEntitySet) {
+			deleteEntityInternal(request, response, uriInfo);
+		} else if(lastResourceSegment instanceof UriResourceNavigation) {
+			deleteEntityNavigation(request, response, uriInfo);
+		} else {
+			throw new ODataApplicationException("Not implemented", HttpStatusCode.NOT_IMPLEMENTED.getStatusCode(), Locale.ENGLISH);
+		}
+	}
+	
+	private void deleteEntityNavigation(ODataRequest request, ODataResponse response, UriInfo uriInfo) throws ODataApplicationException, ODataLibraryException {
+
+		List<UriResource> resourcePaths = uriInfo.getUriResourceParts();
+		
+		if(resourcePaths.size() != 2) {
+			throw new ODataApplicationException("Not supported", HttpStatusCode.NOT_IMPLEMENTED.getStatusCode(), Locale.ROOT);
+		}
+		
+		UriResourceEntitySet uriResourceEntitySet = (UriResourceEntitySet) resourcePaths.get(0);
+		UriResourceNavigation uriResourceNavigation = (UriResourceNavigation) resourcePaths.get(1);
+		
+		LOG.debug("EntitySet [First segment]: {}", uriResourceEntitySet);
+		LOG.debug("NavProperty [Second segment]: {}", uriResourceNavigation);
+		
+		Object parentobject = readFromEntitySet(uriResourceEntitySet);
+
+		if(parentobject == null) {
+			throw new ODataApplicationException("LA ENTIDAD SOLICITADA NO EXISTE", HttpStatusCode.NOT_FOUND.getStatusCode(), Locale.ENGLISH);
+		}
+		
+		LOG.debug("EDM found: {}", parentobject);
+
+		// *** SECOND SEGMENT
+
+		EdmEntitySet edmEntitySet = getNavigationTargetEntitySet(uriResourceEntitySet.getEntitySet(), uriResourceNavigation.getProperty());
+
+		DataSource dataSource = dataSourceMap.get(edmEntitySet.getName());
+		
+		if(dataSource == null) {
+			throw new ODataApplicationException(
+					String.format("DATASOURCE PROVIDER FOR %s NOT FOUND", edmEntitySet.getName()), 
+					HttpStatusCode.INTERNAL_SERVER_ERROR.getStatusCode(), 
+					Locale.ENGLISH);
+		}
+		
+		List<UriParameter> keyPredicates = uriResourceNavigation.getKeyPredicates();
+		Map<String, UriParameter> keyPredicateMap = keyPredicates
+				.stream()
+				.collect(Collectors.toMap(UriParameter::getName, x -> x));
+		
+    	dataSource.delete(keyPredicateMap, parentobject);
+    	response.setStatusCode(HttpStatusCode.NO_CONTENT.getStatusCode());
+	}
+
+	private void deleteEntityInternal(ODataRequest request, ODataResponse response, UriInfo uriInfo) throws ODataApplicationException, ODataLibraryException {
 
 		List<UriResource> resourcePaths = uriInfo.getUriResourceParts();
 		  
@@ -292,11 +540,12 @@ public class EntitySetProcessor extends BaseProcessor implements EntityProcessor
 		}
 	}
 
-	public void readEntityInternal(ODataRequest request, ODataResponse response, UriInfo uriInfo, ContentType responseFormat) throws ODataApplicationException, ODataLibraryException {
+	private void readEntityInternal(ODataRequest request, ODataResponse response, UriInfo uriInfo, ContentType responseFormat) throws ODataApplicationException, ODataLibraryException {
 		
 		List<UriResource> resourcePaths = uriInfo.getUriResourceParts();
 		
 	    UriResourceEntitySet uriResourceEntitySet = (UriResourceEntitySet) resourcePaths.get(0);
+	    
 	    EdmEntitySet edmEntitySet = uriResourceEntitySet.getEntitySet();
 
 	    SelectOption selectOption = uriInfo.getSelectOption();
@@ -310,22 +559,8 @@ public class EntitySetProcessor extends BaseProcessor implements EntityProcessor
 			throw new ODataApplicationException(e.getMessage(), HttpStatusCode.INTERNAL_SERVER_ERROR.getStatusCode(), Locale.ENGLISH);
 		}
 	    
-		DataSource dataSource = dataSourceMap.get(edmEntitySet.getName());
-		
-		if(dataSource == null) {
-			throw new ODataApplicationException(
-					String.format("DATASOURCE PROVIDER FOR %s NOT FOUND", edmEntitySet.getName()), 
-					HttpStatusCode.INTERNAL_SERVER_ERROR.getStatusCode(), 
-					Locale.ENGLISH);
-		}
-		
-	    List<UriParameter> keyPredicates = uriResourceEntitySet.getKeyPredicates();
-	    Map<String, UriParameter> keyPredicateMap = keyPredicates
-				.stream()
-				.collect(Collectors.toMap(UriParameter::getName, x -> x));
-		
-	    Entity entity;
-	    Object object = dataSource.readFromKey(keyPredicateMap, expandOption, selectOption, null);
+		Entity entity;
+		Object object = readFromEntitySet(selectOption, expandOption, uriResourceEntitySet);
 		
 		if(object == null) {
 			throw new ODataApplicationException("LA ENTIDAD SOLICITADA NO EXISTE", HttpStatusCode.NOT_FOUND.getStatusCode(), Locale.ENGLISH);
@@ -415,13 +650,13 @@ public class EntitySetProcessor extends BaseProcessor implements EntityProcessor
 				.stream()
 				.collect(Collectors.toMap(UriParameter::getName, x -> x));
 		
-	    Object object = dsEntitySet.readFromKey(keyPredicateMap, null, null, null);
+	    Object parentobject = dsEntitySet.readFromKey(keyPredicateMap, null, null, null);
 		
-		if(object == null) {
+		if(parentobject == null) {
 			throw new ODataApplicationException("LA ENTIDAD SOLICITADA NO EXISTE", HttpStatusCode.NOT_FOUND.getStatusCode(), Locale.ENGLISH);
 		}
 		
-		LOG.debug("EDM found: {}", object);
+		LOG.debug("EDM found: {}", parentobject);
 		
 		// *** SECOND SEGMENT
 		
@@ -461,7 +696,7 @@ public class EntitySetProcessor extends BaseProcessor implements EntityProcessor
 		EntityCollection entityCollection = new EntityCollection();
 		List<Entity> result = entityCollection.getEntities();
 		
-		Iterable<?> data = dsSecondSegment.readAll(expandOption, filterOption, orderByOption, null);
+		Iterable<?> data = dsSecondSegment.readAll(expandOption, filterOption, orderByOption, parentobject);
 		
 		if(count) entityCollection.setCount(Iterables.size(data));
 		
@@ -514,8 +749,99 @@ public class EntitySetProcessor extends BaseProcessor implements EntityProcessor
 	}
 	
 	private void readNavigationEntityInternal(ODataRequest request, ODataResponse response, UriInfo uriInfo, ContentType responseFormat) throws ODataApplicationException, ODataLibraryException {
-		//TODO NOT IMPLEMENTED
-		throw new ODataApplicationException("Not implemented", HttpStatusCode.NOT_IMPLEMENTED.getStatusCode(), Locale.ENGLISH);
+
+		List<UriResource> resourcePaths = uriInfo.getUriResourceParts();
+		
+		if(resourcePaths.size() != 2) {
+			throw new ODataApplicationException("Not supported", HttpStatusCode.NOT_IMPLEMENTED.getStatusCode(), Locale.ROOT);
+		}
+		
+		UriResourceEntitySet uriResourceEntitySet = (UriResourceEntitySet) resourcePaths.get(0);
+		UriResourceNavigation uriResourceNavigation = (UriResourceNavigation) resourcePaths.get(1);
+		
+		LOG.debug("EntitySet [First segment]: {}", uriResourceEntitySet);
+		LOG.debug("NavProperty [Second segment]: {}", uriResourceNavigation);
+		
+		EdmEntitySet edmEntitySet = uriResourceEntitySet.getEntitySet();
+		Object parentobject = readFromEntitySet(uriResourceEntitySet);
+		
+		if(parentobject == null) {
+			throw new ODataApplicationException("LA ENTIDAD SOLICITADA NO EXISTE", HttpStatusCode.NOT_FOUND.getStatusCode(), Locale.ENGLISH);
+		}
+
+		
+		// *** SECOND SEGMENT
+		
+		EdmNavigationProperty edmNavigationProperty = uriResourceNavigation.getProperty();
+		EdmEntitySet responseEdmEntitySet  = getNavigationTargetEntitySet(edmEntitySet, edmNavigationProperty);
+
+	    SelectOption selectOption = uriInfo.getSelectOption();
+	    ExpandOption expandOption = uriInfo.getExpandOption();
+	    
+	    EdmEntityType edmEntityType = edmEntitySet.getEntityType();
+	    String selectList;
+		try {
+			selectList = odata.createUriHelper().buildContextURLSelectList(edmEntityType, null, selectOption);
+		} catch (SerializerException e) {
+			throw new ODataApplicationException(e.getMessage(), HttpStatusCode.INTERNAL_SERVER_ERROR.getStatusCode(), Locale.ENGLISH);
+		}
+	    
+	    DataSource responseDataSource = dataSourceMap.get(responseEdmEntitySet.getName());
+
+		if(responseDataSource == null) {
+			throw new ODataApplicationException(
+					String.format("DATASOURCE PROVIDER FOR %s NOT FOUND", responseEdmEntitySet.getName()), 
+					HttpStatusCode.INTERNAL_SERVER_ERROR.getStatusCode(), 
+					Locale.ENGLISH);
+		}
+
+		List<UriParameter> navigationKeyPredicates = uriResourceNavigation.getKeyPredicates();
+		Map<String, UriParameter> navigationKeyPredicateMap = navigationKeyPredicates
+				.stream()
+				.collect(Collectors.toMap(UriParameter::getName, x -> x));
+		
+		Entity entity;
+	    Object object = responseDataSource.readFromKey(navigationKeyPredicateMap, expandOption, selectOption, parentobject);
+
+		if(object == null) {
+			throw new ODataApplicationException("LA ENTIDAD SOLICITADA NO EXISTE", HttpStatusCode.NOT_FOUND.getStatusCode(), Locale.ENGLISH);
+		}
+		
+		try {	
+			entity = writeEntity(object, expandOption);
+			
+		} catch (IllegalArgumentException | IllegalAccessException | NoSuchMethodException | SecurityException | InvocationTargetException e) {
+			throw new ODataApplicationException(e.getMessage(), HttpStatusCode.INTERNAL_SERVER_ERROR.getStatusCode(), Locale.ENGLISH);
+		}
+		
+	    ContextURL contextUrl = null;
+		try {
+			contextUrl = ContextURL.with()
+					.serviceRoot(new URI(SERVICE_ROOT))
+					.entitySet(edmEntitySet)
+					.selectList(selectList)
+					.suffix(Suffix.ENTITY)
+					.build();
+		} catch (URISyntaxException e) {
+			throw new ODataApplicationException(e.getMessage(), HttpStatusCode.INTERNAL_SERVER_ERROR.getStatusCode(), Locale.ENGLISH);
+		}
+	    EntitySerializerOptions options = EntitySerializerOptions.with().contextURL(contextUrl).select(selectOption).expand(expandOption).build();
+	    
+	    ODataSerializer serializer;
+	    SerializerResult serializerResult;
+	    
+		try {
+			serializer = odata.createSerializer(responseFormat);
+			serializerResult = serializer.entity(serviceMetadata, edmEntityType, entity, options);
+		} catch (SerializerException e) {
+			throw new ODataApplicationException(e.getMessage(), HttpStatusCode.INTERNAL_SERVER_ERROR.getStatusCode(), Locale.ENGLISH);
+		}
+		
+	    InputStream entityStream = serializerResult.getContent();
+
+	    response.setContent(entityStream);
+	    response.setStatusCode(HttpStatusCode.OK.getStatusCode());
+	    response.setHeader(HttpHeader.CONTENT_TYPE, responseFormat.toContentTypeString());
 	}
 	
 	private void readFunctionImport(ODataRequest request, ODataResponse response, UriInfo uriInfo, ContentType responseFormat) throws ODataApplicationException, ODataLibraryException {
@@ -714,5 +1040,32 @@ public class EntitySetProcessor extends BaseProcessor implements EntityProcessor
 		response.setContent(serializedContent);
 		response.setStatusCode(HttpStatusCode.OK.getStatusCode());
 		response.setHeader(HttpHeader.CONTENT_TYPE, responseFormat.toContentTypeString());
+	}
+	
+	private Object readFromEntitySet(UriResourceEntitySet uriResourceEntitySet) throws ODataApplicationException {
+		return readFromEntitySet(null, null, uriResourceEntitySet);
+	}
+	
+	private Object readFromEntitySet(SelectOption selectOption, ExpandOption expandOption, UriResourceEntitySet uriResourceEntitySet) throws ODataApplicationException {
+
+		EdmEntitySet edmEntitySet = uriResourceEntitySet.getEntitySet();
+		
+	    DataSource dataSource = dataSourceMap.get(edmEntitySet.getName());
+		
+		if(dataSource == null) {
+			throw new ODataApplicationException(
+					String.format("DATASOURCE PROVIDER FOR %s NOT FOUND", edmEntitySet.getName()), 
+					HttpStatusCode.INTERNAL_SERVER_ERROR.getStatusCode(), 
+					Locale.ENGLISH);
+		}
+		
+	    List<UriParameter> keyPredicates = uriResourceEntitySet.getKeyPredicates();
+	    Map<String, UriParameter> keyPredicateMap = keyPredicates
+				.stream()
+				.collect(Collectors.toMap(UriParameter::getName, x -> x));
+		
+		Object object = dataSource.readFromKey(keyPredicateMap, expandOption, selectOption, null);
+		
+		return object;
 	}
 }

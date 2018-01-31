@@ -46,6 +46,11 @@ public class StatesDataSource extends AbstractDataSource {
 			StateEdm state = (StateEdm) entity;
 			StateFrmDto stateFrmDto = new StateFrmDto(state);
 			
+			if(parentEntity != null && parentEntity instanceof CountryEdm) {
+				CountryEdm countryEdm = (CountryEdm) parentEntity;
+				stateFrmDto.setCountryId(countryEdm.getId());
+			}
+			
 			try
 			{
 				ValidatorUtil.validate(stateFrmDtoValidator, messageSource, stateFrmDto);			
@@ -72,6 +77,11 @@ public class StatesDataSource extends AbstractDataSource {
 			StateFrmDto stateFrmDto = new StateFrmDto(state);
 			
 			stateFrmDto.setId(stateID);
+
+			if(parentEntity != null && parentEntity instanceof CountryEdm) {
+				CountryEdm countryEdm = (CountryEdm) parentEntity;
+				stateFrmDto.setCountryId(countryEdm.getId());
+			}
 			
 			try
 			{
