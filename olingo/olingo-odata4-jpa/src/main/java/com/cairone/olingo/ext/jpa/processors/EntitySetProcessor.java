@@ -695,6 +695,9 @@ public class EntitySetProcessor extends BaseProcessor implements EntityProcessor
 		
 		EntityCollection entityCollection = new EntityCollection();
 		List<Entity> result = entityCollection.getEntities();
+
+		final String id = request.getRawBaseUri() + "/" + edmEntitySet.getName();
+		String nextLink = id + "?$count=true&$skip=";
 		
 		Iterable<?> data = dsSecondSegment.readAll(expandOption, filterOption, orderByOption, parentobject);
 		
@@ -702,9 +705,15 @@ public class EntitySetProcessor extends BaseProcessor implements EntityProcessor
 		
 		if(skipOption != null) {
 			data = Iterables.skip(data, skipOption.getValue());
+			nextLink += (skipOption.getValue() + maxTopOption);
+		} else {
+			nextLink += maxTopOption;
 		}
 		
 		if(topOption != null) {
+			if(Iterables.size(data) <= topOption.getValue()) {
+				nextLink = null;
+			}
 			data = Iterables.limit(data, topOption.getValue()); 
 		}
 		
@@ -722,6 +731,11 @@ public class EntitySetProcessor extends BaseProcessor implements EntityProcessor
 
 	    ContextURL contextUrl = null;
 		try {
+			if(nextLink != null) {
+				LOG.debug("NEXT LINK: {}", nextLink);
+				entityCollection.setNext(new URI(nextLink));
+			}
+			
 			contextUrl = ContextURL.with()
 					.serviceRoot(new URI(SERVICE_ROOT))
 					.entitySet(edmEntitySet)
@@ -730,8 +744,6 @@ public class EntitySetProcessor extends BaseProcessor implements EntityProcessor
 		} catch (URISyntaxException e) {
 			throw new ODataApplicationException(e.getMessage(), HttpStatusCode.BAD_REQUEST.getStatusCode(), Locale.ENGLISH);
 		}
-		
-		final String id = request.getRawBaseUri() + "/" + edmEntitySet.getName();
 		
 		EntityCollectionSerializerOptions opts = EntityCollectionSerializerOptions.with()
 			.id(id)
@@ -989,6 +1001,9 @@ public class EntitySetProcessor extends BaseProcessor implements EntityProcessor
 		
 		EntityCollection entityCollection = new EntityCollection();
 		List<Entity> result = entityCollection.getEntities();
+
+		final String id = request.getRawBaseUri() + "/" + edmEntitySet.getName();
+		String nextLink = id + "?$count=true&$skip=";
 		
 		Iterable<?> data = dataSource.readAll(expandOption, filterOption, orderByOption, null);
 		
@@ -996,10 +1011,16 @@ public class EntitySetProcessor extends BaseProcessor implements EntityProcessor
 		
 		if(skipOption != null) {
 			data = Iterables.skip(data, skipOption.getValue());
+			nextLink += (skipOption.getValue() + maxTopOption);
+		} else {
+			nextLink += maxTopOption;
 		}
 		
 		if(topOption != null) {
-			data = Iterables.limit(data, topOption.getValue()); 
+			if(Iterables.size(data) <= topOption.getValue()) {
+				nextLink = null;
+			}
+			data = Iterables.limit(data, topOption.getValue());
 		}
 		
 		try {			
@@ -1010,12 +1031,16 @@ public class EntitySetProcessor extends BaseProcessor implements EntityProcessor
 		} catch (Exception e) {
 			throw new ODataApplicationException(e.getMessage(), HttpStatusCode.INTERNAL_SERVER_ERROR.getStatusCode(), Locale.ENGLISH);
 		}
-		
-		
+				
 		ODataSerializer serializer = odata.createSerializer(responseFormat);
 
 	    ContextURL contextUrl = null;
 		try {
+			if(nextLink != null) {
+				LOG.debug("NEXT LINK: {}", nextLink);
+				entityCollection.setNext(new URI(nextLink));
+			}
+			
 			contextUrl = ContextURL.with()
 					.serviceRoot(new URI(SERVICE_ROOT))
 					.entitySet(edmEntitySet)
@@ -1024,8 +1049,6 @@ public class EntitySetProcessor extends BaseProcessor implements EntityProcessor
 		} catch (URISyntaxException e) {
 			throw new ODataApplicationException(e.getMessage(), HttpStatusCode.BAD_REQUEST.getStatusCode(), Locale.ENGLISH);
 		}
-		
-		final String id = request.getRawBaseUri() + "/" + edmEntitySet.getName();
 		
 		EntityCollectionSerializerOptions opts = EntityCollectionSerializerOptions.with()
 			.id(id)
