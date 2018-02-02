@@ -16,10 +16,13 @@ public class CountryEntity implements Serializable {
 	private static final long serialVersionUID = 1L;
 
 	@Id @Column(name="country_id")
-	private Integer id;
+	private Integer id = null;
 
 	@Column(name="name", unique=true, nullable=false)
-	private String name;
+	private String name = null;
+	
+	@Column(name="phone_code", nullable=true)
+	private Integer phoneCode = null;
 	
 	@OneToMany(mappedBy="country", fetch=FetchType.EAGER)
 	private List<StateEntity> states = null;
@@ -46,6 +49,14 @@ public class CountryEntity implements Serializable {
 
 	public void setName(String name) {
 		this.name = name;
+	}
+
+	public Integer getPhoneCode() {
+		return phoneCode;
+	}
+
+	public void setPhoneCode(Integer phoneCode) {
+		this.phoneCode = phoneCode;
 	}
 
 	public List<StateEntity> getStates() {

@@ -16,30 +16,34 @@ import com.cairone.olingo.ext.jpa.annotations.ODataJPAEntity;
 @ODataJPAEntity(entity=CountryEntity.class)
 public class CountryEdm {
 	
-	@EdmProperty(name = "Id")
+	@EdmProperty(name = "Id", nullable=false)
 	private Integer id = null;
 	
-	@EdmProperty(name = "Name")
+	@EdmProperty(name = "Name", nullable=false)
 	private String name = null;
+
+	@EdmProperty(name="PhoneCode")
+	private Integer phoneCode = null;
 	
 	@EdmNavigationProperty(name = "States")
 	private List<StateEdm> states = null;
 
 	public CountryEdm() {}
 
-	public CountryEdm(Integer id, String name) {
-		this(id, name, null);
+	public CountryEdm(Integer id, String name, Integer phoneCode) {
+		this(id, name, phoneCode, null);
 	}
 	
-	public CountryEdm(Integer id, String name, List<StateEdm> states) {
+	public CountryEdm(Integer id, String name, Integer phoneCode, List<StateEdm> states) {
 		super();
 		this.id = id;
 		this.name = name;
+		this.phoneCode = phoneCode;
 		this.states = states;
 	}
 
 	public CountryEdm(CountryEntity countryEntity) {
-		this(countryEntity.getId(), countryEntity.getName());
+		this(countryEntity.getId(), countryEntity.getName(), countryEntity.getPhoneCode());
 		if(!countryEntity.getStates().isEmpty()) {
 			this.states = countryEntity.getStates()
 					.stream().map(stateEntity -> {
@@ -63,6 +67,14 @@ public class CountryEdm {
 
 	public void setName(String name) {
 		this.name = name;
+	}
+
+	public Integer getPhoneCode() {
+		return phoneCode;
+	}
+
+	public void setPhoneCode(Integer phoneCode) {
+		this.phoneCode = phoneCode;
 	}
 
 	public List<StateEdm> getStates() {
