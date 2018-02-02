@@ -72,6 +72,18 @@ public class FilterExpressionVisitor implements ExpressionVisitor<Object> {
 			sb.append(right.toString());
 			
 			return sb.toString();
+			
+		} else if(operator.equals(BinaryOperatorKind.EQ) && right.toString().toUpperCase().equals("NULL")) {
+			sb.append(left.toString());
+			sb.append(" IS NULL");
+			
+			return sb.toString();
+
+		} else if(operator.equals(BinaryOperatorKind.NE) && right.toString().toUpperCase().equals("NULL")) {
+			sb.append(left.toString());
+			sb.append(" IS NOT NULL");
+			
+			return sb.toString();
 		}
 		
 		String param = "value" + (paramCount++);
@@ -170,7 +182,7 @@ public class FilterExpressionVisitor implements ExpressionVisitor<Object> {
 
 	@Override
 	public Object visitLambdaExpression(String lambdaFunction, String lambdaVariable, Expression expression) throws ExpressionVisitException, ODataApplicationException {
-		return null;
+		throw new ODataApplicationException("LAMBDA EXPRESSION NOT IMPLEMENTED", HttpStatusCode.NOT_IMPLEMENTED.getStatusCode(), Locale.ENGLISH);
 	}
 
 	@Override
@@ -247,17 +259,17 @@ public class FilterExpressionVisitor implements ExpressionVisitor<Object> {
 	
 	@Override
 	public Object visitAlias(String aliasName) throws ExpressionVisitException, ODataApplicationException {
-		return null;
+		throw new ODataApplicationException("ALIAS NOT IMPLEMENTED", HttpStatusCode.NOT_IMPLEMENTED.getStatusCode(), Locale.ENGLISH);
 	}
 
 	@Override
 	public Object visitTypeLiteral(EdmType type) throws ExpressionVisitException, ODataApplicationException {
-		return null;
+		throw new ODataApplicationException("TYPE LITERAL NOT IMPLEMENTED", HttpStatusCode.NOT_IMPLEMENTED.getStatusCode(), Locale.ENGLISH);
 	}
 
 	@Override
 	public Object visitLambdaReference(String variableName) throws ExpressionVisitException, ODataApplicationException {
-		return null;
+		throw new ODataApplicationException("LAMBDA REFERENCE NOT IMPLEMENTED", HttpStatusCode.NOT_IMPLEMENTED.getStatusCode(), Locale.ENGLISH);
 	}
 
 	@Override
