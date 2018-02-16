@@ -826,10 +826,14 @@ public class EdmProvider extends CsdlAbstractEdmProvider {
 				if(parameter.type().isEmpty()) {					
 					if(fld.getType().isAssignableFrom(Integer.class)) {
 						parameterType = EdmPrimitiveTypeKind.Int32.getFullQualifiedName();
+					} else if(fld.getType().isAssignableFrom(Long.class)) {
+						parameterType = EdmPrimitiveTypeKind.Int64.getFullQualifiedName();
 					} else if(fld.getType().isAssignableFrom(String.class)) {
 						parameterType = EdmPrimitiveTypeKind.String.getFullQualifiedName();
 					} else if(fld.getType().isAssignableFrom(LocalDate.class)) {
 						parameterType = EdmPrimitiveTypeKind.Date.getFullQualifiedName();
+					} else if(fld.getType().isAssignableFrom(LocalDateTime.class)) {
+						parameterType = EdmPrimitiveTypeKind.DateTimeOffset.getFullQualifiedName();
 					} else if(fld.getType().isAssignableFrom(Boolean.class)) {
 						parameterType = EdmPrimitiveTypeKind.Boolean.getFullQualifiedName();
 					} else if(fld.getType().isAssignableFrom(BigDecimal.class)) {
@@ -848,11 +852,17 @@ public class EdmProvider extends CsdlAbstractEdmProvider {
 					case "Edm.Int32":
 						parameterType = EdmPrimitiveTypeKind.Int32.getFullQualifiedName();
 						break;
+					case "Edm.Int64":
+						parameterType = EdmPrimitiveTypeKind.Int64.getFullQualifiedName();
+						break;
 					case "Edm.String":
 						parameterType = EdmPrimitiveTypeKind.String.getFullQualifiedName();
 						break;
 					case "Edm.Date":
 						parameterType = EdmPrimitiveTypeKind.Date.getFullQualifiedName();
+						break;
+					case "Edm.DateTimeOffset":
+						parameterType = EdmPrimitiveTypeKind.DateTimeOffset.getFullQualifiedName();
 						break;
 					case "Edm.Decimal":
 						parameterType = EdmPrimitiveTypeKind.Decimal.getFullQualifiedName();
