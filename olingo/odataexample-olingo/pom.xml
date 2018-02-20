@@ -5,7 +5,7 @@
 	<parent>
 		<groupId>com.cairone</groupId>
 		<artifactId>olingo</artifactId>
-		<version>0.0.1-SNAPSHOT</version>
+		<version>0.0.2-SNAPSHOT</version>
 	</parent>
 	<artifactId>odataexample-olingo</artifactId>
 	<name>odataexample-olingo</name>
@@ -65,7 +65,7 @@
 		<dependency>
 			<groupId>com.cairone</groupId>
 			<artifactId>olingo-odata4-jpa</artifactId>
-			<version>0.0.1-SNAPSHOT</version>
+			<version>0.0.2-SNAPSHOT</version>
 		</dependency>
 		
 		<dependency>
