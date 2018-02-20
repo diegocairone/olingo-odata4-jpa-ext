@@ -57,6 +57,7 @@ import org.apache.olingo.server.api.uri.queryoption.TopOption;
 import org.apache.olingo.server.core.uri.queryoption.TopOptionImpl;
 import org.springframework.context.ApplicationContext;
 
+import com.cairone.olingo.ext.jpa.annotations.EdmEnum;
 import com.cairone.olingo.ext.jpa.annotations.EdmFunction;
 import com.cairone.olingo.ext.jpa.annotations.EdmParameter;
 import com.cairone.olingo.ext.jpa.interfaces.DataSource;
@@ -875,17 +876,47 @@ public class EntitySetProcessor extends BaseProcessor implements EntityProcessor
 
 			EdmParameter edmParameter = fld.getAnnotation(EdmParameter.class);
 			if(edmParameter != null) {
-
-				String parameterName = edmParameter.name().isEmpty() ? fld.getName() : edmParameter.name();
-				String edmType = edmParameter.type().isEmpty() ? Util.inferEdmType(fld) : edmParameter.type();
-				UriParameter parameter = functionParameters.get(parameterName);
-				Object value = convertEdmType(edmType, parameter.getText());
 				
-				fld.setAccessible(true);
-				try {
-					fld.set(operation, value);
-				} catch (IllegalArgumentException | IllegalAccessException e) {
-					throw new ODataApplicationException(e.getMessage(), HttpStatusCode.INTERNAL_SERVER_ERROR.getStatusCode(), Locale.ENGLISH);
+				String parameterName = edmParameter.name().isEmpty() ? fld.getName() : edmParameter.name();
+				UriParameter parameter = functionParameters.get(parameterName);
+				
+				if(fld.getType().isEnum()) {
+					
+					Class<?> fldClazz = fld.getType();
+					EdmEnum edmEnum = fldClazz.getAnnotation(EdmEnum.class);
+					
+					if(edmEnum != null) {
+						
+						try {
+							Enum<?>[] enums = (Enum<?>[]) fldClazz.getEnumConstants();
+	    					Enum<?> rv = null;
+														
+	    					for(Enum<?> enumeration : enums) {
+	    						if(parameter.getText().contains("'" + enumeration.name() + "'")) {
+	    							rv = enumeration;
+	    							break;
+	    						}
+	    					}
+	    					
+    						fld.setAccessible(true);
+                    		fld.set(operation, rv);
+	    					
+						} catch (SecurityException | IllegalArgumentException | IllegalAccessException e) {
+							throw new ODataApplicationException(e.getMessage(), HttpStatusCode.INTERNAL_SERVER_ERROR.getStatusCode(), Locale.ENGLISH);
+						}
+					}
+					
+				} else {
+				
+					String edmType = edmParameter.type().isEmpty() ? Util.inferEdmType(fld) : edmParameter.type();
+					Object value = convertEdmType(edmType, parameter.getText());
+					
+					fld.setAccessible(true);
+					try {
+						fld.set(operation, value);
+					} catch (IllegalArgumentException | IllegalAccessException e) {
+						throw new ODataApplicationException(e.getMessage(), HttpStatusCode.INTERNAL_SERVER_ERROR.getStatusCode(), Locale.ENGLISH);
+					}
 				}
 			}
 		}

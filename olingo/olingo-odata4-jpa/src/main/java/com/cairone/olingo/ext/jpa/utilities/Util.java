@@ -7,6 +7,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.stream.Collectors;
 
+import com.cairone.olingo.ext.jpa.annotations.EdmEnum;
 import com.google.common.base.CharMatcher;
 
 public class Util {
@@ -23,6 +24,15 @@ public class Util {
 			return "Edm.Boolean";
 		} else if (field.getType().isAssignableFrom(BigDecimal.class)) {
 			return "Edm.Decimal";
+		} else {
+			Class<?> enumClazz = field.getType();
+			EdmEnum edmEnum = enumClazz.getAnnotation(EdmEnum.class);
+			if(edmEnum != null) {
+				String namespace = edmEnum.namespace();
+				String name = edmEnum.name().isEmpty() ? enumClazz.getSimpleName() : edmEnum.name();
+				String parameterType = String.format("%s.%s", namespace, name);
+				return parameterType;
+			}
 		}
 		
 		return "Edm.String";

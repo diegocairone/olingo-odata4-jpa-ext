@@ -867,6 +867,8 @@ public class EdmProvider extends CsdlAbstractEdmProvider {
 					case "Edm.Decimal":
 						parameterType = EdmPrimitiveTypeKind.Decimal.getFullQualifiedName();
 						break;
+					default:
+						parameterType = new FullQualifiedName(parameter.type());
 					}
 				}
 				
