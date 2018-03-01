@@ -179,7 +179,7 @@ public class BaseProcessor implements Processor {
     		});
     	}
 		
-		for(Field fld : object.getClass().getDeclaredFields()) {
+		for(Field fld : getDeclaredFields(object.getClass())) {
 
     		com.cairone.olingo.ext.jpa.annotations.EdmProperty edmProperty = fld.getAnnotation(com.cairone.olingo.ext.jpa.annotations.EdmProperty.class);
 			
@@ -312,7 +312,7 @@ public class BaseProcessor implements Processor {
 		Constructor<?> constructor = clazz.getConstructor();
 		Object object = constructor.newInstance();
 		
-		for (Field fld : clazz.getDeclaredFields()) {
+		for (Field fld : getDeclaredFields(clazz)) {
 			
 			com.cairone.olingo.ext.jpa.annotations.EdmProperty edmProperty = fld.getAnnotation(com.cairone.olingo.ext.jpa.annotations.EdmProperty.class);
 			
@@ -477,7 +477,7 @@ public class BaseProcessor implements Processor {
     	
     	try
     	{
-			for(Field fld : createdObject.getClass().getDeclaredFields()) {
+			for(Field fld : getDeclaredFields(createdObject.getClass())) {
 	
 	    		com.cairone.olingo.ext.jpa.annotations.EdmProperty edmProperty = fld.getAnnotation(com.cairone.olingo.ext.jpa.annotations.EdmProperty.class);
 				
@@ -743,4 +743,24 @@ public class BaseProcessor implements Processor {
 
 		return navigationTargetEntitySet;
 	}
+	
+	protected Field[] getDeclaredFields(Class<?> clazz) {
+		return getDeclaredFields(clazz, true);
+	}
+	
+	protected Field[] getDeclaredFields(Class<?> clazz, boolean includeSuperClass) {
+		if(!includeSuperClass) return clazz.getDeclaredFields();
+		
+		List<Field> fields = new ArrayList<>(Arrays.asList( clazz.getDeclaredFields() ));
+		
+		if(includeSuperClass) {
+			Class<?> superclazz = clazz.getSuperclass();
+			if(superclazz != null) {
+				Field[] superFields = superclazz.getDeclaredFields();
+				fields.addAll(Arrays.asList( superFields ));
+			}
+		}
+		
+		return fields.toArray(new Field[fields.size()]);
+	}	
 }

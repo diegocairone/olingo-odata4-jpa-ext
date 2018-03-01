@@ -872,7 +872,7 @@ public class EntitySetProcessor extends BaseProcessor implements EntityProcessor
 		
 		Class<?> clazz = operation.getClass();
 		
-		for (Field fld : clazz.getDeclaredFields()) {
+		for (Field fld : getDeclaredFields(clazz)) {
 
 			EdmParameter edmParameter = fld.getAnnotation(EdmParameter.class);
 			if(edmParameter != null) {

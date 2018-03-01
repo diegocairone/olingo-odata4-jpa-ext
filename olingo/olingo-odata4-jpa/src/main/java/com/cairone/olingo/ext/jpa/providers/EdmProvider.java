@@ -327,6 +327,26 @@ public class EdmProvider extends CsdlAbstractEdmProvider {
 	    return null;
 	}
 	
+	private Field[] getFields(Class<?> clazz) {
+		return getFields(clazz, true);
+	}
+	
+	private Field[] getFields(Class<?> clazz, boolean includeSuperClass) {
+		if(!includeSuperClass) return clazz.getDeclaredFields();
+		
+		List<Field> fields = new ArrayList<>(Arrays.asList( clazz.getDeclaredFields() ));
+		
+		if(includeSuperClass) {
+			Class<?> superclazz = clazz.getSuperclass();
+			if(superclazz != null) {
+				Field[] superFields = superclazz.getDeclaredFields();
+				fields.addAll(Arrays.asList( superFields ));
+			}
+		}
+		
+		return fields.toArray(new Field[fields.size()]);
+	}
+	
 	@Override
 	public CsdlEntitySet getEntitySet(FullQualifiedName entityContainer, String entitySetName) throws ODataException {
 		
@@ -336,8 +356,9 @@ public class EdmProvider extends CsdlAbstractEdmProvider {
 		EdmEntity edmEntity = clazz.getAnnotation(EdmEntity.class);
 		
 		List<CsdlNavigationPropertyBinding> navigationPropertyBindings = new ArrayList<>();
+		Field[] fields = getFields(clazz);
 		
-		for(Field fld : clazz.getDeclaredFields()) {
+		for(Field fld : fields) {
 			
 			EdmNavigationProperty navigationProperty = fld.getAnnotation(EdmNavigationProperty.class);
 			if(navigationProperty != null) {
@@ -385,7 +406,8 @@ public class EdmProvider extends CsdlAbstractEdmProvider {
 
 		EdmComplex edmComplex = clazz.getAnnotation(EdmComplex.class);
 
-		Field[] fields = clazz.getDeclaredFields();
+//		Field[] fields = clazz.getDeclaredFields();
+		Field[] fields = getFields(clazz);
 		
 		List<CsdlProperty> csdlProperties = getCsdlProperties(fields);
 		List<CsdlNavigationProperty> csdlNavigationProperties = getCsdlNavigationProperties(fields);
@@ -897,7 +919,8 @@ public class EdmProvider extends CsdlAbstractEdmProvider {
 		
 		EdmEntity edmEntity = clazz.getAnnotation(EdmEntity.class);
 
-		Field[] fields = clazz.getDeclaredFields();
+//		Field[] fields = clazz.getDeclaredFields();
+		Field[] fields = getFields(clazz);
 		
 		List<CsdlProperty> csdlProperties = getCsdlProperties(fields);
 		List<CsdlNavigationProperty> csdlNavigationProperties = getCsdlNavigationProperties(fields);
