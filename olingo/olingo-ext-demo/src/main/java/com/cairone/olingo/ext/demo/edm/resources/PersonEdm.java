@@ -9,10 +9,12 @@ import com.cairone.olingo.ext.jpa.annotations.EdmEntitySet;
 import com.cairone.olingo.ext.jpa.annotations.EdmNavigationProperty;
 import com.cairone.olingo.ext.jpa.annotations.EdmProperty;
 import com.cairone.olingo.ext.jpa.annotations.ODataJPAEntity;
+import com.cairone.olingo.ext.jpa.annotations.ODataQueryDslEntity;
 
 @EdmEntity(name = "Person", key = "Id", namespace = AppDemoConstants.NAME_SPACE, containerName = AppDemoConstants.CONTAINER_NAME)
 @EdmEntitySet("People")
 @ODataJPAEntity("PersonEntity")
+@ODataQueryDslEntity(jpaentity=PersonEntity.class, variable = "personEntity")
 public class PersonEdm {
 	
 	@EdmProperty(name = "Id")

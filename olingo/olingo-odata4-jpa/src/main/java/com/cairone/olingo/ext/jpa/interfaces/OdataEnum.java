@@ -14,7 +14,7 @@
 package com.cairone.olingo.ext.jpa.interfaces;
 
 
-public interface OdataEnum<T> {
+public interface OdataEnum<T> extends Comparable<T> {
 
 	public int getOrdinal();
 	public T setOrdinal(int ordinal);

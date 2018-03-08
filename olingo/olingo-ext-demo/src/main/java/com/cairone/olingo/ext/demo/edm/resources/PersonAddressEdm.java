@@ -3,14 +3,15 @@ package com.cairone.olingo.ext.demo.edm.resources;
 import com.cairone.olingo.ext.demo.AppDemoConstants;
 import com.cairone.olingo.ext.jpa.annotations.EdmComplex;
 import com.cairone.olingo.ext.jpa.annotations.EdmProperty;
+import com.cairone.olingo.ext.jpa.annotations.ODataQueryDslProperty;
 
 @EdmComplex(name="Address", namespace = AppDemoConstants.NAME_SPACE)
 public class PersonAddressEdm {
 
-	@EdmProperty(name = "Name")
+	@EdmProperty(name = "Name") @ODataQueryDslProperty("addressStreet")
 	private String name = null;
 	
-	@EdmProperty(name = "Number")
+	@EdmProperty(name = "Number") @ODataQueryDslProperty("addressNumber")
 	private String number = null;
 	
 	public PersonAddressEdm() {}

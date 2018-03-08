@@ -19,9 +19,12 @@ import com.cairone.olingo.ext.demo.edm.enums.RegionEnum;
 import com.cairone.olingo.ext.demo.edm.resources.PersonEdm;
 import com.cairone.olingo.ext.demo.entities.PersonEntity;
 import com.cairone.olingo.ext.demo.exceptions.ODataBadRequestException;
+import com.cairone.olingo.ext.demo.repositories.PersonRepository;
 import com.cairone.olingo.ext.demo.services.PersonService;
 import com.cairone.olingo.ext.demo.utils.OdataExceptionParser;
 import com.cairone.olingo.ext.demo.utils.ValidatorUtil;
+import com.cairone.olingo.ext.jpa.query.DslQuery;
+import com.cairone.olingo.ext.jpa.query.DslQueryBuilder;
 import com.cairone.olingo.ext.jpa.query.JPQLQuery;
 import com.cairone.olingo.ext.jpa.query.JPQLQueryBuilder;
 
@@ -32,6 +35,8 @@ public class PeopleDataSource extends AbstractDataSource {
 
 	@Autowired private PersonService personService = null;
 	@Autowired private PersonFrmDtoValidator personFrmDtoValidator = null;
+	
+	@Autowired private PersonRepository personRepository = null;
 	
 	@Override
 	public String isSuitableFor() {
@@ -132,6 +137,26 @@ public class PeopleDataSource extends AbstractDataSource {
 
 	@Override
 	public Iterable<?> readAll(ExpandOption expandOption, FilterOption filterOption, OrderByOption orderByOption, Object parentEntity) throws ODataApplicationException {
+		
+		DslQuery dslQuery = new DslQueryBuilder()
+				.setClazz(PersonEdm.class)
+				.setFilterOption(filterOption)
+				.setOrderByOption(orderByOption)
+				.build();
+		
+		List<PersonEntity> personEntities = DslQuery.execute(personRepository, dslQuery);
+		List<PersonEdm> personEdms = personEntities.stream()
+			.map(entity -> { 
+				PersonEdm personEdm = new PersonEdm(entity);
+				return personEdm;
+			})
+			.collect(Collectors.toList());
+		
+		return personEdms;
+	}
+	
+	@Deprecated
+	public Iterable<?> readAllDeprecated(ExpandOption expandOption, FilterOption filterOption, OrderByOption orderByOption, Object parentEntity) throws ODataApplicationException {
 
 		JPQLQuery query = new JPQLQueryBuilder()
 			.setDistinct(false)
