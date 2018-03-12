@@ -10,5 +10,5 @@ import java.lang.annotation.Target;
 public @interface ODataQueryDslProperty {
 
 	String value() default "";
-	Class<?> jpaproperty() default Object.class;
+	Class<?> type() default Object.class;
 }

@@ -11,4 +11,5 @@ public @interface ODataQueryDslEntity {
 
 	Class<?> jpaentity() default Object.class;
 	String variable() default "";
+	String extendsFieldName() default "";
 }

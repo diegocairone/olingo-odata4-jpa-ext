@@ -2,10 +2,10 @@ package com.cairone.olingo.ext.demo.edm.enums;
 
 import com.cairone.olingo.ext.demo.AppDemoConstants;
 import com.cairone.olingo.ext.jpa.annotations.EdmEnum;
-import com.cairone.olingo.ext.jpa.interfaces.OdataEnum;
+import com.cairone.olingo.ext.jpa.interfaces.OdataExtendedEnum;
 
 @EdmEnum(namespace = AppDemoConstants.NAME_SPACE, name = "Region")
-public enum RegionEnum implements OdataEnum<RegionEnum> {
+public enum RegionEnum implements OdataExtendedEnum<RegionEnum, Integer> {
 	SUDAMERICA(10),
 	EUROPE(20),
 	ASIA(30);
@@ -29,7 +29,8 @@ public enum RegionEnum implements OdataEnum<RegionEnum> {
 		}
 	}
 
-	public int getDbValor() {
+	@Override
+	public Integer getAsPrimitive() {
 		return value;
 	}
 

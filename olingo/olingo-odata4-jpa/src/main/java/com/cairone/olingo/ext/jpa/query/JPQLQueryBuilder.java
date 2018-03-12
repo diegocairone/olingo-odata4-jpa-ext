@@ -31,6 +31,7 @@ import com.cairone.olingo.ext.jpa.annotations.ODataJPAProperty;
 import com.cairone.olingo.ext.jpa.visitors.FilterExpressionVisitor;
 import com.google.common.base.Splitter;
 
+@Deprecated
 public final class JPQLQueryBuilder {
 	
 	protected static final Logger LOG = LoggerFactory.getLogger(JPQLQueryBuilder.class);

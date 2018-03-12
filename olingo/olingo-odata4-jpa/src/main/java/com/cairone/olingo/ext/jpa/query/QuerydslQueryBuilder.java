@@ -18,33 +18,33 @@ import com.mysema.query.types.OrderSpecifier;
 import com.mysema.query.types.expr.BooleanExpression;
 import com.mysema.query.types.expr.ComparableExpressionBase;
 
-public class DslQueryBuilder {
+public class QuerydslQueryBuilder {
 
 	private Class<?> clazz = null;
 	
 	private FilterOption filterOption = null; 
 	private OrderByOption orderByOption = null;
 	
-	public DslQuery build() throws ODataApplicationException {
+	public QuerydslQuery build() throws ODataApplicationException {
 		
 		BooleanExpression booleanExpression = getBooleanExpression(); 
 		OrderSpecifier<?>[] orderSpecifiers = getOrderSpecifiers();
 		
-		DslQuery dslQuery = new DslQuery(booleanExpression, orderSpecifiers);
+		QuerydslQuery dslQuery = new QuerydslQuery(booleanExpression, orderSpecifiers);
 		return dslQuery;
 	}
 	
-	public DslQueryBuilder setClazz(Class<?> clazz) {
+	public QuerydslQueryBuilder setClazz(Class<?> clazz) {
 		this.clazz = clazz;
 		return this;
 	}
 
-	public DslQueryBuilder setFilterOption(FilterOption filterOption) {
+	public QuerydslQueryBuilder setFilterOption(FilterOption filterOption) {
 		this.filterOption = filterOption;
 		return this;
 	}
 
-	public DslQueryBuilder setOrderByOption(OrderByOption orderByOption) {
+	public QuerydslQueryBuilder setOrderByOption(OrderByOption orderByOption) {
 		this.orderByOption = orderByOption;
 		return this;
 	}

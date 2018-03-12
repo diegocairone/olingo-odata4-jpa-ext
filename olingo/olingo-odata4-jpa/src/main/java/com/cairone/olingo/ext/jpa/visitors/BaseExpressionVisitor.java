@@ -4,6 +4,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.Collection;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import org.apache.olingo.commons.api.edm.EdmEnumType;
 import org.apache.olingo.commons.api.edm.EdmType;
@@ -16,6 +17,7 @@ import org.apache.olingo.server.api.uri.queryoption.expression.Member;
 import org.apache.olingo.server.api.uri.queryoption.expression.MethodKind;
 import org.apache.olingo.server.api.uri.queryoption.expression.UnaryOperatorKind;
 
+import com.cairone.olingo.ext.jpa.interfaces.OdataExtendedEnum;
 import com.google.common.base.CharMatcher;
 import com.mysema.query.support.Expressions;
 import com.mysema.query.types.Constant;
@@ -25,6 +27,7 @@ import com.mysema.query.types.Predicate;
 import com.mysema.query.types.expr.BooleanExpression;
 import com.mysema.query.types.expr.BooleanOperation;
 import com.mysema.query.types.expr.SimpleExpression;
+import com.mysema.query.types.path.BooleanPath;
 import com.mysema.query.types.path.DatePath;
 import com.mysema.query.types.path.EnumPath;
 import com.mysema.query.types.path.NumberPath;
@@ -50,6 +53,17 @@ public abstract class BaseExpressionVisitor implements ExpressionVisitor<Express
 					if(left instanceof EnumPath<?>) {
 						EnumPath path = (EnumPath) left;
 						Predicate filter = path.in(enumList);
+						return filter;
+					} else {
+						List<?> odataExtendedEnums = enumList.stream()
+							.map(e -> {
+								OdataExtendedEnum<?,?> odataExtendedEnum = (OdataExtendedEnum<?,?>) e;
+								return odataExtendedEnum.getAsPrimitive();
+							})
+							.collect(Collectors.toList());
+						 
+						SimpleExpression path = (SimpleExpression<?>) left;
+						Predicate filter = path.in(odataExtendedEnums);
 						return filter;
 					}
 				}
@@ -102,6 +116,12 @@ public abstract class BaseExpressionVisitor implements ExpressionVisitor<Express
 							: operator.equals(BinaryOperatorKind.GE) ? path.goe(value) 
 							: operator.equals(BinaryOperatorKind.LT) ? path.lt(value) 
 							: operator.equals(BinaryOperatorKind.LE) ? path.loe(value) : null;
+					return filter;
+				} else if (constant.getType().isAssignableFrom(Boolean.class)) {
+					BooleanPath path = (BooleanPath) left;
+					Boolean value = right == null ? null : (Boolean) constant.getConstant();
+					Predicate filter = operator.equals(BinaryOperatorKind.EQ) ? path.eq(value)
+							: operator.equals(BinaryOperatorKind.NE) ? path.ne(value) : null;
 					return filter;
 				} else {
 					StringPath path = (StringPath) left;
@@ -186,6 +206,8 @@ public abstract class BaseExpressionVisitor implements ExpressionVisitor<Express
 		case "DateTimeOffset":
 			LocalDateTime localDateTimeValue = LocalDateTime.parse(text);
 			return Expressions.constant(localDateTimeValue);
+		case "Boolean":
+			return Expressions.constant(Boolean.valueOf(text));
 		default:
 			return Expressions.constant(CharMatcher.is('\'').trimFrom(text));
 		}

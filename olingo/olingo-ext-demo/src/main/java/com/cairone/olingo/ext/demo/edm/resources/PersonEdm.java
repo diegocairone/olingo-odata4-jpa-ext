@@ -3,6 +3,7 @@ package com.cairone.olingo.ext.demo.edm.resources;
 import com.cairone.olingo.ext.demo.AppDemoConstants;
 import com.cairone.olingo.ext.demo.edm.enums.GenderEnum;
 import com.cairone.olingo.ext.demo.edm.enums.RegionEnum;
+import com.cairone.olingo.ext.demo.entities.FormEntity;
 import com.cairone.olingo.ext.demo.entities.PersonEntity;
 import com.cairone.olingo.ext.jpa.annotations.EdmEntity;
 import com.cairone.olingo.ext.jpa.annotations.EdmEntitySet;
@@ -10,6 +11,7 @@ import com.cairone.olingo.ext.jpa.annotations.EdmNavigationProperty;
 import com.cairone.olingo.ext.jpa.annotations.EdmProperty;
 import com.cairone.olingo.ext.jpa.annotations.ODataJPAEntity;
 import com.cairone.olingo.ext.jpa.annotations.ODataQueryDslEntity;
+import com.cairone.olingo.ext.jpa.annotations.ODataQueryDslProperty;
 
 @EdmEntity(name = "Person", key = "Id", namespace = AppDemoConstants.NAME_SPACE, containerName = AppDemoConstants.CONTAINER_NAME)
 @EdmEntitySet("People")
@@ -29,10 +31,10 @@ public class PersonEdm {
 	@EdmProperty(name = "Gender")
 	private GenderEnum gender = null;
 	
-	@EdmProperty(name = "Region")
+	@EdmProperty(name = "Region") @ODataQueryDslProperty("region.id")
 	private RegionEnum region = null;
 	
-	@EdmNavigationProperty(name = "Form")
+	@EdmNavigationProperty(name = "Form") @ODataQueryDslProperty(type=FormEntity.class)
 	private FormEdm form = null;
 	
 	@EdmProperty(name = "Address")

@@ -6,10 +6,12 @@ import com.cairone.olingo.ext.jpa.annotations.EdmEntity;
 import com.cairone.olingo.ext.jpa.annotations.EdmEntitySet;
 import com.cairone.olingo.ext.jpa.annotations.EdmProperty;
 import com.cairone.olingo.ext.jpa.annotations.ODataJPAEntity;
+import com.cairone.olingo.ext.jpa.annotations.ODataQueryDslEntity;
 
 @EdmEntity(name = "FormType", key = "Id", namespace = AppDemoConstants.NAME_SPACE, containerName = AppDemoConstants.CONTAINER_NAME)
 @EdmEntitySet("FormTypes")
 @ODataJPAEntity("FormTypeEntity")
+@ODataQueryDslEntity(jpaentity=FormTypeEntity.class, variable="formTypeEntity")
 public class FormTypeEdm {
 
 	@EdmProperty(name = "Id")

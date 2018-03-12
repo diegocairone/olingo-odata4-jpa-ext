@@ -23,8 +23,8 @@ import com.cairone.olingo.ext.demo.repositories.PersonRepository;
 import com.cairone.olingo.ext.demo.services.PersonService;
 import com.cairone.olingo.ext.demo.utils.OdataExceptionParser;
 import com.cairone.olingo.ext.demo.utils.ValidatorUtil;
-import com.cairone.olingo.ext.jpa.query.DslQuery;
-import com.cairone.olingo.ext.jpa.query.DslQueryBuilder;
+import com.cairone.olingo.ext.jpa.query.QuerydslQuery;
+import com.cairone.olingo.ext.jpa.query.QuerydslQueryBuilder;
 import com.cairone.olingo.ext.jpa.query.JPQLQuery;
 import com.cairone.olingo.ext.jpa.query.JPQLQueryBuilder;
 
@@ -138,13 +138,13 @@ public class PeopleDataSource extends AbstractDataSource {
 	@Override
 	public Iterable<?> readAll(ExpandOption expandOption, FilterOption filterOption, OrderByOption orderByOption, Object parentEntity) throws ODataApplicationException {
 		
-		DslQuery dslQuery = new DslQueryBuilder()
+		QuerydslQuery dslQuery = new QuerydslQueryBuilder()
 				.setClazz(PersonEdm.class)
 				.setFilterOption(filterOption)
 				.setOrderByOption(orderByOption)
 				.build();
 		
-		List<PersonEntity> personEntities = DslQuery.execute(personRepository, dslQuery);
+		List<PersonEntity> personEntities = QuerydslQuery.execute(personRepository, dslQuery);
 		List<PersonEdm> personEdms = personEntities.stream()
 			.map(entity -> { 
 				PersonEdm personEdm = new PersonEdm(entity);

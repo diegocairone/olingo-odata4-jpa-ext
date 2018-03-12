@@ -8,12 +8,12 @@ import org.springframework.data.querydsl.QueryDslPredicateExecutor;
 import com.mysema.query.types.OrderSpecifier;
 import com.mysema.query.types.expr.BooleanExpression;
 
-public class DslQuery {
+public class QuerydslQuery {
 
 	private BooleanExpression booleanExpression = null;
 	private OrderSpecifier<?>[] orderSpecifiers = null;
 	
-	public DslQuery(BooleanExpression booleanExpression, OrderSpecifier<?>[] orderSpecifiers) {
+	public QuerydslQuery(BooleanExpression booleanExpression, OrderSpecifier<?>[] orderSpecifiers) {
 		super();
 		this.booleanExpression = booleanExpression;
 		this.orderSpecifiers = orderSpecifiers;
@@ -34,7 +34,7 @@ public class DslQuery {
 	}
 
 	@SuppressWarnings("unchecked")
-	public static <T> List<T> execute(QueryDslPredicateExecutor<?> queryDslPredicateExecutor, DslQuery dslQuery) {
+	public static <T> List<T> execute(QueryDslPredicateExecutor<?> queryDslPredicateExecutor, QuerydslQuery dslQuery) {
 		return dslQuery.getOrderSpecifiers() == null
 				? (List<T>) queryDslPredicateExecutor.findAll(dslQuery.getBooleanExpression())
 				: (List<T>) queryDslPredicateExecutor.findAll(dslQuery.getBooleanExpression(), dslQuery.getOrderSpecifiers());

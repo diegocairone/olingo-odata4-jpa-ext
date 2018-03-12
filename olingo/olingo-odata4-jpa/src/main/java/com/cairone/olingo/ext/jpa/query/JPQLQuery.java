@@ -6,6 +6,7 @@ import java.util.Map;
 import javax.persistence.EntityManager;
 import javax.persistence.Query;
 
+@Deprecated
 public final class JPQLQuery {
 
 	private final String queryString;

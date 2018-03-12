@@ -7,7 +7,10 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
+import javax.persistence.Entity;
+
 import org.apache.olingo.commons.api.edm.EdmEnumType;
+import org.apache.olingo.commons.api.edm.constants.EdmTypeKind;
 import org.apache.olingo.server.api.ODataApplicationException;
 import org.apache.olingo.server.api.uri.UriInfoResource;
 import org.apache.olingo.server.api.uri.UriResource;
@@ -22,14 +25,17 @@ import com.cairone.olingo.ext.jpa.annotations.EdmProperty;
 import com.cairone.olingo.ext.jpa.annotations.ODataQueryDslEntity;
 import com.cairone.olingo.ext.jpa.annotations.ODataQueryDslProperty;
 import com.cairone.olingo.ext.jpa.utilities.Util;
+import com.google.common.base.Splitter;
 import com.mysema.query.support.Expressions;
 import com.mysema.query.types.Expression;
+import com.mysema.query.types.Path;
 import com.mysema.query.types.path.PathBuilder;
 
 public class QueryDslExpressionVisitor extends BaseExpressionVisitor {
 
 	private Class<?> targetEdm = null;
-	private Class<?> pointerClazz = null;
+	private Class<?> pointerEdmClazz = null;
+	private Class<?> pointerJpaClazz = null;
 	
 	public QueryDslExpressionVisitor() {}
 	
@@ -43,14 +49,14 @@ public class QueryDslExpressionVisitor extends BaseExpressionVisitor {
 		return this;
 	}
 
-	@SuppressWarnings("unchecked")
 	@Override
 	public Expression<?> visitMember(Member member) throws ExpressionVisitException, ODataApplicationException {
 		
 		UriInfoResource uriInfo = member.getResourcePath();
+		ODataQueryDslEntity oDataQueryDslEntity = targetEdm.getAnnotation(ODataQueryDslEntity.class);
 		
-		pointerClazz = targetEdm;
-		ODataQueryDslEntity oDataQueryDslEntity = pointerClazz.getAnnotation(ODataQueryDslEntity.class);
+		pointerEdmClazz = targetEdm;
+		pointerJpaClazz = oDataQueryDslEntity.jpaentity();
 		
 		PathBuilder<?> pathBuilder = new PathBuilder<>(oDataQueryDslEntity.jpaentity(), oDataQueryDslEntity.variable());
 		
@@ -59,62 +65,71 @@ public class QueryDslExpressionVisitor extends BaseExpressionVisitor {
 			case primitiveProperty: {
 					UriResourcePrimitiveProperty primitiveProperty = (UriResourcePrimitiveProperty) resource;
 					String propName = primitiveProperty.getProperty().getName();
-					Field field = getField(pointerClazz, propName);
-					ODataQueryDslProperty oDataQueryDslProperty = field.getAnnotation(ODataQueryDslProperty.class);
-					Class<?> type = oDataQueryDslProperty == null || oDataQueryDslProperty.jpaproperty().equals(Object.class) ? field.getType() : oDataQueryDslProperty.jpaproperty();
-					String name = oDataQueryDslProperty == null ? field.getName() : oDataQueryDslProperty.value();
-					if(type.isEnum()) {
-						pointerClazz = field.getType();
-						return pathBuilder.getEnum(name, Enum.class);
-					} else if(type.isAssignableFrom(Integer.class)) {
-						Class<Integer> integerType = (Class<Integer>) type;
-						return pathBuilder.getNumber(name, integerType);
-					} else if(type.isAssignableFrom(Long.class)) {
-						Class<Long> longType = (Class<Long>) type;
-						return pathBuilder.getNumber(name, longType);
-					} else if(type.isAssignableFrom(LocalDate.class)) {
-						Class<LocalDate> localDateType = (Class<LocalDate>) type;
-						return pathBuilder.getDate(name, localDateType);
-					} else if(type.isAssignableFrom(LocalDateTime.class)) {
-						Class<LocalDateTime> localDateTimeType = (Class<LocalDateTime>) type;
-						return pathBuilder.getDate(name, localDateTimeType);
-					} else if(type.isAssignableFrom(Date.class)) {
-						Class<Date> dateType = (Class<Date>) type;
-						return pathBuilder.getDate(name, dateType);
-					} else if(type.isAssignableFrom(String.class)) {
-						return pathBuilder.getString(name);
+					Field edmField = getFieldInEDM(pointerEdmClazz, propName);
+					ODataQueryDslProperty oDataQueryDslProperty = edmField.getAnnotation(ODataQueryDslProperty.class);
+					String jpaFieldPathName = oDataQueryDslProperty == null || oDataQueryDslProperty.value().trim().isEmpty() ? edmField.getName() : oDataQueryDslProperty.value();		// fieldX.fieldY.fieldZ from jpaEntity
+					try {
+						pointerEdmClazz.getDeclaredField(edmField.getName());
+					} catch (NoSuchFieldException e) {
+						jpaFieldPathName = oDataQueryDslEntity.extendsFieldName() + "." + jpaFieldPathName;
+					} catch (SecurityException e) {
+						throw new ExpressionVisitException(e.getMessage(), e);
 					}
+					if(primitiveProperty.getProperty().getType().getKind().equals(EdmTypeKind.ENUM)) {
+						pointerEdmClazz = edmField.getType();
+					}
+					return getPath(pointerJpaClazz, pathBuilder, jpaFieldPathName);
 				}
-				break;
 			case complexProperty: {
 					UriResourceComplexProperty complexProperty = (UriResourceComplexProperty) resource;
 					String propName = complexProperty.getProperty().getName();
-					Field field = getField(pointerClazz, propName);
-					ODataQueryDslProperty oDataQueryDslProperty = field.getAnnotation(ODataQueryDslProperty.class);
-					if(oDataQueryDslProperty != null) {
-						Class<?> type = oDataQueryDslProperty.jpaproperty();
-						String name = oDataQueryDslProperty == null ? field.getName() : oDataQueryDslProperty.value();
-						pathBuilder = pathBuilder.get(name, type);
+					Field edmField = getFieldInEDM(pointerEdmClazz, propName);
+					ODataQueryDslProperty oDataQueryDslProperty = edmField.getAnnotation(ODataQueryDslProperty.class);
+					if(!edmField.getDeclaringClass().equals(pointerEdmClazz)) {
+						pathBuilder = (PathBuilder<?>) getPath(pointerJpaClazz, pathBuilder, oDataQueryDslEntity.extendsFieldName());
+						pointerEdmClazz = edmField.getDeclaringClass();
+						oDataQueryDslEntity = pointerEdmClazz.getAnnotation(ODataQueryDslEntity.class);
+						if(oDataQueryDslEntity != null) {
+							pointerJpaClazz = oDataQueryDslEntity.jpaentity();
+						}
 					}
-					pointerClazz = field.getType();
+					if(oDataQueryDslProperty != null) {
+						String jpaFieldPathName = oDataQueryDslProperty.value().trim().isEmpty() ? edmField.getName() : oDataQueryDslProperty.value();
+						if(!oDataQueryDslProperty.type().equals(Object.class)) {
+							pathBuilder = (PathBuilder<?>) getPath(pointerJpaClazz, pathBuilder, jpaFieldPathName);
+							pointerJpaClazz = oDataQueryDslProperty.type();
+						} else {
+							if(!oDataQueryDslEntity.extendsFieldName().trim().isEmpty()) {
+								jpaFieldPathName = oDataQueryDslEntity.extendsFieldName() +"." + jpaFieldPathName;
+							}
+							pathBuilder = (PathBuilder<?>) getPath(pointerJpaClazz, pathBuilder, jpaFieldPathName);
+							pointerJpaClazz = oDataQueryDslEntity.jpaentity();
+						}
+					}
+					pointerEdmClazz = edmField.getType();
 				}
 				break;
 			case navigationProperty: {
 				UriResourceNavigation navigation = (UriResourceNavigation) resource;
 					String propName = navigation.getProperty().getName();
-					Field field = getField(pointerClazz, propName);
-					ODataQueryDslProperty oDataQueryDslProperty = field.getAnnotation(ODataQueryDslProperty.class);
-					Class<?> type = null;
-					if(oDataQueryDslProperty == null) {
-						Class<?> fieldClass = field.getType();
-						ODataQueryDslEntity fieldTypeAnnotation = fieldClass.getAnnotation(ODataQueryDslEntity.class);
-						type = fieldTypeAnnotation.jpaentity();
-					} else {
-						type = oDataQueryDslProperty.jpaproperty();
+					Field edmField = getFieldInEDM(pointerEdmClazz, propName);
+					ODataQueryDslProperty oDataQueryDslProperty = edmField.getAnnotation(ODataQueryDslProperty.class);
+					String jpaFieldPathName = oDataQueryDslProperty == null || oDataQueryDslProperty.value().trim().isEmpty() ? edmField.getName() : oDataQueryDslProperty.value();		// fieldX.fieldY.fieldZ from jpaEntity
+					try {
+						pointerEdmClazz.getDeclaredField(edmField.getName());
+					} catch (NoSuchFieldException e) {
+						jpaFieldPathName = oDataQueryDslEntity.extendsFieldName() + "." + jpaFieldPathName;
+					} catch (SecurityException e) {
+						throw new ExpressionVisitException(e.getMessage(), e);
 					}
-					String name = oDataQueryDslProperty == null ? field.getName() : oDataQueryDslProperty.value();
-					pathBuilder = pathBuilder.get(name, type);
-					pointerClazz = field.getType();
+					pathBuilder = (PathBuilder<?>) getPath(pointerJpaClazz, pathBuilder, jpaFieldPathName);
+					pointerEdmClazz = edmField.getType();
+					oDataQueryDslEntity = pointerEdmClazz.getAnnotation(ODataQueryDslEntity.class);
+					if(oDataQueryDslProperty != null && !oDataQueryDslProperty.type().equals(Object.class)) {
+						pointerJpaClazz = oDataQueryDslProperty.type();
+					} else {
+						pointerJpaClazz = oDataQueryDslEntity.jpaentity();
+					}
 				}
 				break;
 			case entitySet:
@@ -139,9 +154,9 @@ public class QueryDslExpressionVisitor extends BaseExpressionVisitor {
 
 	@Override
 	public Expression<?> visitEnum(EdmEnumType type, List<String> enumValues) throws ExpressionVisitException, ODataApplicationException {
-		if(pointerClazz.isEnum()) {
+		if(pointerEdmClazz.isEnum()) {
 			List<Enum<?>> selectedEnums = new ArrayList<>();
-			Enum<?>[] enums = (Enum<?>[]) pointerClazz.getEnumConstants();
+			Enum<?>[] enums = (Enum<?>[]) pointerEdmClazz.getEnumConstants();
 			for(Enum<?> enumeration : enums) {
 				String value = enumeration.name();
 				if(enumValues.contains(value)) {
@@ -155,8 +170,8 @@ public class QueryDslExpressionVisitor extends BaseExpressionVisitor {
 		return null;
 	}
 	
-	private Field getField(Class<?> clazz, String propertyName) {
-		Field[] fields = Util.getFields(clazz);
+	private Field getFieldInEDM(Class<?> edmEntityClazz, String propertyName) {
+		Field[] fields = Util.getFields(edmEntityClazz);
 		for(Field field : fields) {
 			EdmProperty edmProperty = field.getAnnotation(EdmProperty.class);
 			EdmNavigationProperty edmNavigationProperty = field.getAnnotation(EdmNavigationProperty.class);
@@ -175,5 +190,48 @@ public class QueryDslExpressionVisitor extends BaseExpressionVisitor {
 			}
 		}
 		return null;
+	}
+	
+	@SuppressWarnings("unchecked")
+	private Path<?> getPath(final Class<?> rootJpaEntity, final Path<?> path, final String jpaFieldPathName) {
+		List<String> parts = Splitter.on('.').trimResults().splitToList(jpaFieldPathName);
+		Class<?> pointer = rootJpaEntity;
+		PathBuilder<?> pathBuilder = (PathBuilder<?>) path;
+		
+		for(String fieldName : parts) {
+			Field[] fields = Util.getFields(pointer);
+			for(Field field : fields) {
+				if(field.getName().equals(fieldName)) {
+					pointer = field.getType();
+					if(pointer.isEnum()) {
+						return pathBuilder.getEnum(fieldName, Enum.class);
+					} else if(pointer.isAssignableFrom(Integer.class)) {
+						Class<Integer> integerType = (Class<Integer>) pointer;
+						return pathBuilder.getNumber(fieldName, integerType);
+					} else if(pointer.isAssignableFrom(Long.class)) {
+						Class<Long> longType = (Class<Long>) pointer;
+						return pathBuilder.getNumber(fieldName, longType);
+					} else if(pointer.isAssignableFrom(LocalDate.class)) {
+						Class<LocalDate> localDateType = (Class<LocalDate>) pointer;
+						return pathBuilder.getDate(fieldName, localDateType);
+					} else if(pointer.isAssignableFrom(LocalDateTime.class)) {
+						Class<LocalDateTime> localDateTimeType = (Class<LocalDateTime>) pointer;
+						return pathBuilder.getDate(fieldName, localDateTimeType);
+					} else if(pointer.isAssignableFrom(Date.class)) {
+						Class<Date> dateType = (Class<Date>) pointer;
+						return pathBuilder.getDate(fieldName, dateType);
+					} else if(pointer.isAssignableFrom(String.class)) {
+						return pathBuilder.getString(fieldName);
+					} else if(pointer.isAssignableFrom(Boolean.class)) {
+						return pathBuilder.getBoolean(fieldName);
+					} else if(pointer.isAnnotationPresent(Entity.class)) {
+						pathBuilder = pathBuilder.get(fieldName, pointer);
+					}
+					break;
+				}
+			}
+		}
+		
+		return pathBuilder;
 	}
 }

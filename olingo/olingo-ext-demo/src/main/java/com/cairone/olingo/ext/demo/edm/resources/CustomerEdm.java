@@ -3,12 +3,15 @@ package com.cairone.olingo.ext.demo.edm.resources;
 import com.cairone.olingo.ext.demo.AppDemoConstants;
 import com.cairone.olingo.ext.demo.edm.enums.GenderEnum;
 import com.cairone.olingo.ext.demo.edm.enums.RegionEnum;
+import com.cairone.olingo.ext.demo.entities.CustomerEntity;
 import com.cairone.olingo.ext.jpa.annotations.EdmEntity;
 import com.cairone.olingo.ext.jpa.annotations.EdmEntitySet;
 import com.cairone.olingo.ext.jpa.annotations.EdmProperty;
+import com.cairone.olingo.ext.jpa.annotations.ODataQueryDslEntity;
 
 @EdmEntity(name = "Customer", key = "Id", namespace = AppDemoConstants.NAME_SPACE, containerName = AppDemoConstants.CONTAINER_NAME)
 @EdmEntitySet("Customers")
+@ODataQueryDslEntity(jpaentity=CustomerEntity.class, variable = "customerEntity", extendsFieldName="person")
 public class CustomerEdm extends PersonEdm {
 
 	@EdmProperty(name = "CompanyName")
@@ -23,6 +26,11 @@ public class CustomerEdm extends PersonEdm {
 		this.companyName = companyName;
 	}
 
+	public CustomerEdm(CustomerEntity customerEntity) {
+		super(customerEntity.getPerson());
+		this.companyName = customerEntity.getCompanyName();
+	}
+	
 	public String getCompanyName() {
 		return companyName;
 	}

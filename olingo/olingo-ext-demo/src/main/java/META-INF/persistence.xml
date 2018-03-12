@@ -11,6 +11,7 @@
 		<class>com.cairone.olingo.ext.demo.entities.RegionEntity</class>
 		<class>com.cairone.olingo.ext.demo.entities.StateEntity</class>
 		<class>com.cairone.olingo.ext.demo.entities.UserEntity</class>
+		<class>com.cairone.olingo.ext.demo.entities.CustomerEntity</class>
 		<properties>
 			<property name="javax.persistence.jdbc.url" value="jdbc:mysql://localhost:3306/olingo-ext-demo"/>
 			<property name="javax.persistence.jdbc.user" value="root"/>

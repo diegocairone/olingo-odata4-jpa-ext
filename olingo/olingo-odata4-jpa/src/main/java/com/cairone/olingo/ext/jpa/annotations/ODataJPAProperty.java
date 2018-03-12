@@ -26,6 +26,7 @@ import com.cairone.olingo.ext.jpa.enums.EnumerationTreatedAs;
  */
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.FIELD)
+@Deprecated
 public @interface ODataJPAProperty {
 
 	/**

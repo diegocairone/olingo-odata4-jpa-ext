@@ -36,7 +36,7 @@ public class PersonService {
 	@Transactional
 	public PersonEntity save(PersonFrmDto personFrmDto) throws ServiceException {
 		
-		Integer regionId = personFrmDto.getRegion() == null ? null : personFrmDto.getRegion().getDbValor();
+		Integer regionId = personFrmDto.getRegion() == null ? null : personFrmDto.getRegion().getAsPrimitive();
 		RegionEntity regionEntity = regionId == null ? null : regionRepository.findOne(regionId);
 		
 		if(regionId != null && regionEntity == null) {
