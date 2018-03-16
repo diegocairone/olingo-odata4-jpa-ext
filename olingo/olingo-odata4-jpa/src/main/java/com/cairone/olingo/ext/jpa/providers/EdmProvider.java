@@ -61,6 +61,7 @@ import com.cairone.olingo.ext.jpa.annotations.EdmNavigationProperty;
 import com.cairone.olingo.ext.jpa.annotations.EdmParameter;
 import com.cairone.olingo.ext.jpa.annotations.EdmProperty;
 import com.cairone.olingo.ext.jpa.annotations.EdmReturnType;
+import com.cairone.olingo.ext.jpa.utilities.Util;
 
 public class EdmProvider extends CsdlAbstractEdmProvider {
 
@@ -462,6 +463,11 @@ public class EdmProvider extends CsdlAbstractEdmProvider {
 			EdmNavigationProperty navigationProperty = fld.getAnnotation(EdmNavigationProperty.class);
 			if(navigationProperty != null) {
 				
+				String propertyName = navigationProperty.name().trim().isEmpty() ? fld.getName() : navigationProperty.name();
+				if(navigationProperty.name().trim().isEmpty()) {
+					propertyName = Util.applyNamingConvention(navigationProperty, propertyName);
+				}
+				
 				String navigationPropertyTypeName = navigationProperty.type().isEmpty() ? null : navigationProperty.type();
 				boolean isCollection = false;
 				
@@ -486,7 +492,7 @@ public class EdmProvider extends CsdlAbstractEdmProvider {
 				}
 				
 				CsdlNavigationProperty csdlNavigationProperty = new CsdlNavigationProperty()
-			        .setName(navigationProperty.name())
+			        .setName(propertyName)
 			        .setType(getFullQualifiedName(navigationPropertyTypeName))
 			        .setCollection(isCollection)
 			        .setNullable(navigationProperty.nullable());
@@ -517,7 +523,10 @@ public class EdmProvider extends CsdlAbstractEdmProvider {
 				boolean isEdmComplex = edmComplexs.length != 0;
 				boolean isCollection = false;
 				
-				String propertyName = property.name().isEmpty() ? fld.getName() : property.name();
+				String propertyName = property.name().trim().isEmpty() ? fld.getName() : property.name();
+				if(property.name().trim().isEmpty()) {
+					propertyName = Util.applyNamingConvention(property, propertyName);
+				}
 				FullQualifiedName propertyType = null;
 				
 				if(property.type().isEmpty()) {					

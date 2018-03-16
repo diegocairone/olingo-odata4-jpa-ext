@@ -18,6 +18,8 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
+import com.cairone.olingo.ext.jpa.enums.NamingConvention;
+
 /**
  * Indicates that this field is a property in a complex type or an entity type.
  *
@@ -37,6 +39,9 @@ public @interface EdmProperty {
      */
     String name() default "";
 
+    NamingConvention fieldConvention() default NamingConvention.LOWER_CAMEL;
+    NamingConvention propertyConvention() default NamingConvention.UPPER_CAMEL;
+    
     /**
      * The fully-qualified or alias-qualified name of the OData type of this property.
      *

@@ -170,22 +170,28 @@ public class QueryDslExpressionVisitor extends BaseExpressionVisitor {
 		return null;
 	}
 	
-	private Field getFieldInEDM(Class<?> edmEntityClazz, String propertyName) {
+	private Field getFieldInEDM(final Class<?> edmEntityClazz, final String propertyName) {
 		Field[] fields = Util.getFields(edmEntityClazz);
+		String formatedPropertyName = propertyName;
 		for(Field field : fields) {
 			EdmProperty edmProperty = field.getAnnotation(EdmProperty.class);
 			EdmNavigationProperty edmNavigationProperty = field.getAnnotation(EdmNavigationProperty.class);
+			if(edmProperty != null && edmProperty.name().trim().isEmpty()) {
+				formatedPropertyName = Util.revertNamingConvention(edmProperty, formatedPropertyName);
+			} else if(edmNavigationProperty != null && edmNavigationProperty.name().trim().isEmpty()) {
+				formatedPropertyName = Util.revertNamingConvention(edmNavigationProperty, formatedPropertyName);
+			}
 			if(edmProperty == null && field.getName().equals(propertyName)) {
 				return field;
-			} else if(edmProperty != null && !edmProperty.name().isEmpty() && edmProperty.name().equals(propertyName)) {
+			} else if(edmProperty != null && !edmProperty.name().isEmpty() && edmProperty.name().equals(formatedPropertyName)) {
 				return field;
-			} else if(edmProperty != null && edmProperty.name().isEmpty() && field.getName().equals(propertyName)) {
+			} else if(edmProperty != null && edmProperty.name().isEmpty() && field.getName().equals(formatedPropertyName)) {
 				return field;
-			} else if(edmNavigationProperty == null && field.getName().equals(propertyName)) {
+			} else if(edmNavigationProperty == null && field.getName().equals(formatedPropertyName)) {
 				return field;
-			} else if(edmNavigationProperty != null && !edmNavigationProperty.name().isEmpty() && edmNavigationProperty.name().equals(propertyName)) {
+			} else if(edmNavigationProperty != null && !edmNavigationProperty.name().isEmpty() && edmNavigationProperty.name().equals(formatedPropertyName)) {
 				return field;
-			} else if(edmNavigationProperty != null && edmNavigationProperty.name().isEmpty() && field.getName().equals(propertyName)) {
+			} else if(edmNavigationProperty != null && edmNavigationProperty.name().isEmpty() && field.getName().equals(formatedPropertyName)) {
 				return field;
 			}
 		}

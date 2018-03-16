@@ -19,7 +19,7 @@ public class CountryEdm {
 	@EdmProperty(name = "Id", nullable=false)
 	private Integer id = null;
 	
-	@EdmProperty(name = "Name", nullable=false)
+	@EdmProperty(nullable=false)
 	private String name = null;
 
 	@EdmProperty(name="PhoneCode")

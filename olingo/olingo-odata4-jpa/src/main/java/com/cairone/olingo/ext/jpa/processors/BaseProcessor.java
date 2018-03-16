@@ -188,6 +188,9 @@ public class BaseProcessor implements Processor {
             	fld.setAccessible(true);
             	
             	String name = edmProperty.name().isEmpty() ? fld.getName() : edmProperty.name();
+            	if(edmProperty.name().trim().isEmpty()) {
+					name = Util.applyNamingConvention(edmProperty, name);
+				}
             	Object value = fld.get(object);
             	
             	if(value != null) {
@@ -247,6 +250,9 @@ public class BaseProcessor implements Processor {
             if(edmNavigationProperty != null) {
             	
             	String navigationPropertyName = edmNavigationProperty.name().isEmpty() ? fld.getName() : edmNavigationProperty.name();
+            	if(edmNavigationProperty.name().trim().isEmpty()) {
+            		navigationPropertyName = Util.applyNamingConvention(edmNavigationProperty, navigationPropertyName);
+				}
             	EdmNavigationProperty navigationProperty = edmNavigationPropertyMap.get(navigationPropertyName);
             	
             	if(navigationProperty != null) {

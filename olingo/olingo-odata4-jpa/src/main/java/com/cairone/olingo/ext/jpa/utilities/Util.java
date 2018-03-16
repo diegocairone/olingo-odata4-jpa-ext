@@ -11,6 +11,10 @@ import java.util.Map.Entry;
 import java.util.stream.Collectors;
 
 import com.cairone.olingo.ext.jpa.annotations.EdmEnum;
+import com.cairone.olingo.ext.jpa.annotations.EdmNavigationProperty;
+import com.cairone.olingo.ext.jpa.annotations.EdmProperty;
+import com.cairone.olingo.ext.jpa.enums.NamingConvention;
+import com.google.common.base.CaseFormat;
 import com.google.common.base.CharMatcher;
 
 public class Util {
@@ -35,6 +39,209 @@ public class Util {
 		return fields.toArray(new Field[fields.size()]);
 	}
 	
+	public static String applyNamingConvention(final EdmProperty property, final String propertyName) {
+		String formatedPropertyName = propertyName;
+		if(!property.fieldConvention().equals(NamingConvention.NONE) &&
+				!property.propertyConvention().equals(NamingConvention.NONE)) {
+			CaseFormat cfFrom = null;
+			switch(property.fieldConvention()) {
+			case LOWER_CAMEL:
+				cfFrom = CaseFormat.LOWER_CAMEL;
+				break;
+			case LOWER_UNDERSCORE:
+				cfFrom = CaseFormat.LOWER_UNDERSCORE;
+				break;
+			case UPPER_CAMEL:
+				cfFrom = CaseFormat.UPPER_CAMEL;
+				break;
+			case UPPER_UNDERSCORE:
+				cfFrom = CaseFormat.UPPER_UNDERSCORE;
+				break;
+			case NONE:
+			default:
+				break;
+			}
+			
+			if(cfFrom != null) {
+				CaseFormat cfTo = null;
+				switch(property.propertyConvention()) {
+				case LOWER_CAMEL:
+					cfTo = CaseFormat.LOWER_CAMEL;
+					formatedPropertyName = cfFrom.to(cfTo, propertyName);
+					break;
+				case LOWER_UNDERSCORE:
+					cfTo = CaseFormat.LOWER_UNDERSCORE;
+					formatedPropertyName = cfFrom.to(cfTo, propertyName);
+					break;
+				case UPPER_CAMEL:
+					cfTo = CaseFormat.UPPER_CAMEL;
+					formatedPropertyName = cfFrom.to(cfTo, propertyName);
+					break;
+				case UPPER_UNDERSCORE:
+					cfTo = CaseFormat.UPPER_UNDERSCORE;
+					formatedPropertyName = cfFrom.to(cfTo, propertyName);
+					break;
+				case NONE:
+				default:
+					break;
+				}
+			}
+		}
+		return formatedPropertyName;
+	}
+	
+	public static String revertNamingConvention(final EdmProperty property, final String propertyName) {
+		String formatedPropertyName = propertyName;
+		if(!property.fieldConvention().equals(NamingConvention.NONE) &&
+				!property.propertyConvention().equals(NamingConvention.NONE)) {
+			CaseFormat cfFrom = null;
+			switch(property.propertyConvention()) {
+			case LOWER_CAMEL:
+				cfFrom = CaseFormat.LOWER_CAMEL;
+				break;
+			case LOWER_UNDERSCORE:
+				cfFrom = CaseFormat.LOWER_UNDERSCORE;
+				break;
+			case UPPER_CAMEL:
+				cfFrom = CaseFormat.UPPER_CAMEL;
+				break;
+			case UPPER_UNDERSCORE:
+				cfFrom = CaseFormat.UPPER_UNDERSCORE;
+				break;
+			case NONE:
+			default:
+				break;
+			}
+			
+			if(cfFrom != null) {
+				CaseFormat cfTo = null;
+				switch(property.fieldConvention()) {
+				case LOWER_CAMEL:
+					cfTo = CaseFormat.LOWER_CAMEL;
+					formatedPropertyName = cfFrom.to(cfTo, propertyName);
+					break;
+				case LOWER_UNDERSCORE:
+					cfTo = CaseFormat.LOWER_UNDERSCORE;
+					formatedPropertyName = cfFrom.to(cfTo, propertyName);
+					break;
+				case UPPER_CAMEL:
+					cfTo = CaseFormat.UPPER_CAMEL;
+					formatedPropertyName = cfFrom.to(cfTo, propertyName);
+					break;
+				case UPPER_UNDERSCORE:
+					cfTo = CaseFormat.UPPER_UNDERSCORE;
+					formatedPropertyName = cfFrom.to(cfTo, propertyName);
+					break;
+				case NONE:
+				default:
+					break;
+				}
+			}
+		}
+		return formatedPropertyName;
+	}
+
+	public static String applyNamingConvention(final EdmNavigationProperty property, String propertyName) {
+		if(!property.fieldConvention().equals(NamingConvention.NONE) &&
+				!property.propertyConvention().equals(NamingConvention.NONE)) {
+			CaseFormat cfFrom = null;
+			switch(property.fieldConvention()) {
+			case LOWER_CAMEL:
+				cfFrom = CaseFormat.LOWER_CAMEL;
+				break;
+			case LOWER_UNDERSCORE:
+				cfFrom = CaseFormat.LOWER_UNDERSCORE;
+				break;
+			case UPPER_CAMEL:
+				cfFrom = CaseFormat.UPPER_CAMEL;
+				break;
+			case UPPER_UNDERSCORE:
+				cfFrom = CaseFormat.UPPER_UNDERSCORE;
+				break;
+			case NONE:
+			default:
+				break;
+			}
+			
+			if(cfFrom != null) {
+				CaseFormat cfTo = null;
+				switch(property.propertyConvention()) {
+				case LOWER_CAMEL:
+					cfTo = CaseFormat.LOWER_CAMEL;
+					propertyName = cfFrom.to(cfTo, propertyName);
+					break;
+				case LOWER_UNDERSCORE:
+					cfTo = CaseFormat.LOWER_UNDERSCORE;
+					propertyName = cfFrom.to(cfTo, propertyName);
+					break;
+				case UPPER_CAMEL:
+					cfTo = CaseFormat.UPPER_CAMEL;
+					propertyName = cfFrom.to(cfTo, propertyName);
+					break;
+				case UPPER_UNDERSCORE:
+					cfTo = CaseFormat.UPPER_UNDERSCORE;
+					propertyName = cfFrom.to(cfTo, propertyName);
+					break;
+				case NONE:
+				default:
+					break;
+				}
+			}
+		}
+		return propertyName;
+	}
+
+	public static String revertNamingConvention(final EdmNavigationProperty property, final String propertyName) {
+		String formatedPropertyName = propertyName;
+		if(!property.fieldConvention().equals(NamingConvention.NONE) &&
+				!property.propertyConvention().equals(NamingConvention.NONE)) {
+			CaseFormat cfFrom = null;
+			switch(property.propertyConvention()) {
+			case LOWER_CAMEL:
+				cfFrom = CaseFormat.LOWER_CAMEL;
+				break;
+			case LOWER_UNDERSCORE:
+				cfFrom = CaseFormat.LOWER_UNDERSCORE;
+				break;
+			case UPPER_CAMEL:
+				cfFrom = CaseFormat.UPPER_CAMEL;
+				break;
+			case UPPER_UNDERSCORE:
+				cfFrom = CaseFormat.UPPER_UNDERSCORE;
+				break;
+			case NONE:
+			default:
+				break;
+			}
+			
+			if(cfFrom != null) {
+				CaseFormat cfTo = null;
+				switch(property.fieldConvention()) {
+				case LOWER_CAMEL:
+					cfTo = CaseFormat.LOWER_CAMEL;
+					formatedPropertyName = cfFrom.to(cfTo, propertyName);
+					break;
+				case LOWER_UNDERSCORE:
+					cfTo = CaseFormat.LOWER_UNDERSCORE;
+					formatedPropertyName = cfFrom.to(cfTo, propertyName);
+					break;
+				case UPPER_CAMEL:
+					cfTo = CaseFormat.UPPER_CAMEL;
+					formatedPropertyName = cfFrom.to(cfTo, propertyName);
+					break;
+				case UPPER_UNDERSCORE:
+					cfTo = CaseFormat.UPPER_UNDERSCORE;
+					formatedPropertyName = cfFrom.to(cfTo, propertyName);
+					break;
+				case NONE:
+				default:
+					break;
+				}
+			}
+		}
+		return formatedPropertyName;
+	}
+
 	public static String inferEdmType(Field field) {
 		
 		if(field.getType().isAssignableFrom(Integer.class)) {
