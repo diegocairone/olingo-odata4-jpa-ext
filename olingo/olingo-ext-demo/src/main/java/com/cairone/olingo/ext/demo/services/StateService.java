@@ -17,6 +17,10 @@ public class StateService {
 	@Autowired private CountryRepository countryRepository = null;
 	@Autowired private StateRepository stateRepository = null;
 
+	public StateRepository getStateRepository() {
+		return stateRepository;
+	}
+
 	@Transactional(readOnly=true)
 	public StateEntity findOne(Integer id) throws ServiceException {
 		

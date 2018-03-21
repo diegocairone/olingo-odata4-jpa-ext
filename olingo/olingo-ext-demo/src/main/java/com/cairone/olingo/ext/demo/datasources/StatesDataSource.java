@@ -22,8 +22,8 @@ import com.cairone.olingo.ext.demo.exceptions.ODataBadRequestException;
 import com.cairone.olingo.ext.demo.services.StateService;
 import com.cairone.olingo.ext.demo.utils.OdataExceptionParser;
 import com.cairone.olingo.ext.demo.utils.ValidatorUtil;
-import com.cairone.olingo.ext.jpa.query.JPQLQuery;
-import com.cairone.olingo.ext.jpa.query.JPQLQueryBuilder;
+import com.cairone.olingo.ext.jpa.query.QuerydslQuery;
+import com.cairone.olingo.ext.jpa.query.QuerydslQueryBuilder;
 
 @Component
 public class StatesDataSource extends AbstractDataSource {
@@ -138,25 +138,18 @@ public class StatesDataSource extends AbstractDataSource {
 	@Override
 	public Iterable<?> readAll(ExpandOption expandOption, FilterOption filterOption, OrderByOption orderByOption, Object parentEntity) throws ODataApplicationException {
 
-		JPQLQuery query = new JPQLQueryBuilder()
-			.setDistinct(false)
+		QuerydslQuery query = new QuerydslQueryBuilder()
 			.setClazz(StateEdm.class)
-			.setExpandOption(expandOption)
 			.setFilterOption(filterOption)
 			.setOrderByOption(orderByOption)
 			.build();
 	
-		List<StateEntity> stateEntities = JPQLQuery.execute(entityManager, query);
+		List<StateEntity> stateEntities = QuerydslQuery.execute(stateService.getStateRepository(), query);
 		CountryEdm target = parentEntity == null ? null : (CountryEdm) parentEntity;
 		
 		List<StateEdm> stateEdms = stateEntities.stream()
-			.filter(stateEntity -> {
-				return target == null ? true : stateEntity.getCountry().getId().equals(target.getId());
-			})
-			.map(stateEntity -> { 
-				StateEdm stateEdm = new StateEdm(stateEntity);
-				return stateEdm;
-			})
+			.filter(stateEntity -> target == null ? true : stateEntity.getCountry().getId().equals(target.getId()))
+			.map(stateEntity -> new StateEdm(stateEntity))
 			.collect(Collectors.toList());
 		
 		return stateEdms;

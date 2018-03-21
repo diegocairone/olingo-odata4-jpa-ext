@@ -1,7 +1,6 @@
 package com.cairone.olingo.ext.demo.edm.resources;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
 import com.cairone.olingo.ext.demo.AppDemoConstants;
 import com.cairone.olingo.ext.demo.entities.CountryEntity;
@@ -9,23 +8,23 @@ import com.cairone.olingo.ext.jpa.annotations.EdmEntity;
 import com.cairone.olingo.ext.jpa.annotations.EdmEntitySet;
 import com.cairone.olingo.ext.jpa.annotations.EdmNavigationProperty;
 import com.cairone.olingo.ext.jpa.annotations.EdmProperty;
-import com.cairone.olingo.ext.jpa.annotations.ODataJPAEntity;
+import com.cairone.olingo.ext.jpa.annotations.ODataQueryDslEntity;
 
 @EdmEntity(name = "Country", key = "Id", namespace = AppDemoConstants.NAME_SPACE, containerName = AppDemoConstants.CONTAINER_NAME)
 @EdmEntitySet("Countries")
-@ODataJPAEntity(entity=CountryEntity.class)
+@ODataQueryDslEntity(jpaentity=CountryEntity.class, variable="countryEntity")
 public class CountryEdm {
 	
-	@EdmProperty(name = "Id", nullable=false)
+	@EdmProperty(nullable=false)
 	private Integer id = null;
 	
 	@EdmProperty(nullable=false)
 	private String name = null;
 
-	@EdmProperty(name="PhoneCode")
+	@EdmProperty
 	private Integer phoneCode = null;
 	
-	@EdmNavigationProperty(name = "States")
+	@EdmNavigationProperty
 	private List<StateEdm> states = null;
 
 	public CountryEdm() {}
@@ -44,13 +43,13 @@ public class CountryEdm {
 
 	public CountryEdm(CountryEntity countryEntity) {
 		this(countryEntity.getId(), countryEntity.getName(), countryEntity.getPhoneCode());
-		if(!countryEntity.getStates().isEmpty()) {
-			this.states = countryEntity.getStates()
-					.stream().map(stateEntity -> {
-						return new StateEdm(stateEntity.getId(), stateEntity.getName());
-					})
-					.collect(Collectors.toList());
-		}
+//		if(!countryEntity.getStates().isEmpty()) {
+//			this.states = countryEntity.getStates()
+//					.stream().map(stateEntity -> {
+//						return new StateEdm(stateEntity.getId(), stateEntity.getName());
+//					})
+//					.collect(Collectors.toList());
+//		}
 	}
 
 	public Integer getId() {

@@ -1,13 +1,10 @@
 package com.cairone.olingo.ext.demo.entities;
 
 import java.io.Serializable;
-import java.util.List;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
-import javax.persistence.FetchType;
 import javax.persistence.Id;
-import javax.persistence.OneToMany;
 import javax.persistence.Table;
 
 @Entity @Table(name="countries")
@@ -24,8 +21,8 @@ public class CountryEntity implements Serializable {
 	@Column(name="phone_code", nullable=true)
 	private Integer phoneCode = null;
 	
-	@OneToMany(mappedBy="country", fetch=FetchType.EAGER)
-	private List<StateEntity> states = null;
+//	@OneToMany(mappedBy="country", fetch=FetchType.EAGER)
+//	private List<StateEntity> states = null;
 	
 	public CountryEntity() {}
 
@@ -59,13 +56,13 @@ public class CountryEntity implements Serializable {
 		this.phoneCode = phoneCode;
 	}
 
-	public List<StateEntity> getStates() {
-		return states;
-	}
-
-	public void setStates(List<StateEntity> states) {
-		this.states = states;
-	}
+//	public List<StateEntity> getStates() {
+//		return states;
+//	}
+//
+//	public void setStates(List<StateEntity> states) {
+//		this.states = states;
+//	}
 
 	@Override
 	public int hashCode() {

@@ -6,11 +6,11 @@ import com.cairone.olingo.ext.jpa.annotations.EdmEntity;
 import com.cairone.olingo.ext.jpa.annotations.EdmEntitySet;
 import com.cairone.olingo.ext.jpa.annotations.EdmNavigationProperty;
 import com.cairone.olingo.ext.jpa.annotations.EdmProperty;
-import com.cairone.olingo.ext.jpa.annotations.ODataJPAEntity;
+import com.cairone.olingo.ext.jpa.annotations.ODataQueryDslEntity;
 
 @EdmEntity(name = "State", key = "Id", namespace = AppDemoConstants.NAME_SPACE, containerName = AppDemoConstants.CONTAINER_NAME)
 @EdmEntitySet("States")
-@ODataJPAEntity(entity=StateEntity.class)
+@ODataQueryDslEntity(jpaentity=StateEntity.class, variable="stateEntity")
 public class StateEdm {
 
 	@EdmProperty(name = "Id")

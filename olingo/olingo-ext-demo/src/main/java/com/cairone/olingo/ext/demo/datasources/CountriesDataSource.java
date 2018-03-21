@@ -21,8 +21,8 @@ import com.cairone.olingo.ext.demo.exceptions.ODataBadRequestException;
 import com.cairone.olingo.ext.demo.services.CountryService;
 import com.cairone.olingo.ext.demo.utils.OdataExceptionParser;
 import com.cairone.olingo.ext.demo.utils.ValidatorUtil;
-import com.cairone.olingo.ext.jpa.query.JPQLQuery;
-import com.cairone.olingo.ext.jpa.query.JPQLQueryBuilder;
+import com.cairone.olingo.ext.jpa.query.QuerydslQuery;
+import com.cairone.olingo.ext.jpa.query.QuerydslQueryBuilder;
 
 @Component
 public class CountriesDataSource extends AbstractDataSource {
@@ -126,22 +126,17 @@ public class CountriesDataSource extends AbstractDataSource {
 	@Override
 	public Iterable<?> readAll(ExpandOption expandOption, FilterOption filterOption, OrderByOption orderByOption, Object parentEntity) throws ODataApplicationException {
 
-		JPQLQuery query = new JPQLQueryBuilder()
-			.setDistinct(true)
+		QuerydslQuery query = new QuerydslQueryBuilder()
 			.setClazz(CountryEdm.class)
-			.setExpandOption(expandOption)
 			.setFilterOption(filterOption)
 			.setOrderByOption(orderByOption)
 			.build();
 	
-		LOG.debug("JPQLQuery: {}", query);
+		LOG.debug("QuerydslQuery: {}", query);
 		
-		List<CountryEntity> countryEntities = JPQLQuery.execute(entityManager, query);
+		List<CountryEntity> countryEntities = QuerydslQuery.execute(countryService.getCountryRepository(), query);
 		List<CountryEdm> countryEdms = countryEntities.stream()
-			.map(entity -> { 
-				CountryEdm countryEdm = new CountryEdm(entity);
-				return countryEdm;
-			})
+			.map(entity -> new CountryEdm(entity))
 			.collect(Collectors.toList());
 		
 		return countryEdms;

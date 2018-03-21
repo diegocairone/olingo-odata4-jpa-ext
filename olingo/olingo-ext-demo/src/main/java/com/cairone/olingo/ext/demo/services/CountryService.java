@@ -14,6 +14,10 @@ public class CountryService {
 
 	@Autowired private CountryRepository countryRepository = null;
 
+	public CountryRepository getCountryRepository() {
+		return countryRepository;
+	}
+
 	@Transactional(readOnly=true)
 	public CountryEntity findOne(Integer id) throws ServiceException {
 		
