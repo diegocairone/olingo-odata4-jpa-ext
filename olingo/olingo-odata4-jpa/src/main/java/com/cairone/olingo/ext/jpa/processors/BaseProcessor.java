@@ -162,6 +162,8 @@ public class BaseProcessor implements Processor {
     		.collect(Collectors.toMap(x -> x, x -> x));
     	
     	Map<String, EdmNavigationProperty> edmNavigationPropertyMap = new HashMap<String, EdmNavigationProperty>();
+    	
+    	// *** Nested expand = EntitySet(KEY)?$expand=NavPropertyA($expand=NavPropertyB)
     	Map<String, ExpandOption> nestedExpandOptionMap = new HashMap<String, ExpandOption>();
     	
     	if(expandOption != null && !expandOption.getExpandItems().isEmpty()) {
