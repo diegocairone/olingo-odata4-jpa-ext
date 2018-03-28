@@ -8,10 +8,12 @@ import com.cairone.olingo.ext.demo.dtos.PersonFrmDto;
 import com.cairone.olingo.ext.demo.entities.FormEntity;
 import com.cairone.olingo.ext.demo.entities.PersonEntity;
 import com.cairone.olingo.ext.demo.entities.RegionEntity;
+import com.cairone.olingo.ext.demo.entities.StateEntity;
 import com.cairone.olingo.ext.demo.exceptions.ServiceException;
 import com.cairone.olingo.ext.demo.repositories.FormRepository;
 import com.cairone.olingo.ext.demo.repositories.PersonRepository;
 import com.cairone.olingo.ext.demo.repositories.RegionRepository;
+import com.cairone.olingo.ext.demo.repositories.StateRepository;
 
 @Service
 public class PersonService {
@@ -19,6 +21,7 @@ public class PersonService {
 	@Autowired private FormRepository formRepository = null;
 	@Autowired private PersonRepository personRepository = null;
 	@Autowired private RegionRepository regionRepository = null;
+	@Autowired private StateRepository stateRepository = null;
 	
 	@Transactional(readOnly=true)
 	public PersonEntity findOne(Integer id) throws ServiceException {
@@ -52,8 +55,16 @@ public class PersonService {
 					String.format("COULD NOT BE FOUND A FORM ENTITY WITH ID %s", formId));
 		}
 		
+		Integer stateId = personFrmDto.getStateId();
+		StateEntity stateEntity = stateId == null ? null : stateRepository.findOne(stateId);
+		
+		if(stateId != null && stateEntity == null) {
+			throw new ServiceException(ServiceException.NOT_FOUND, 
+					String.format("COULD NOT BE FOUND A STATE ENTITY WITH ID %s", stateId));
+		}
+		
 		PersonEntity personEntity = 
-				new PersonEntity(personFrmDto.getId(), personFrmDto.getName(), personFrmDto.getSurname(), personFrmDto.getGender(), regionEntity, formEntity, personFrmDto.getAddressStreet(), personFrmDto.getAddressNumber());
+				new PersonEntity(personFrmDto.getId(), personFrmDto.getName(), personFrmDto.getSurname(), personFrmDto.getGender(), regionEntity, formEntity, personFrmDto.getAddressStreet(), personFrmDto.getAddressNumber(), stateEntity);
 		
 		personRepository.save(personEntity);
 		

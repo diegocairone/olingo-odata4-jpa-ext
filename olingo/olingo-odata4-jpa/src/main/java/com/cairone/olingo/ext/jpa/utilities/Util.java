@@ -3,6 +3,7 @@ package com.cairone.olingo.ext.jpa.utilities;
 import java.lang.reflect.Field;
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -241,21 +242,29 @@ public class Util {
 		}
 		return formatedPropertyName;
 	}
-
+	
 	public static String inferEdmType(Field field) {
+		return inferEdmType(field.getType());
+	}
+
+	public static String inferEdmType(Class<?> type) {
 		
-		if(field.getType().isAssignableFrom(Integer.class)) {
+		if(type.isAssignableFrom(Short.class)) {
+			return "Edm.Int16";
+		} else if(type.isAssignableFrom(Integer.class)) {
 			return "Edm.Int32";
-		} else if (field.getType().isAssignableFrom(Long.class)) {
+		} else if (type.isAssignableFrom(Long.class)) {
 			return "Edm.Int64";
-		} else if (field.getType().isAssignableFrom(LocalDate.class)) {
+		} else if (type.isAssignableFrom(LocalDate.class)) {
 			return "Edm.Date";
-		} else if (field.getType().isAssignableFrom(Boolean.class)) {
+		} else if (type.isAssignableFrom(LocalDateTime.class)) {
+			return "Edm.DateTimeOffset";
+		} else if (type.isAssignableFrom(Boolean.class)) {
 			return "Edm.Boolean";
-		} else if (field.getType().isAssignableFrom(BigDecimal.class)) {
+		} else if (type.isAssignableFrom(BigDecimal.class)) {
 			return "Edm.Decimal";
 		} else {
-			Class<?> enumClazz = field.getType();
+			Class<?> enumClazz = type;
 			EdmEnum edmEnum = enumClazz.getAnnotation(EdmEnum.class);
 			if(edmEnum != null) {
 				String namespace = edmEnum.namespace();

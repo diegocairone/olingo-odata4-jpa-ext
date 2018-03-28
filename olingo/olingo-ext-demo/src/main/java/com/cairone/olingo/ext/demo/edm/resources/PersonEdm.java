@@ -66,6 +66,7 @@ public class PersonEdm {
 			this.address = new PersonAddressEdm();
 			if(personEntity.getAddressStreet() != null) this.address.setName(personEntity.getAddressStreet());
 			if(personEntity.getAddressNumber() != null) this.address.setNumber(personEntity.getAddressNumber());
+			if(personEntity.getState() != null) this.address.setState(new StateEdm(personEntity.getState()));
 		}
 	}
 

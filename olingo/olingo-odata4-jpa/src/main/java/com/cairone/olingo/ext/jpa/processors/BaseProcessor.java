@@ -22,9 +22,11 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.GregorianCalendar;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -50,6 +52,7 @@ import org.apache.olingo.server.api.processor.Processor;
 import org.apache.olingo.server.api.uri.UriParameter;
 import org.apache.olingo.server.api.uri.UriResource;
 import org.apache.olingo.server.api.uri.UriResourceEntitySet;
+import org.apache.olingo.server.api.uri.UriResourceKind;
 import org.apache.olingo.server.api.uri.UriResourceNavigation;
 import org.apache.olingo.server.api.uri.queryoption.ExpandOption;
 import org.slf4j.Logger;
@@ -134,8 +137,256 @@ public class BaseProcessor implements Processor {
 	protected Entity writeEntity(Object object) throws IllegalArgumentException, IllegalAccessException, NoSuchMethodException, SecurityException, InvocationTargetException, ODataApplicationException {
 		return writeEntity(object, null);
 	}
+	
+	/**
+	 * This method takes an object to extract data and create an entity defined in schema
+	 * 
+	 * @param edmObject An instance of a class annotated with <code>@EdmEntity</code> or <code>@EdmComplex</code>
+	 * @param expandOption
+	 * @return
+	 * @throws ODataApplicationException
+	 */
+	protected Entity writeEntity(Object edmObject, ExpandOption expandOption) throws IllegalArgumentException, IllegalAccessException, NoSuchMethodException, SecurityException, InvocationTargetException, ODataApplicationException {
 
-	protected Entity writeEntity(Object object, ExpandOption expandOption) throws IllegalArgumentException, IllegalAccessException, NoSuchMethodException, SecurityException, InvocationTargetException, ODataApplicationException {
+		if(edmObject == null) {
+			throw new ODataApplicationException("Object can not be null", HttpStatusCode.INTERNAL_SERVER_ERROR.getStatusCode(), Locale.ENGLISH);
+		}
+		
+		Entity entity = new Entity();
+		Class<?> edmEntityClazz = edmObject.getClass();
+
+		com.cairone.olingo.ext.jpa.annotations.EdmEntitySet edmEntitySet = edmEntityClazz.getAnnotation(com.cairone.olingo.ext.jpa.annotations.EdmEntitySet.class);
+		com.cairone.olingo.ext.jpa.annotations.EdmEntity edmEntity = edmEntityClazz.getAnnotation(com.cairone.olingo.ext.jpa.annotations.EdmEntity.class);
+		com.cairone.olingo.ext.jpa.annotations.EdmComplex edmComplex = edmEntityClazz.getAnnotation(com.cairone.olingo.ext.jpa.annotations.EdmComplex.class);
+
+		if(edmEntity == null && edmComplex == null) {
+			throw new ODataApplicationException(String.format("Class %s is missing @EdmEntity or @EdmComplex annotation", edmEntityClazz.getName()), HttpStatusCode.INTERNAL_SERVER_ERROR.getStatusCode(), Locale.ENGLISH);
+		}
+		
+		if(edmEntity != null && edmEntitySet == null) {
+			throw new ODataApplicationException(String.format("Class %s is missing @EdmEntitySet annotation", edmEntityClazz.getName()), HttpStatusCode.INTERNAL_SERVER_ERROR.getStatusCode(), Locale.ENGLISH);
+		} else if(edmEntity != null && edmEntity.name().trim().isEmpty()) {
+			throw new ODataApplicationException(String.format("@EdmEntity annotation in class %s is not setting name attribute", edmEntityClazz.getName()), HttpStatusCode.INTERNAL_SERVER_ERROR.getStatusCode(), Locale.ENGLISH);
+		} else if(edmEntitySet != null && edmEntitySet.value().trim().isEmpty()) {
+			throw new ODataApplicationException(String.format("@EdmEntitySet annotation in class %s is not specifying entityset name", edmEntityClazz.getName()), HttpStatusCode.INTERNAL_SERVER_ERROR.getStatusCode(), Locale.ENGLISH);
+		}
+		
+		String title = edmEntity != null ? edmEntity.name() : edmComplex.name();
+		LOG.debug("Writting Odata entity object for: {} [{}]", title, edmEntityClazz.getName());
+		
+		Field[] edmEntityFields = Util.getFields(edmEntityClazz);
+		LOG.debug("{} fields found in {}", edmEntityFields.length, edmEntityClazz);
+		
+		for(Field edmEntityField : edmEntityFields) {
+			
+			LOG.debug("PROCESSING {} FIELD OF TYPE {}", edmEntityField.getName(), edmEntityField.getType());
+			
+			if (edmEntityField.isAnnotationPresent(com.cairone.olingo.ext.jpa.annotations.EdmProperty.class)) {
+				Property property = writeEntityProperty(edmEntityField, edmObject, expandOption);
+				entity.addProperty(property);
+				LOG.debug("PROPERTY {} ADDED INTO {} ENTITY", property, title);
+			} else if(edmEntityField.isAnnotationPresent(com.cairone.olingo.ext.jpa.annotations.EdmNavigationProperty.class)) {
+				Link link = writeEntityLink(edmEntityField, edmObject, expandOption);
+				if(link != null) {
+					entity.getNavigationLinks().add(link);
+					LOG.debug("NAVIGATION PROPERTY {} ADDED INTO {} ENTITY", link, title);
+				}
+			}
+		}
+		
+		// entity is not a complex entity; should have a key array
+		if(edmEntity != null) {
+			String[] keys = edmEntity.key();
+			if(keys.length == 0) {
+				throw new ODataApplicationException(String.format("Key attribute for EdmEntity annotation in %s is empty", edmEntityClazz.getName()), HttpStatusCode.INTERNAL_SERVER_ERROR.getStatusCode(), Locale.ENGLISH);
+			}
+			Set<String> keySet = new HashSet<>(Arrays.asList(keys));
+			Map<String, Object> keyValues = entity.getProperties().stream()
+				.filter(e -> keySet.contains(e.getName()))
+				.collect(Collectors.toMap(Property::getName, Property::getValue));
+			String entityID = Util.formatEntityID(keyValues);
+			try {
+				if(entityID != null) entity.setId(new URI(edmEntitySet.value() + entityID));
+			} catch (URISyntaxException e) {
+				throw new ODataApplicationException(e.getMessage(), HttpStatusCode.INTERNAL_SERVER_ERROR.getStatusCode(), Locale.ENGLISH);
+			}
+			entity.setType(String.format("%s.%s", edmEntity.namespace(), edmEntity.name()));
+		}
+		
+		if(edmComplex != null) {
+			entity.setType(String.format("%s.%s", edmComplex.namespace(), edmComplex.name()));
+		}
+		
+		return entity;
+	}
+	
+	protected Link writeEntityLink(Field field, Object edmObject, ExpandOption expandOption) throws IllegalArgumentException, IllegalAccessException, NoSuchMethodException, SecurityException, InvocationTargetException, ODataApplicationException {
+		
+		if(expandOption == null || expandOption.getExpandItems().isEmpty()) {
+			return null;
+		}
+		
+		com.cairone.olingo.ext.jpa.annotations.EdmNavigationProperty edmNavPropertyAnn = field.getAnnotation(com.cairone.olingo.ext.jpa.annotations.EdmNavigationProperty.class);
+		
+		final String linkName = edmNavPropertyAnn.name().trim().isEmpty()
+				? Util.applyNamingConvention(edmNavPropertyAnn, field.getName())
+				: edmNavPropertyAnn.name();
+		LOG.debug("Determining if navigation property named {} should be expanded", linkName);
+		
+		final List<Entity> entities = new ArrayList<>();
+		final boolean isCollection = Collection.class.isAssignableFrom(field.getType());
+		
+		Optional<List<Entity>> optionalEntity = expandOption.getExpandItems().stream()
+    		.filter(expandItem -> {
+    			boolean isIt = expandItem.getResourcePath().getUriResourceParts().stream()
+    				.anyMatch(uriResource -> {
+    					return uriResource.getKind().equals(UriResourceKind.navigationProperty) &&
+    						uriResource.getSegmentValue().equals(linkName);
+    				});
+    			return isIt;
+    		})
+    		.findFirst()
+    		.map(expandItem -> {
+    			ExpandOption expandNestedOption = expandItem.getExpandOption();
+    			try {
+    				field.setAccessible(true);
+	    			Object expandNestedObject = field.get(edmObject);
+	    			if(expandNestedObject != null) {
+		    			if(isCollection) {
+		    				List<?> list = (List<?>) expandNestedObject;
+		    				for(Object ob : list) {
+		    					Entity expandEntity = writeEntity(ob, expandNestedOption);
+		    					entities.add(expandEntity);
+		    				}
+		    			} else {
+		    				Entity expandEntity = writeEntity(expandNestedObject, expandNestedOption);
+		    				entities.add(expandEntity);
+		    			}
+	    			}
+	    			return entities;
+    			} catch (Exception e) {
+					LOG.error(e.getMessage(), e);
+					return null;
+				}
+    		});
+		
+		if(optionalEntity.isPresent()) {
+
+			Link link = new Link();
+			link.setTitle(linkName);
+			
+			if(isCollection) {
+				EntityCollection data = new EntityCollection();
+				data.getEntities().addAll(entities);
+				link.setInlineEntitySet(data);
+			} else {
+				if(optionalEntity.get().isEmpty()) return null;
+				
+				Entity entity = optionalEntity.get().get(0);
+				link.setInlineEntity(entity);
+				link.setType(entity.getType());
+			}
+			
+			return link;
+		}
+		
+		return null;
+	}
+	
+	protected Property writeEntityProperty(Field field, Object edmObject, ExpandOption expandOption) throws IllegalArgumentException, IllegalAccessException, ODataApplicationException, NoSuchMethodException, SecurityException, InvocationTargetException {
+		
+		field.setAccessible(true);
+		Object value = field.get(edmObject);
+		
+		com.cairone.olingo.ext.jpa.annotations.EdmProperty edmPropertyAnn = field.getAnnotation(com.cairone.olingo.ext.jpa.annotations.EdmProperty.class);
+		String name = edmPropertyAnn.name().isEmpty() ? field.getName() : edmPropertyAnn.name();
+    	if(edmPropertyAnn.name().trim().isEmpty()) {
+			name = Util.applyNamingConvention(edmPropertyAnn, name);
+		}
+    	
+		String type = null;
+		ValueType valueType = null;
+		
+		if(field.getType().isAssignableFrom(Long.class)) {
+			type = "Edm.Int64";
+			valueType = ValueType.PRIMITIVE;
+		} else
+		if(field.getType().isAssignableFrom(Integer.class)) {
+			type = "Edm.Int32";
+			valueType = ValueType.PRIMITIVE;
+		} else
+		if(field.getType().isAssignableFrom(Short.class)) {
+			type = "Edm.Int16";
+			valueType = ValueType.PRIMITIVE;
+		} else
+		if(field.getType().isAssignableFrom(String.class)) {
+			type = "Edm.String";
+			valueType = ValueType.PRIMITIVE;
+		} else
+		if(field.getType().isAssignableFrom(Boolean.class)) {
+			type = "Edm.Boolean";
+			valueType = ValueType.PRIMITIVE;
+		} else 
+		if(field.getType().isAssignableFrom(LocalDate.class)) {
+			type = "Edm.Date";
+			valueType = ValueType.PRIMITIVE;
+			if(value != null) {
+				LocalDate localDateValue = (LocalDate) value;
+				value = GregorianCalendar.from(localDateValue.atStartOfDay(ZoneId.systemDefault()));
+			}
+		} else 
+		if(field.getType().isAssignableFrom(LocalDateTime.class)) {
+			type = "Edm.DateTimeOffset";
+			valueType = ValueType.PRIMITIVE;
+			if(value != null) {
+				LocalDateTime localDateTime = (LocalDateTime) value;
+				value = GregorianCalendar.from(localDateTime.atZone(ZoneId.systemDefault()));
+			}
+		} else 
+		if(field.getType().isAssignableFrom(BigDecimal.class)) {
+			type = "Edm.Decimal";
+			valueType = ValueType.PRIMITIVE;
+		} else
+		if(field.getType().isEnum()) {
+			type = null;
+			valueType = ValueType.ENUM;
+			if(value != null) {
+				OdataEnum<?> odataEnum = (OdataEnum<?>) value;
+				value = odataEnum.getOrdinal();
+			}
+		} else 
+		if(Collection.class.isAssignableFrom(field.getType())) {
+			ParameterizedType parameterizedType = (ParameterizedType) field.getGenericType();
+			Class<?> typeInParameterizedType = (Class<?>) parameterizedType.getActualTypeArguments()[0];
+			type = String.format("Collection(%s)", Util.inferEdmType(typeInParameterizedType));
+			valueType = ValueType.COLLECTION_PRIMITIVE;
+		} else {
+			Class<?> cl = field.getType();
+			if(!cl.isAnnotationPresent(EdmComplex.class)) {
+				throw new ODataApplicationException(
+					String.format("Unrecognized type: %s in field %s [%s]", field.getType(), field.getName(), edmObject.getClass().getName()), 
+					HttpStatusCode.INTERNAL_SERVER_ERROR.getStatusCode(), 
+					Locale.ENGLISH);
+			}
+			EdmComplex edmComplex = cl.getAnnotation(EdmComplex.class);
+			Object complexObject = field.get(edmObject);
+			Entity complexEntity = writeEntity(complexObject, expandOption);
+			ComplexValue complexValue = new ComplexValue();
+			List<Property> properties = complexValue.getValue();
+			complexEntity.getProperties().forEach(prop -> {
+				properties.add(prop);
+			});
+			type = String.format("%s.%s", edmComplex.namespace(), edmComplex.name());
+			valueType = ValueType.COMPLEX;
+			value = complexValue;
+		}
+		
+		Property property = new Property(type, name, valueType, value);
+		return property;
+	}
+
+	@Deprecated
+	protected Entity writeEntityDeprecated(Object object, ExpandOption expandOption) throws IllegalArgumentException, IllegalAccessException, NoSuchMethodException, SecurityException, InvocationTargetException, ODataApplicationException {
 		
 		if(object == null) return null;
 		
@@ -177,7 +428,12 @@ public class BaseProcessor implements Processor {
     				if(expandItem.getExpandOption() != null && !expandItem.getExpandOption().getExpandItems().isEmpty()) {
     					nestedExpandOptionMap.put(edmNavigationProperty.getName(), expandItem.getExpandOption());
     				}
-    			}
+    			} 
+//    			else if(uriResource instanceof UriResourceComplexProperty) {
+//    				UriResourceComplexProperty uriResourceComplexProperty = (UriResourceComplexProperty) uriResource;
+//    				EdmProperty edmProperty = uriResourceComplexProperty.getProperty();
+//    				LOG.debug("EDM COMPLEX PROPERTY: {}", edmProperty);
+//    			}
     		});
     	}
 		
@@ -580,7 +836,7 @@ public class BaseProcessor implements Processor {
 	    				navLink.setInlineEntity(targetEntity);
 				    	
 				    	
-	    			} catch (ODataException | IllegalArgumentException | IllegalAccessException | NoSuchMethodException | SecurityException | InvocationTargetException e) {
+	    			} catch (ODataException | IllegalArgumentException | SecurityException | IllegalAccessException | NoSuchMethodException | InvocationTargetException e) {
 	    				throw new ODataApplicationException(e.getMessage(), HttpStatusCode.INTERNAL_SERVER_ERROR.getStatusCode(), Locale.ENGLISH);
 	    			}
 			    	
@@ -623,7 +879,7 @@ public class BaseProcessor implements Processor {
 		    				Entity targetEntity = writeEntity(targetObject, null);
 		    				entityCollection.getEntities().add(targetEntity);
 				    				
-		    			} catch (ODataException | IllegalArgumentException | IllegalAccessException | NoSuchMethodException | SecurityException | InvocationTargetException e) {
+		    			} catch (ODataException | IllegalArgumentException | SecurityException | IllegalAccessException | NoSuchMethodException | InvocationTargetException e) {
 		    				throw new ODataApplicationException(e.getMessage(), HttpStatusCode.INTERNAL_SERVER_ERROR.getStatusCode(), Locale.ENGLISH);
 		    			}
 			    	}
@@ -694,7 +950,7 @@ public class BaseProcessor implements Processor {
 				    			
 				    		}
 				    			
-		    			} catch (ODataException | IllegalArgumentException | IllegalAccessException | NoSuchMethodException | SecurityException | InvocationTargetException e) {
+		    			} catch (ODataException | IllegalArgumentException | SecurityException | IllegalAccessException | NoSuchMethodException | InvocationTargetException e) {
 		    				throw new ODataApplicationException(e.getMessage(), HttpStatusCode.INTERNAL_SERVER_ERROR.getStatusCode(), Locale.ENGLISH);
 		    			}
 			    	}
@@ -724,7 +980,7 @@ public class BaseProcessor implements Processor {
 			    				navLink.setInlineEntity(targetEntity);
 				    	}
 				    	
-	    			} catch (ODataException | IllegalArgumentException | IllegalAccessException | NoSuchMethodException | SecurityException | InvocationTargetException e) {
+	    			} catch (ODataException | IllegalArgumentException | SecurityException | IllegalAccessException | NoSuchMethodException | InvocationTargetException e) {
 	    				throw new ODataApplicationException(e.getMessage(), HttpStatusCode.INTERNAL_SERVER_ERROR.getStatusCode(), Locale.ENGLISH);
 	    			}
 			    }

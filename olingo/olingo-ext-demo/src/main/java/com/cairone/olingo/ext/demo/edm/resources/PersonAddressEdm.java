@@ -2,6 +2,7 @@ package com.cairone.olingo.ext.demo.edm.resources;
 
 import com.cairone.olingo.ext.demo.AppDemoConstants;
 import com.cairone.olingo.ext.jpa.annotations.EdmComplex;
+import com.cairone.olingo.ext.jpa.annotations.EdmNavigationProperty;
 import com.cairone.olingo.ext.jpa.annotations.EdmProperty;
 import com.cairone.olingo.ext.jpa.annotations.ODataQueryDslProperty;
 
@@ -14,12 +15,16 @@ public class PersonAddressEdm {
 	@EdmProperty(name = "Number") @ODataQueryDslProperty("addressNumber")
 	private String number = null;
 	
+	@EdmNavigationProperty(name = "State") @ODataQueryDslProperty("state")
+	private StateEdm state = null;
+	
 	public PersonAddressEdm() {}
 
-	public PersonAddressEdm(String name, String number) {
+	public PersonAddressEdm(String name, String number, StateEdm state) {
 		super();
 		this.name = name;
 		this.number = number;
+		this.state = state;
 	}
 
 	public String getName() {
@@ -36,6 +41,14 @@ public class PersonAddressEdm {
 
 	public void setNumber(String number) {
 		this.number = number;
+	}
+
+	public StateEdm getState() {
+		return state;
+	}
+
+	public void setState(StateEdm state) {
+		this.state = state;
 	}
 
 	@Override

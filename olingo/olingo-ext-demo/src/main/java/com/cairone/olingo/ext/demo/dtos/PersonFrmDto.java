@@ -13,11 +13,12 @@ public class PersonFrmDto {
 	private RegionEnum region = null;
 	private String addressStreet = null;
 	private String addressNumber = null;
+	private Integer stateId = null;
 	private String formId = null;
 	
 	public PersonFrmDto() {}
 
-	public PersonFrmDto(Integer id, String name, String surname, GenderEnum gender, RegionEnum region, String formId, String addressStreet, String addressNumber) {
+	public PersonFrmDto(Integer id, String name, String surname, GenderEnum gender, RegionEnum region, String formId, String addressStreet, String addressNumber, Integer stateId) {
 		super();
 		this.id = id;
 		this.name = name == null ? null : name.trim().toUpperCase();
@@ -27,6 +28,7 @@ public class PersonFrmDto {
 		this.formId = formId == null ? null : formId.trim().toUpperCase();
 		this.addressStreet = addressStreet;
 		this.addressNumber = addressNumber;
+		this.stateId = stateId;
 	}
 
 	public PersonFrmDto(PersonEdm personEdm) {
@@ -38,7 +40,8 @@ public class PersonFrmDto {
 			personEdm.getRegion(), 
 			personEdm.getForm() == null ? null : personEdm.getForm().getId(),
 			personEdm.getAddress() == null ? null : personEdm.getAddress().getName() == null || personEdm.getAddress().getName().trim().isEmpty() ? null : personEdm.getAddress().getName().trim().toUpperCase(),
-			personEdm.getAddress() == null ? null : personEdm.getAddress().getNumber() == null || personEdm.getAddress().getNumber().trim().isEmpty() ? null : personEdm.getAddress().getNumber().trim().toUpperCase());
+			personEdm.getAddress() == null ? null : personEdm.getAddress().getNumber() == null || personEdm.getAddress().getNumber().trim().isEmpty() ? null : personEdm.getAddress().getNumber().trim().toUpperCase(),
+			personEdm.getAddress() == null ? null : personEdm.getAddress().getState() == null ? null : personEdm.getAddress().getState().getId());
 	}
 	
 	public Integer getId() {
@@ -103,6 +106,14 @@ public class PersonFrmDto {
 
 	public void setAddressNumber(String addressNumber) {
 		this.addressNumber = addressNumber == null ? null : addressNumber.trim().toUpperCase();
+	}
+
+	public Integer getStateId() {
+		return stateId;
+	}
+
+	public void setStateId(Integer stateId) {
+		this.stateId = stateId;
 	}
 	
 }

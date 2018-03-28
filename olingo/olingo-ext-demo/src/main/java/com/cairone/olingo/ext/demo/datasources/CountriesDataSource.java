@@ -6,6 +6,7 @@ import java.util.stream.Collectors;
 
 import org.apache.olingo.server.api.ODataApplicationException;
 import org.apache.olingo.server.api.uri.UriParameter;
+import org.apache.olingo.server.api.uri.UriResourceKind;
 import org.apache.olingo.server.api.uri.queryoption.ExpandOption;
 import org.apache.olingo.server.api.uri.queryoption.FilterOption;
 import org.apache.olingo.server.api.uri.queryoption.OrderByOption;
@@ -16,9 +17,12 @@ import org.springframework.stereotype.Component;
 import com.cairone.olingo.ext.demo.dtos.CountryFrmDto;
 import com.cairone.olingo.ext.demo.dtos.validators.CountryFrmDtoValidator;
 import com.cairone.olingo.ext.demo.edm.resources.CountryEdm;
+import com.cairone.olingo.ext.demo.edm.resources.StateEdm;
 import com.cairone.olingo.ext.demo.entities.CountryEntity;
 import com.cairone.olingo.ext.demo.exceptions.ODataBadRequestException;
+import com.cairone.olingo.ext.demo.exceptions.ServiceException;
 import com.cairone.olingo.ext.demo.services.CountryService;
+import com.cairone.olingo.ext.demo.services.StateService;
 import com.cairone.olingo.ext.demo.utils.OdataExceptionParser;
 import com.cairone.olingo.ext.demo.utils.ValidatorUtil;
 import com.cairone.olingo.ext.jpa.query.QuerydslQuery;
@@ -30,6 +34,7 @@ public class CountriesDataSource extends AbstractDataSource {
 	private static final String ENTITY_SET_NAME = "Countries";
 
 	@Autowired private CountryService countryService = null;
+	@Autowired private StateService stateService = null;
 	@Autowired private CountryFrmDtoValidator countryFrmDtoValidator = null;
 	
 	@Override
@@ -116,6 +121,29 @@ public class CountriesDataSource extends AbstractDataSource {
 		try {
 			CountryEntity countryEntity = countryService.findOne(countryID);
 			CountryEdm countryEdm = new CountryEdm(countryEntity);
+			
+			if(expandOption != null) {
+				expandOption.getExpandItems().stream()
+					.filter(expandItem -> {
+						boolean isIt = expandItem.getResourcePath().getUriResourceParts().stream()
+	        				.anyMatch(uriResource -> {
+	        					return uriResource.getKind().equals(UriResourceKind.navigationProperty) &&
+	        						"States".equals(uriResource.getSegmentValue());
+	        				});
+	        			return isIt;
+	        		})
+	        		.findFirst()
+	        		.ifPresent(expandItem -> {
+	        			try {
+							List<StateEdm> stateEdms = stateService.findByCountry(countryEntity).stream()
+								.map(entity -> new StateEdm(entity))
+								.collect(Collectors.toList());
+							countryEdm.setStates(stateEdms);
+						} catch (ServiceException e) {
+							LOG.error(e.getMessage(), e);
+						}
+	        		});
+			}
 			
 			return countryEdm;
 		} catch (Exception e) {

@@ -1,15 +1,19 @@
 package com.cairone.olingo.ext.demo.services;
 
+import java.util.List;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.cairone.olingo.ext.demo.dtos.StateFrmDto;
 import com.cairone.olingo.ext.demo.entities.CountryEntity;
+import com.cairone.olingo.ext.demo.entities.QStateEntity;
 import com.cairone.olingo.ext.demo.entities.StateEntity;
 import com.cairone.olingo.ext.demo.exceptions.ServiceException;
 import com.cairone.olingo.ext.demo.repositories.CountryRepository;
 import com.cairone.olingo.ext.demo.repositories.StateRepository;
+import com.mysema.query.types.expr.BooleanExpression;
 
 @Service
 public class StateService {
@@ -32,6 +36,13 @@ public class StateService {
 		}
 		
 		return stateEntity;
+	}
+	
+	@Transactional(readOnly=true)
+	public List<StateEntity> findByCountry(CountryEntity countryEntity) throws ServiceException {
+		QStateEntity q = QStateEntity.stateEntity;
+		BooleanExpression exp = q.country.eq(countryEntity);
+		return (List<StateEntity>) stateRepository.findAll(exp);
 	}
 
 	@Transactional
