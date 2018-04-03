@@ -714,12 +714,16 @@ public class BaseProcessor implements Processor {
 	
 	protected Object convertEdmType(String edmType, String value) {
 		
+		if(value == null || value.trim().isEmpty()) {
+			return null;
+		}
+		
 		if(edmType.equals("Edm.Int32")) {
 			return Integer.parseInt(value);
 		} else if(edmType.equals("Edm.Int64")) {
 			return Long.parseLong(value);
 		} else if(edmType.equals("Edm.Date") && value.matches(REGEX_DATE_FORMAT)) {
-			DateTimeFormatter formatter = DateTimeFormatter.ofPattern(REGEX_DATE_FORMAT);
+			DateTimeFormatter formatter = DateTimeFormatter.ISO_DATE;
 			LocalDate date = LocalDate.parse(value, formatter);
 			return date;
 		} else if(edmType.equals("Edm.Decimal")) {

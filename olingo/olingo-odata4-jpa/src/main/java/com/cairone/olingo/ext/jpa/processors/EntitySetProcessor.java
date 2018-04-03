@@ -878,6 +878,9 @@ public class EntitySetProcessor extends BaseProcessor implements EntityProcessor
 			if(edmParameter != null) {
 				
 				String parameterName = edmParameter.name().isEmpty() ? fld.getName() : edmParameter.name();
+				if(edmParameter.name().trim().isEmpty()) {
+					parameterName = Util.applyNamingConvention(edmParameter, parameterName);
+				}
 				UriParameter parameter = functionParameters.get(parameterName);
 				
 				if(fld.getType().isEnum()) {

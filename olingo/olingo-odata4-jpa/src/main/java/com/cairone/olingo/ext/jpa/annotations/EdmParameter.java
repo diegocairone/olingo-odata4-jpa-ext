@@ -18,6 +18,8 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
+import com.cairone.olingo.ext.jpa.enums.NamingConvention;
+
 
 /**
  * Indicates that the field represents a Function or Action parameter.
@@ -41,6 +43,9 @@ public @interface EdmParameter {
      */
     String name() default "";
 
+    NamingConvention fieldConvention() default NamingConvention.LOWER_CAMEL;
+    NamingConvention propertyConvention() default NamingConvention.UPPER_CAMEL;
+    
     /**
      * The fully-qualified or alias-qualified name of the OData type of this parameter.
      * <p>

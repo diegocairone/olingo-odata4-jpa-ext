@@ -705,7 +705,10 @@ public class EdmProvider extends CsdlAbstractEdmProvider {
 			EdmParameter parameter = fld.getAnnotation(EdmParameter.class);
 			if(parameter != null) {
 				
-				String parameterName = parameter.name().isEmpty() ? fld.getName() : parameter.name();
+				String parameterName = parameter.name().trim().isEmpty() ? fld.getName() : parameter.name();
+				if(parameter.name().trim().isEmpty()) {
+					parameterName = Util.applyNamingConvention(parameter, parameterName);
+				}
 				FullQualifiedName parameterType = null;
 				boolean fieldIsCollection = false;
 
@@ -851,7 +854,10 @@ public class EdmProvider extends CsdlAbstractEdmProvider {
 			EdmParameter parameter = fld.getAnnotation(EdmParameter.class);
 			if(parameter != null) {
 				
-				String parameterName = parameter.name().isEmpty() ? fld.getName() : parameter.name();
+				String parameterName = parameter.name().trim().isEmpty() ? fld.getName() : parameter.name();
+				if(parameter.name().trim().isEmpty()) {
+					parameterName = Util.applyNamingConvention(parameter, parameterName);
+				}
 				FullQualifiedName parameterType = null;
 
 				if(parameter.type().isEmpty()) {					
