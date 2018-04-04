@@ -12,6 +12,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import org.apache.olingo.commons.api.data.ComplexValue;
 import org.apache.olingo.commons.api.data.ContextURL;
@@ -1036,8 +1037,23 @@ public class EntitySetProcessor extends BaseProcessor implements EntityProcessor
 		EntityCollection entityCollection = new EntityCollection();
 		List<Entity> result = entityCollection.getEntities();
 
-		final String id = request.getRawBaseUri() + "/" + edmEntitySet.getName();
-		String nextLink = id + "?$count=true&$skip=";
+		final String id = request.getRawBaseUri() + request.getRawODataPath();
+		final Map<String, String> queryParams = new HashMap<>();
+
+		if(request.getRawQueryPath() != null) {
+			Stream.of(request.getRawQueryPath().split("&")).forEach(param -> {
+				String[] pair = param.split("=");
+				String key = pair[0];
+				String value = pair[1];
+				queryParams.put(key, value);
+			});
+		}
+		
+		if(!queryParams.containsKey("$count") && !queryParams.containsKey("%24count")) {
+			queryParams.put("$count", "true");
+		}
+		queryParams.remove("$skip");
+		queryParams.remove("%24skip");
 		
 		Iterable<?> data = dataSource.readAll(expandOption, filterOption, orderByOption, null);
 		
@@ -1045,9 +1061,18 @@ public class EntitySetProcessor extends BaseProcessor implements EntityProcessor
 		
 		if(skipOption != null) {
 			data = Iterables.skip(data, skipOption.getValue());
-			nextLink += (skipOption.getValue() + maxTopOption);
+			queryParams.put("$skip", String.valueOf(skipOption.getValue() + maxTopOption));
 		} else {
-			nextLink += maxTopOption;
+			queryParams.put("$skip", String.valueOf(maxTopOption));
+		}
+
+		final List<String> pairs = new ArrayList<>();
+		queryParams.entrySet().forEach(entry -> {
+			pairs.add(String.format("%s=%s", entry.getKey(), entry.getValue()));
+		});
+		String nextLink = pairs.stream().collect(Collectors.joining("&"));
+		if(nextLink != null && !nextLink.isEmpty()) {
+			nextLink = id + "?" + nextLink;
 		}
 		
 		if(topOption != null) {
