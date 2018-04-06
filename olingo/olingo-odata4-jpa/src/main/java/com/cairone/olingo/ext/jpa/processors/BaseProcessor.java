@@ -50,10 +50,8 @@ import org.apache.olingo.server.api.ServiceMetadata;
 import org.apache.olingo.server.api.deserializer.DeserializerException;
 import org.apache.olingo.server.api.processor.Processor;
 import org.apache.olingo.server.api.uri.UriParameter;
-import org.apache.olingo.server.api.uri.UriResource;
 import org.apache.olingo.server.api.uri.UriResourceEntitySet;
 import org.apache.olingo.server.api.uri.UriResourceKind;
-import org.apache.olingo.server.api.uri.UriResourceNavigation;
 import org.apache.olingo.server.api.uri.queryoption.ExpandOption;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -146,7 +144,7 @@ public class BaseProcessor implements Processor {
 	 * @return
 	 * @throws ODataApplicationException
 	 */
-	protected Entity writeEntity(Object edmObject, ExpandOption expandOption) throws IllegalArgumentException, IllegalAccessException, NoSuchMethodException, SecurityException, InvocationTargetException, ODataApplicationException {
+	protected Entity writeEntity(final Object edmObject, final ExpandOption expandOption) throws IllegalArgumentException, IllegalAccessException, NoSuchMethodException, SecurityException, InvocationTargetException, ODataApplicationException {
 
 		if(edmObject == null) {
 			throw new ODataApplicationException("Object can not be null", HttpStatusCode.INTERNAL_SERVER_ERROR.getStatusCode(), Locale.ENGLISH);
@@ -220,6 +218,40 @@ public class BaseProcessor implements Processor {
 		return entity;
 	}
 	
+	@Deprecated
+	protected Link writeEntityLinkDeprecated(final String linkName, final Field field, final Object edmObject, final ExpandOption nestedExpandOption) throws IllegalArgumentException, IllegalAccessException, NoSuchMethodException, SecurityException, InvocationTargetException, ODataApplicationException {
+		
+		field.setAccessible(true);
+		Object expandNestedObject = field.get(edmObject);
+		
+		if(expandNestedObject == null) {
+			LOG.debug("{} has returned a NULL value", field);
+			return null;
+		}
+
+		final boolean isCollection = Collection.class.isAssignableFrom(field.getType());
+		
+		Link link = new Link();
+		link.setTitle(linkName);
+		
+		if(isCollection) {
+			final List<Entity> entities = new ArrayList<>();
+			List<?> list = (List<?>) expandNestedObject;
+			for(Object ob : list) {
+				Entity expandEntity = writeEntity(ob, nestedExpandOption);
+				entities.add(expandEntity);
+			}
+			EntityCollection data = new EntityCollection();
+			data.getEntities().addAll(entities);
+			link.setInlineEntitySet(data);
+		} else {
+			Entity entity = writeEntity(expandNestedObject, nestedExpandOption);
+			link.setInlineEntity(entity);
+			link.setType(entity.getType());
+		}
+		return link;
+	}
+	
 	protected Link writeEntityLink(Field field, Object edmObject, ExpandOption expandOption) throws IllegalArgumentException, IllegalAccessException, NoSuchMethodException, SecurityException, InvocationTargetException, ODataApplicationException {
 		
 		if(expandOption == null || expandOption.getExpandItems().isEmpty()) {
@@ -236,9 +268,9 @@ public class BaseProcessor implements Processor {
 		final List<Entity> entities = new ArrayList<>();
 		final boolean isCollection = Collection.class.isAssignableFrom(field.getType());
 		
-		Optional<List<Entity>> optionalEntity = expandOption.getExpandItems().stream()
+		Optional<List<Entity>> optionalEntity = expandOption.getExpandItems().parallelStream()
     		.filter(expandItem -> {
-    			boolean isIt = expandItem.getResourcePath().getUriResourceParts().stream()
+    			boolean isIt = expandItem.getResourcePath().getUriResourceParts().parallelStream()
     				.anyMatch(uriResource -> {
     					return uriResource.getKind().equals(UriResourceKind.navigationProperty) &&
     						uriResource.getSegmentValue().equals(linkName);
@@ -293,7 +325,7 @@ public class BaseProcessor implements Processor {
 		return null;
 	}
 	
-	protected Property writeEntityProperty(Field field, Object edmObject, ExpandOption expandOption) throws IllegalArgumentException, IllegalAccessException, ODataApplicationException, NoSuchMethodException, SecurityException, InvocationTargetException {
+	protected Property writeEntityProperty(final Field field, final Object edmObject, final ExpandOption expandOption) throws IllegalArgumentException, IllegalAccessException, ODataApplicationException, NoSuchMethodException, SecurityException, InvocationTargetException {
 		
 		field.setAccessible(true);
 		Object value = field.get(edmObject);
@@ -370,201 +402,21 @@ public class BaseProcessor implements Processor {
 			}
 			EdmComplex edmComplex = cl.getAnnotation(EdmComplex.class);
 			Object complexObject = field.get(edmObject);
-			Entity complexEntity = writeEntity(complexObject, expandOption);
-			ComplexValue complexValue = new ComplexValue();
-			List<Property> properties = complexValue.getValue();
-			complexEntity.getProperties().forEach(prop -> {
-				properties.add(prop);
-			});
+			if(complexObject != null) {
+				Entity complexEntity = writeEntity(complexObject, expandOption);
+				ComplexValue complexValue = new ComplexValue();
+				List<Property> properties = complexValue.getValue();
+				complexEntity.getProperties().forEach(prop -> {
+					properties.add(prop);
+				});
+				value = complexValue;
+			}
 			type = String.format("%s.%s", edmComplex.namespace(), edmComplex.name());
 			valueType = ValueType.COMPLEX;
-			value = complexValue;
 		}
 		
 		Property property = new Property(type, name, valueType, value);
 		return property;
-	}
-
-	@Deprecated
-	protected Entity writeEntityDeprecated(Object object, ExpandOption expandOption) throws IllegalArgumentException, IllegalAccessException, NoSuchMethodException, SecurityException, InvocationTargetException, ODataApplicationException {
-		
-		if(object == null) return null;
-		
-		Entity entity = new Entity();
-		Class<?> clazz = object.getClass();
-		
-		com.cairone.olingo.ext.jpa.annotations.EdmEntitySet edmEntitySet = clazz.getAnnotation(com.cairone.olingo.ext.jpa.annotations.EdmEntitySet.class);
-		com.cairone.olingo.ext.jpa.annotations.EdmEntity edmEntity = clazz.getAnnotation(com.cairone.olingo.ext.jpa.annotations.EdmEntity.class);
-		com.cairone.olingo.ext.jpa.annotations.EdmComplex edmComplex = clazz.getAnnotation(com.cairone.olingo.ext.jpa.annotations.EdmComplex.class);
-		
-		if(edmEntitySet == null && edmComplex == null) {
-			throw new ODataApplicationException(String.format("Class %s is missing @EdmEntitySet annotation", clazz.getName()), HttpStatusCode.INTERNAL_SERVER_ERROR.getStatusCode(), Locale.ENGLISH);
-		}
-		
-		if(edmEntity == null && edmComplex == null) {
-			throw new ODataApplicationException(String.format("Class %s is missing @EdmEntity annotation", clazz.getName()), HttpStatusCode.INTERNAL_SERVER_ERROR.getStatusCode(), Locale.ENGLISH);
-		}
-		
-		String edmEntitySetName = edmEntitySet != null && !edmEntitySet.value().isEmpty() ? edmEntitySet.value() : clazz.getSimpleName();
-		
-		String[] keys = edmEntity == null ? new String[] {} : edmEntity.key();
-    	Map<String, Object> keyValues = Arrays.asList(keys)
-    		.stream()
-    		.collect(Collectors.toMap(x -> x, x -> x));
-    	
-    	Map<String, EdmNavigationProperty> edmNavigationPropertyMap = new HashMap<String, EdmNavigationProperty>();
-    	
-    	// *** Nested expand = EntitySet(KEY)?$expand=NavPropertyA($expand=NavPropertyB)
-    	Map<String, ExpandOption> nestedExpandOptionMap = new HashMap<String, ExpandOption>();
-    	
-    	if(expandOption != null && !expandOption.getExpandItems().isEmpty()) {
-    		expandOption.getExpandItems().forEach(expandItem -> {
-    			UriResource uriResource = expandItem.getResourcePath().getUriResourceParts().get(0);
-    			if(uriResource instanceof UriResourceNavigation) {
-    				EdmNavigationProperty edmNavigationProperty = ((UriResourceNavigation) uriResource).getProperty();
-    				String navPropName = edmNavigationProperty.getName();
-    				edmNavigationPropertyMap.put(navPropName, edmNavigationProperty);
-    				
-    				if(expandItem.getExpandOption() != null && !expandItem.getExpandOption().getExpandItems().isEmpty()) {
-    					nestedExpandOptionMap.put(edmNavigationProperty.getName(), expandItem.getExpandOption());
-    				}
-    			} 
-//    			else if(uriResource instanceof UriResourceComplexProperty) {
-//    				UriResourceComplexProperty uriResourceComplexProperty = (UriResourceComplexProperty) uriResource;
-//    				EdmProperty edmProperty = uriResourceComplexProperty.getProperty();
-//    				LOG.debug("EDM COMPLEX PROPERTY: {}", edmProperty);
-//    			}
-    		});
-    	}
-		
-		for(Field fld : getDeclaredFields(object.getClass())) {
-
-    		com.cairone.olingo.ext.jpa.annotations.EdmProperty edmProperty = fld.getAnnotation(com.cairone.olingo.ext.jpa.annotations.EdmProperty.class);
-			
-            if (edmProperty != null) {
-            	
-            	fld.setAccessible(true);
-            	
-            	String name = edmProperty.name().isEmpty() ? fld.getName() : edmProperty.name();
-            	if(edmProperty.name().trim().isEmpty()) {
-					name = Util.applyNamingConvention(edmProperty, name);
-				}
-            	Object value = fld.get(object);
-            	
-            	if(value != null) {
-            		
-	            	if(value instanceof LocalDate) {
-	            		
-	            		LocalDate localDateValue = (LocalDate) value;
-	            		entity.addProperty(new Property(null, name, ValueType.PRIMITIVE, GregorianCalendar.from(localDateValue.atStartOfDay(ZoneId.systemDefault()))));
-	            	
-	            	} else if(value instanceof LocalDateTime) {
-	            		
-	            		LocalDateTime localDateTime = (LocalDateTime) value;
-	            		entity.addProperty(new Property(null, name, ValueType.PRIMITIVE, GregorianCalendar.from(localDateTime.atZone(ZoneId.systemDefault()))));
-	            		
-	            	} else if(value instanceof BigDecimal) {
-	            		
-	            		BigDecimal bigDecimalValue = (BigDecimal) value;
-	            		entity.addProperty(new Property(null, name, ValueType.PRIMITIVE, bigDecimalValue));
-	            		
-	            	} else if(value.getClass().isEnum()) {
-	            		
-	            		OdataEnum<?> odataEnum = (OdataEnum<?>) value;
-	            		entity.addProperty(new Property(null, name, ValueType.ENUM, odataEnum.getOrdinal()));
-	            		
-	            	} else {
-	            		
-	            		Class<?> cl = fld.getType();
-	    				EdmComplex[] edmComplexArray = cl.getAnnotationsByType(EdmComplex.class);
-	    				boolean isEdmComplex = edmComplexArray.length != 0;
-	    				boolean isCollection = Collection.class.isAssignableFrom(fld.getType());
-	    				
-	    				if(isEdmComplex) {
-	    					Entity complexEntity = writeEntity(value, null);
-	    					ComplexValue complexValue = new ComplexValue();
-	    					List<Property> properties = complexValue.getValue();
-	    					
-	    					complexEntity.getProperties().forEach(prop -> {
-	    						properties.add(prop);
-	    					});
-	    					
-	    					entity.addProperty(new Property(null, name, ValueType.COMPLEX, complexValue));
-	    				} else if(isCollection) {
-	    					entity.addProperty(new Property(null, name, ValueType.COLLECTION_PRIMITIVE, value));
-	    				} else {
-	    					entity.addProperty(new Property(null, name, ValueType.PRIMITIVE, value));
-	    				}
-	            	}
-	            	
-	            	if(keyValues.containsKey(name)) {
-	            		keyValues.put(name, value);
-	            	}
-            	}
-            }
-            
-            com.cairone.olingo.ext.jpa.annotations.EdmNavigationProperty edmNavigationProperty = fld.getAnnotation(com.cairone.olingo.ext.jpa.annotations.EdmNavigationProperty.class);
-			
-            if(edmNavigationProperty != null) {
-            	
-            	String navigationPropertyName = edmNavigationProperty.name().isEmpty() ? fld.getName() : edmNavigationProperty.name();
-            	if(edmNavigationProperty.name().trim().isEmpty()) {
-            		navigationPropertyName = Util.applyNamingConvention(edmNavigationProperty, navigationPropertyName);
-				}
-            	EdmNavigationProperty navigationProperty = edmNavigationPropertyMap.get(navigationPropertyName);
-            	
-            	if(navigationProperty != null) {
-
-            		fld.setAccessible(true);
-            		
-            		Class<?> fieldClass = fld.getType();
-            		Object inlineEntity = fld.get(object);
-
-            		Link link = new Link();
-					link.setTitle(navigationPropertyName);
-					
-    				if(Collection.class.isAssignableFrom(fieldClass)) {
-    					
-    					EntityCollection data = new EntityCollection();
-    					
-    					@SuppressWarnings("unchecked")
-						Collection<Object> objects = (Collection<Object>) inlineEntity;
-
-    					if(objects != null) {
-	    					for(Object item : objects) {
-	    						Entity expandEntity = writeEntity(item, null);
-	    						data.getEntities().add(expandEntity);
-	    					}
-    					}
-    					
-    					link.setInlineEntitySet(data);
-    					
-    				} else {
-    					Entity expandEntity = null;
-    					ExpandOption expandNestedOption = nestedExpandOptionMap.get(edmNavigationProperty.name());
-    					
-    					if(expandNestedOption == null || expandNestedOption.getExpandItems().isEmpty()) {
-    						expandEntity = writeEntity(inlineEntity, null);
-    					} else {
-    						expandEntity = writeEntity(inlineEntity, expandNestedOption);
-    					}
-    					
-    					link.setInlineEntity(expandEntity);
-    				}
-
-					entity.getNavigationLinks().add(link);
-            	}
-            }
-		}
-		
-		String entityID = keyValues.size() == 0 ? null : Util.formatEntityID(keyValues);
-		try {
-			if(entityID != null) entity.setId(new URI(edmEntitySetName + entityID));
-		} catch (URISyntaxException e) {
-			throw new ODataApplicationException(e.getMessage(), HttpStatusCode.INTERNAL_SERVER_ERROR.getStatusCode(), Locale.ENGLISH);
-		}
-				
-		return entity;
 	}
 	
 	protected Object writeObject(Class<?> clazz, Entity entity) throws NoSuchMethodException, SecurityException, InstantiationException, IllegalAccessException, IllegalArgumentException, InvocationTargetException {

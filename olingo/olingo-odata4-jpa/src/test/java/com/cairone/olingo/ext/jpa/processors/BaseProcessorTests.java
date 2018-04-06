@@ -28,7 +28,7 @@ public class BaseProcessorTests {
 
 	public static final Logger LOG = LoggerFactory.getLogger(BaseProcessorTests.class);
 	
-	@Test
+//	@Test
 	public void writeEntityTest() {
 		
 		TargetEdm targetEdm = new TargetEdm(

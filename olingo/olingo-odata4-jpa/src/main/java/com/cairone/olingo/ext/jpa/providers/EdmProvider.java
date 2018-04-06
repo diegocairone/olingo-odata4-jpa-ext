@@ -364,7 +364,10 @@ public class EdmProvider extends CsdlAbstractEdmProvider {
 			EdmNavigationProperty navigationProperty = fld.getAnnotation(EdmNavigationProperty.class);
 			if(navigationProperty != null) {
 				
-				String path = navigationProperty.name();
+				String path = navigationProperty.name().trim().isEmpty() ? fld.getName() : navigationProperty.name();
+				if(navigationProperty.name().trim().isEmpty()) {
+					path = Util.applyNamingConvention(navigationProperty, path);
+				}
 				String target = null;
 				
 				Class<?> fieldClass = fld.getType();
