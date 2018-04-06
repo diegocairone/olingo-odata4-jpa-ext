@@ -2,13 +2,14 @@ package com.cairone.olingo.ext.jpa.utilities;
 
 import java.lang.reflect.Field;
 import java.math.BigDecimal;
+import java.text.SimpleDateFormat;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.GregorianCalendar;
 import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
 import java.util.stream.Collectors;
 
 import com.cairone.olingo.ext.jpa.annotations.EdmEnum;
@@ -387,7 +388,24 @@ public class Util {
 	 */
 	public static String formatEntityID(Map<String, Object> keyValues) {
 		
-		String entityID = keyValues.entrySet().stream().map(Entry::toString).collect(Collectors.joining(",", "(", ")"));
+		String entityID = keyValues.entrySet()
+				.stream()
+				.map(entry -> {
+					String key = entry.getKey();
+					Object value = entry.getValue();
+					
+					if(value instanceof GregorianCalendar) {
+						GregorianCalendar cal = (GregorianCalendar) value;
+						SimpleDateFormat fmt = new SimpleDateFormat("yyyy-MM-dd");
+					    fmt.setCalendar(cal);
+					    String dateFormatted = fmt.format(cal.getTime());
+						return String.format("%s=%s", key, dateFormatted);
+					} else {
+						return String.format("%s=%s", key, value.toString());
+					}
+				})
+				.collect(Collectors.joining(",", "(", ")"));
+		
 		entityID = CharMatcher.is('<').replaceFrom(entityID, "%3C");
 		entityID = CharMatcher.is('>').replaceFrom(entityID, "%3E");
 		entityID = CharMatcher.is(' ').replaceFrom(entityID, "%20");
