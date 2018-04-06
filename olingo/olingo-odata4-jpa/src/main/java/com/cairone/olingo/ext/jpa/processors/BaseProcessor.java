@@ -39,7 +39,6 @@ import org.apache.olingo.commons.api.data.Property;
 import org.apache.olingo.commons.api.data.ValueType;
 import org.apache.olingo.commons.api.edm.EdmBindingTarget;
 import org.apache.olingo.commons.api.edm.EdmEntitySet;
-import org.apache.olingo.commons.api.edm.EdmEntityType;
 import org.apache.olingo.commons.api.edm.EdmNavigationProperty;
 import org.apache.olingo.commons.api.ex.ODataException;
 import org.apache.olingo.commons.api.format.ContentType;
@@ -216,40 +215,6 @@ public class BaseProcessor implements Processor {
 		}
 		
 		return entity;
-	}
-	
-	@Deprecated
-	protected Link writeEntityLinkDeprecated(final String linkName, final Field field, final Object edmObject, final ExpandOption nestedExpandOption) throws IllegalArgumentException, IllegalAccessException, NoSuchMethodException, SecurityException, InvocationTargetException, ODataApplicationException {
-		
-		field.setAccessible(true);
-		Object expandNestedObject = field.get(edmObject);
-		
-		if(expandNestedObject == null) {
-			LOG.debug("{} has returned a NULL value", field);
-			return null;
-		}
-
-		final boolean isCollection = Collection.class.isAssignableFrom(field.getType());
-		
-		Link link = new Link();
-		link.setTitle(linkName);
-		
-		if(isCollection) {
-			final List<Entity> entities = new ArrayList<>();
-			List<?> list = (List<?>) expandNestedObject;
-			for(Object ob : list) {
-				Entity expandEntity = writeEntity(ob, nestedExpandOption);
-				entities.add(expandEntity);
-			}
-			EntityCollection data = new EntityCollection();
-			data.getEntities().addAll(entities);
-			link.setInlineEntitySet(data);
-		} else {
-			Entity entity = writeEntity(expandNestedObject, nestedExpandOption);
-			link.setInlineEntity(entity);
-			link.setType(entity.getType());
-		}
-		return link;
 	}
 	
 	protected Link writeEntityLink(Field field, Object edmObject, ExpandOption expandOption) throws IllegalArgumentException, IllegalAccessException, NoSuchMethodException, SecurityException, InvocationTargetException, ODataApplicationException {
@@ -739,106 +704,6 @@ public class BaseProcessor implements Processor {
 		    				throw new ODataApplicationException(e.getMessage(), HttpStatusCode.INTERNAL_SERVER_ERROR.getStatusCode(), Locale.ENGLISH);
 		    			}
 			    	}
-			    }
-    		}
-    	}
-	}
-	
-	@Deprecated
-	protected void writeNavLinksFromNavBindings(EdmEntitySet edmEntitySet, Entity requestEntity, Map<String, DataSource> dataSourceMap, String rawBaseUri) throws ODataApplicationException {
-
-		List<Link> navigationBindings = requestEntity.getNavigationBindings();
-		
-    	if(navigationBindings != null && navigationBindings.size() > 0) {
-    		
-    		EdmEntityType edmEntityType = edmEntitySet.getEntityType();
-    		    		
-    		for(Link link : navigationBindings) {
-    			
-    			final EdmNavigationProperty edmNavigationProperty = edmEntityType.getNavigationProperty(link.getTitle());
-			    final EdmEntitySet targetEntitySet = (EdmEntitySet) edmEntitySet.getRelatedBindingTarget(link.getTitle());
-			    
-			    DataSource targetDataSource = dataSourceMap.get(targetEntitySet.getName());
-
-				if(targetDataSource == null) {
-					throw new ODataApplicationException(String.format("DATASOURCE PROVIDER FOR %s NOT FOUND", targetEntitySet.getName()), HttpStatusCode.INTERNAL_SERVER_ERROR.getStatusCode(), Locale.ENGLISH);
-				}
-				
-				Link navLink = requestEntity.getNavigationLink(link.getTitle());
-				if(navLink == null) {
-					navLink = new Link();
-					navLink.setTitle(link.getTitle());
-					requestEntity.getNavigationLinks().add(navLink);
-				}
-				
-			    if(edmNavigationProperty.isCollection() && link.getBindingLinks() != null) {
-			    	
-			    	EntityCollection entityCollection = navLink.getInlineEntitySet();
-			    	
-			    	if(entityCollection == null) {
-			    		entityCollection = new EntityCollection();
-			    		navLink.setInlineEntitySet(entityCollection);
-			    	}
-			    				    	
-			    	for(final String bindingLink : link.getBindingLinks()) {
-			    		
-			    		try {
-			    			
-				    		UriResourceEntitySet targetUriResourceEntitySet = 
-				    				odata.createUriHelper().parseEntityId(serviceMetadata.getEdm(), bindingLink, rawBaseUri);
-				    		
-				    		if(targetUriResourceEntitySet.getEntitySet().getName().equals(targetEntitySet.getName())) {
-				    			
-				    			List<UriParameter> keyPredicates = targetUriResourceEntitySet.getKeyPredicates();
-				    		    Map<String, UriParameter> keyPredicateMap = keyPredicates
-				    					.stream()
-				    					.collect(Collectors.toMap(UriParameter::getName, x -> x));
-				    		    
-				    			
-				    				Object targetObject = targetDataSource.readFromKey(keyPredicateMap, null, null, null);
-				    				
-				    				if(targetObject == null) {
-				    					throw new ODataApplicationException("LA ENTIDAD SOLICITADA NO EXISTE", HttpStatusCode.NOT_FOUND.getStatusCode(), Locale.ENGLISH);
-				    				}
-				    				
-				    				Entity targetEntity = writeEntity(targetObject, null);
-				    				entityCollection.getEntities().add(targetEntity);
-				    			
-				    		}
-				    			
-		    			} catch (ODataException | IllegalArgumentException | SecurityException | IllegalAccessException | NoSuchMethodException | InvocationTargetException e) {
-		    				throw new ODataApplicationException(e.getMessage(), HttpStatusCode.INTERNAL_SERVER_ERROR.getStatusCode(), Locale.ENGLISH);
-		    			}
-			    	}
-			    } else if(!edmNavigationProperty.isCollection() && link.getBindingLink() != null) {
-			    	
-			    	String bindingLink = link.getBindingLink();
-			    	
-			    	try {
-			    		
-				    	UriResourceEntitySet targetUriResourceEntitySet = 
-			    				odata.createUriHelper().parseEntityId(serviceMetadata.getEdm(), bindingLink, rawBaseUri);
-				    	
-				    	if(targetUriResourceEntitySet.getEntitySet().getName().equals(targetEntitySet.getName())) {
-	
-			    			List<UriParameter> keyPredicates = targetUriResourceEntitySet.getKeyPredicates();
-			    		    Map<String, UriParameter> keyPredicateMap = keyPredicates
-			    					.stream()
-			    					.collect(Collectors.toMap(UriParameter::getName, x -> x));
-			    		    
-			    				Object targetObject = targetDataSource.readFromKey(keyPredicateMap, null, null, null);
-			    				
-			    				if(targetObject == null) {
-			    					throw new ODataApplicationException("LA ENTIDAD SOLICITADA NO EXISTE", HttpStatusCode.NOT_FOUND.getStatusCode(), Locale.ENGLISH);
-			    				}
-			    				
-			    				Entity targetEntity = writeEntity(targetObject, null);
-			    				navLink.setInlineEntity(targetEntity);
-				    	}
-				    	
-	    			} catch (ODataException | IllegalArgumentException | SecurityException | IllegalAccessException | NoSuchMethodException | InvocationTargetException e) {
-	    				throw new ODataApplicationException(e.getMessage(), HttpStatusCode.INTERNAL_SERVER_ERROR.getStatusCode(), Locale.ENGLISH);
-	    			}
 			    }
     		}
     	}
