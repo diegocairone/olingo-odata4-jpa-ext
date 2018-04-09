@@ -565,7 +565,7 @@ public class EntitySetProcessor extends BaseProcessor implements EntityProcessor
 		Object object = readFromEntitySet(selectOption, expandOption, uriResourceEntitySet);
 		
 		if(object == null) {
-			throw new ODataApplicationException("LA ENTIDAD SOLICITADA NO EXISTE", HttpStatusCode.NOT_FOUND.getStatusCode(), Locale.ENGLISH);
+			throw new ODataApplicationException("Requested entity does not exist", HttpStatusCode.NOT_FOUND.getStatusCode(), Locale.ENGLISH);
 		}
 		
 		try {	

@@ -63,8 +63,10 @@ public class PersonService {
 					String.format("COULD NOT BE FOUND A STATE ENTITY WITH ID %s", stateId));
 		}
 		
-		PersonEntity personEntity = 
-				new PersonEntity(personFrmDto.getId(), personFrmDto.getName(), personFrmDto.getSurname(), personFrmDto.getGender(), regionEntity, formEntity, personFrmDto.getAddressStreet(), personFrmDto.getAddressNumber(), stateEntity);
+		PersonEntity personEntity = new PersonEntity(personFrmDto.getId(), personFrmDto.getName(),
+				personFrmDto.getSurname(), personFrmDto.getGender(), regionEntity, formEntity,
+				personFrmDto.getAddressStreet(), personFrmDto.getAddressNumber(), stateEntity,
+				personFrmDto.getBirthDate());
 		
 		personRepository.save(personEntity);
 		

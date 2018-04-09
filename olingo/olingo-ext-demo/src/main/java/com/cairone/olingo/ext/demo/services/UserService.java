@@ -17,6 +17,14 @@ public class UserService {
 	@Autowired private PersonRepository personRepository = null;
 	@Autowired private UserRepository userRepository = null;
 	
+	public UserRepository getUserRepository() {
+		return userRepository;
+	}
+
+	public void setUserRepository(UserRepository userRepository) {
+		this.userRepository = userRepository;
+	}
+
 	@Transactional(readOnly=true)
 	public UserEntity findOne(Integer id) throws ServiceException {
 		

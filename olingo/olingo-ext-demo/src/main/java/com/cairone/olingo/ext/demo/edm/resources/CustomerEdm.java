@@ -1,5 +1,7 @@
 package com.cairone.olingo.ext.demo.edm.resources;
 
+import java.time.LocalDate;
+
 import com.cairone.olingo.ext.demo.AppDemoConstants;
 import com.cairone.olingo.ext.demo.edm.enums.GenderEnum;
 import com.cairone.olingo.ext.demo.edm.enums.RegionEnum;
@@ -21,8 +23,8 @@ public class CustomerEdm extends PersonEdm {
 		super();
 	}
 	
-	public CustomerEdm(String companyName, Integer id, String name, String surname, GenderEnum gender, RegionEnum region, FormEdm form, PersonAddressEdm address) {
-		super(id, name, surname, gender, region, form, address);
+	public CustomerEdm(String companyName, Integer id, String name, String surname, GenderEnum gender, RegionEnum region, FormEdm form, PersonAddressEdm address, LocalDate birthDate) {
+		super(id, name, surname, gender, region, form, address, birthDate);
 		this.companyName = companyName;
 	}
 

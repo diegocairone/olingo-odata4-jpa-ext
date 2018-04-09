@@ -1,5 +1,7 @@
 package com.cairone.olingo.ext.demo.dtos;
 
+import java.time.LocalDate;
+
 import com.cairone.olingo.ext.demo.edm.enums.GenderEnum;
 import com.cairone.olingo.ext.demo.edm.enums.RegionEnum;
 import com.cairone.olingo.ext.demo.edm.resources.PersonEdm;
@@ -15,10 +17,11 @@ public class PersonFrmDto {
 	private String addressNumber = null;
 	private Integer stateId = null;
 	private String formId = null;
+	private LocalDate birthDate = null;
 	
 	public PersonFrmDto() {}
 
-	public PersonFrmDto(Integer id, String name, String surname, GenderEnum gender, RegionEnum region, String formId, String addressStreet, String addressNumber, Integer stateId) {
+	public PersonFrmDto(Integer id, String name, String surname, GenderEnum gender, RegionEnum region, String formId, String addressStreet, String addressNumber, Integer stateId, LocalDate birthDate) {
 		super();
 		this.id = id;
 		this.name = name == null ? null : name.trim().toUpperCase();
@@ -29,6 +32,7 @@ public class PersonFrmDto {
 		this.addressStreet = addressStreet;
 		this.addressNumber = addressNumber;
 		this.stateId = stateId;
+		this.birthDate = birthDate;
 	}
 
 	public PersonFrmDto(PersonEdm personEdm) {
@@ -41,7 +45,8 @@ public class PersonFrmDto {
 			personEdm.getForm() == null ? null : personEdm.getForm().getId(),
 			personEdm.getAddress() == null ? null : personEdm.getAddress().getName() == null || personEdm.getAddress().getName().trim().isEmpty() ? null : personEdm.getAddress().getName().trim().toUpperCase(),
 			personEdm.getAddress() == null ? null : personEdm.getAddress().getNumber() == null || personEdm.getAddress().getNumber().trim().isEmpty() ? null : personEdm.getAddress().getNumber().trim().toUpperCase(),
-			personEdm.getAddress() == null ? null : personEdm.getAddress().getState() == null ? null : personEdm.getAddress().getState().getId());
+			personEdm.getAddress() == null ? null : personEdm.getAddress().getState() == null ? null : personEdm.getAddress().getState().getId(),
+			personEdm.getBirthDate());
 	}
 	
 	public Integer getId() {
@@ -114,6 +119,14 @@ public class PersonFrmDto {
 
 	public void setStateId(Integer stateId) {
 		this.stateId = stateId;
+	}
+
+	public LocalDate getBirthDate() {
+		return birthDate;
+	}
+
+	public void setBirthDate(LocalDate birthDate) {
+		this.birthDate = birthDate;
 	}
 	
 }

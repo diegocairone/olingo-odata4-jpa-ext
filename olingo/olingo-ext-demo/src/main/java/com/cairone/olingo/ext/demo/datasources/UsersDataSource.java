@@ -21,8 +21,8 @@ import com.cairone.olingo.ext.demo.exceptions.ODataBadRequestException;
 import com.cairone.olingo.ext.demo.services.UserService;
 import com.cairone.olingo.ext.demo.utils.OdataExceptionParser;
 import com.cairone.olingo.ext.demo.utils.ValidatorUtil;
-import com.cairone.olingo.ext.jpa.query.JPQLQuery;
-import com.cairone.olingo.ext.jpa.query.JPQLQueryBuilder;
+import com.cairone.olingo.ext.jpa.query.QuerydslQuery;
+import com.cairone.olingo.ext.jpa.query.QuerydslQueryBuilder;
 
 @Component
 public class UsersDataSource extends AbstractDataSource {
@@ -127,21 +127,15 @@ public class UsersDataSource extends AbstractDataSource {
 	@Override
 	public Iterable<?> readAll(ExpandOption expandOption, FilterOption filterOption, OrderByOption orderByOption, Object parentEntity) throws ODataApplicationException {
 
-		JPQLQuery query = new JPQLQueryBuilder()
-			.setDistinct(false)
-			.setClazz(UserEdm.class)
-			.setExpandOption(expandOption)
-			.setFilterOption(filterOption)
-			.setOrderByOption(orderByOption)
-			.build();
-	
-		LOG.debug("EXECUTING QUERY: {}", query);
-		List<UserEntity> userEntities = JPQLQuery.execute(entityManager, query);
+		QuerydslQuery dslQuery = new QuerydslQueryBuilder()
+				.setClazz(UserEdm.class)
+				.setFilterOption(filterOption)
+				.setOrderByOption(orderByOption)
+				.build();
+		
+		List<UserEntity> userEntities = QuerydslQuery.execute(userService.getUserRepository(), dslQuery);
 		List<UserEdm> userEdms = userEntities.stream()
-			.map(entity -> { 
-				UserEdm userEdm = new UserEdm(entity);
-				return userEdm;
-			})
+			.map(entity -> new UserEdm(entity))
 			.collect(Collectors.toList());
 		
 		return userEdms;

@@ -12,7 +12,9 @@ import com.cairone.olingo.ext.demo.AppDemoConstants;
 import com.cairone.olingo.ext.demo.ctrls.ODataController;
 import com.cairone.olingo.ext.jpa.processors.ActionProcessor;
 import com.cairone.olingo.ext.jpa.processors.BatchRequestProcessor;
+import com.cairone.olingo.ext.jpa.processors.ComplexProcessorImpl;
 import com.cairone.olingo.ext.jpa.processors.MediaProcessor;
+import com.cairone.olingo.ext.jpa.processors.PrimitiveProcessorImpl;
 import com.cairone.olingo.ext.jpa.providers.EdmProvider;
 
 @Configuration
@@ -24,6 +26,28 @@ public class OlingoConfig {
     @Autowired private ApplicationContext context = null;
     @Autowired ODataController dispatcherServlet = null;
     
+    @Bean
+    public PrimitiveProcessorImpl getPrimitiveProcessor() throws ODataApplicationException {
+    	
+    	PrimitiveProcessorImpl primitiveProcessor = new PrimitiveProcessorImpl()
+	    	.setDefaultEdmPackage(AppDemoConstants.DEFAULT_EDM_PACKAGE)
+			.setServiceRoot(SERVICE_ROOT)
+			.initialize(context);
+    	
+    	return primitiveProcessor;
+    }
+
+    @Bean
+    public ComplexProcessorImpl getComplexProcessor() throws ODataApplicationException {
+    	
+    	ComplexProcessorImpl complexProcessor = new ComplexProcessorImpl()
+	    	.setDefaultEdmPackage(AppDemoConstants.DEFAULT_EDM_PACKAGE)
+			.setServiceRoot(SERVICE_ROOT)
+			.initialize(context);
+    	
+    	return complexProcessor;
+    }
+
     @Bean
     public MediaProcessor getMediaProcessor() throws ODataApplicationException {
     	

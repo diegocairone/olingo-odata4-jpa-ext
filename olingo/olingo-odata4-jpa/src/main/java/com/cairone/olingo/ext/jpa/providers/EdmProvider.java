@@ -554,7 +554,11 @@ public class EdmProvider extends CsdlAbstractEdmProvider {
 							ParameterizedType pt = (ParameterizedType) type;
 							for(Type t : pt.getActualTypeArguments()) {
 								Class<?> clazz = (Class<?>) t;
-								if(clazz.isAssignableFrom(Integer.class)) {
+								if(clazz.isAnnotationPresent(EdmComplex.class)) {
+									EdmComplex edmComplexAnn = clazz.getAnnotation(EdmComplex.class);
+									FullQualifiedName fqn = new FullQualifiedName(String.format("Collection(%s.%s)", edmComplexAnn.namespace(), edmComplexAnn.name()));
+									propertyType = fqn;
+								} else if(clazz.isAssignableFrom(Integer.class)) {
 									propertyType = getFullQualifiedName("Edm", "Int32");
 								} else if(clazz.isAssignableFrom(Long.class)) {
 									propertyType = getFullQualifiedName("Edm", "Int64");

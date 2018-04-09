@@ -1,5 +1,7 @@
 package com.cairone.olingo.ext.demo.edm.resources;
 
+import java.time.LocalDate;
+
 import com.cairone.olingo.ext.demo.AppDemoConstants;
 import com.cairone.olingo.ext.demo.edm.enums.GenderEnum;
 import com.cairone.olingo.ext.demo.edm.enums.RegionEnum;
@@ -9,13 +11,11 @@ import com.cairone.olingo.ext.jpa.annotations.EdmEntity;
 import com.cairone.olingo.ext.jpa.annotations.EdmEntitySet;
 import com.cairone.olingo.ext.jpa.annotations.EdmNavigationProperty;
 import com.cairone.olingo.ext.jpa.annotations.EdmProperty;
-import com.cairone.olingo.ext.jpa.annotations.ODataJPAEntity;
 import com.cairone.olingo.ext.jpa.annotations.ODataQueryDslEntity;
 import com.cairone.olingo.ext.jpa.annotations.ODataQueryDslProperty;
 
 @EdmEntity(name = "Person", key = "Id", namespace = AppDemoConstants.NAME_SPACE, containerName = AppDemoConstants.CONTAINER_NAME)
 @EdmEntitySet("People")
-@ODataJPAEntity("PersonEntity")
 @ODataQueryDslEntity(jpaentity=PersonEntity.class, variable = "personEntity")
 public class PersonEdm {
 	
@@ -40,9 +40,12 @@ public class PersonEdm {
 	@EdmProperty(name = "Address")
 	private PersonAddressEdm address = null;
 	
+	@EdmProperty
+	private LocalDate birthDate = null;
+	
 	public PersonEdm() {}
 
-	public PersonEdm(Integer id, String name, String surname, GenderEnum gender, RegionEnum region, FormEdm form, PersonAddressEdm address) {
+	public PersonEdm(Integer id, String name, String surname, GenderEnum gender, RegionEnum region, FormEdm form, PersonAddressEdm address, LocalDate birthDate) {
 		super();
 		this.id = id;
 		this.name = name;
@@ -51,6 +54,7 @@ public class PersonEdm {
 		this.region = region;
 		this.form = form;
 		this.address = address;
+		this.birthDate = birthDate;
 	}
 	
 	public PersonEdm(PersonEntity personEntity) {
@@ -60,7 +64,8 @@ public class PersonEdm {
 				personEntity.getGender(), 
 				personEntity.getRegion() == null ? null : RegionEnum.fromDb(personEntity.getRegion().getId()),
 				personEntity.getForm() == null ? null : new FormEdm(personEntity.getForm()), 
-				null);
+				null,
+				personEntity.getBirthDate());
 		
 		if(personEntity.getAddressNumber() != null || personEntity.getAddressStreet() != null) {
 			this.address = new PersonAddressEdm();
@@ -124,6 +129,14 @@ public class PersonEdm {
 
 	public void setAddress(PersonAddressEdm address) {
 		this.address = address;
+	}
+
+	public LocalDate getBirthDate() {
+		return birthDate;
+	}
+
+	public void setBirthDate(LocalDate birthDate) {
+		this.birthDate = birthDate;
 	}
 
 	@Override

@@ -9,12 +9,12 @@ import com.cairone.olingo.ext.jpa.annotations.EdmEntity;
 import com.cairone.olingo.ext.jpa.annotations.EdmEntitySet;
 import com.cairone.olingo.ext.jpa.annotations.EdmNavigationProperty;
 import com.cairone.olingo.ext.jpa.annotations.EdmProperty;
-import com.cairone.olingo.ext.jpa.annotations.ODataJPAEntity;
-import com.cairone.olingo.ext.jpa.annotations.ODataJPAProperty;
+import com.cairone.olingo.ext.jpa.annotations.ODataQueryDslEntity;
+import com.cairone.olingo.ext.jpa.annotations.ODataQueryDslProperty;
 
 @EdmEntity(name = "User", key = "Id", namespace = AppDemoConstants.NAME_SPACE, containerName = AppDemoConstants.CONTAINER_NAME)
 @EdmEntitySet("Users")
-@ODataJPAEntity("UserEntity")
+@ODataQueryDslEntity(jpaentity=UserEntity.class, variable="userEntity")
 public class UserEdm {
 
 	@EdmProperty(name = "Id")
@@ -26,7 +26,7 @@ public class UserEdm {
 	@EdmProperty(name = "Surname")
 	private String surname = null;
 	
-	@EdmNavigationProperty(name = "Form") @ODataJPAProperty("person.form")
+	@EdmNavigationProperty(name = "Form") @ODataQueryDslProperty("person.form")
 	private FormEdm form = null;
 	
 	@EdmProperty(name = "Username")

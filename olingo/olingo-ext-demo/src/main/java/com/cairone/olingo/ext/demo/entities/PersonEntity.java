@@ -1,6 +1,7 @@
 package com.cairone.olingo.ext.demo.entities;
 
 import java.io.Serializable;
+import java.time.LocalDate;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -43,17 +44,20 @@ public class PersonEntity implements Serializable {
 	@OneToOne @JoinColumn(name="state_id", nullable=true)
 	private StateEntity state = null;
 	
+	@Column(name="birth_date")
+	private LocalDate birthDate = null;
+	
 	public PersonEntity() {}
 
 	public PersonEntity(Integer id, String name, String surname, GenderEnum gender) {
-		this(id, name, surname, gender, null, null);
+		this(id, name, surname, gender, null, null, null);
 	}
 	
-	public PersonEntity(Integer id, String name, String surname, GenderEnum gender, RegionEntity regionEntity, FormEntity form) {
-		this(id, name, surname, gender, regionEntity, form, null, null, null);
+	public PersonEntity(Integer id, String name, String surname, GenderEnum gender, RegionEntity regionEntity, FormEntity form, LocalDate birthDate) {
+		this(id, name, surname, gender, regionEntity, form, null, null, null, birthDate);
 	}
 	
-	public PersonEntity(Integer id, String name, String surname, GenderEnum gender, RegionEntity regionEntity, FormEntity form, String addressStreet, String addressNumber, StateEntity state) {
+	public PersonEntity(Integer id, String name, String surname, GenderEnum gender, RegionEntity regionEntity, FormEntity form, String addressStreet, String addressNumber, StateEntity state, LocalDate birthDate) {
 		super();
 		this.id = id;
 		this.name = name;
@@ -64,6 +68,7 @@ public class PersonEntity implements Serializable {
 		this.addressStreet = addressStreet;
 		this.addressNumber = addressNumber;
 		this.state = state;
+		this.birthDate = birthDate;
 	}
 
 	public Integer getId() {
@@ -136,6 +141,14 @@ public class PersonEntity implements Serializable {
 
 	public void setState(StateEntity state) {
 		this.state = state;
+	}
+
+	public LocalDate getBirthDate() {
+		return birthDate;
+	}
+
+	public void setBirthDate(LocalDate birthDate) {
+		this.birthDate = birthDate;
 	}
 
 	@Override

@@ -25,8 +25,6 @@ import com.cairone.olingo.ext.demo.utils.OdataExceptionParser;
 import com.cairone.olingo.ext.demo.utils.ValidatorUtil;
 import com.cairone.olingo.ext.jpa.query.QuerydslQuery;
 import com.cairone.olingo.ext.jpa.query.QuerydslQueryBuilder;
-import com.cairone.olingo.ext.jpa.query.JPQLQuery;
-import com.cairone.olingo.ext.jpa.query.JPQLQueryBuilder;
 
 @Component
 public class PeopleDataSource extends AbstractDataSource {
@@ -145,28 +143,6 @@ public class PeopleDataSource extends AbstractDataSource {
 				.build();
 		
 		List<PersonEntity> personEntities = QuerydslQuery.execute(personRepository, dslQuery);
-		List<PersonEdm> personEdms = personEntities.stream()
-			.map(entity -> { 
-				PersonEdm personEdm = new PersonEdm(entity);
-				return personEdm;
-			})
-			.collect(Collectors.toList());
-		
-		return personEdms;
-	}
-	
-	@Deprecated
-	public Iterable<?> readAllDeprecated(ExpandOption expandOption, FilterOption filterOption, OrderByOption orderByOption, Object parentEntity) throws ODataApplicationException {
-
-		JPQLQuery query = new JPQLQueryBuilder()
-			.setDistinct(false)
-			.setClazz(PersonEdm.class)
-			.setExpandOption(expandOption)
-			.setFilterOption(filterOption)
-			.setOrderByOption(orderByOption)
-			.build();
-	
-		List<PersonEntity> personEntities = JPQLQuery.execute(entityManager, query);
 		List<PersonEdm> personEdms = personEntities.stream()
 			.map(entity -> { 
 				PersonEdm personEdm = new PersonEdm(entity);
