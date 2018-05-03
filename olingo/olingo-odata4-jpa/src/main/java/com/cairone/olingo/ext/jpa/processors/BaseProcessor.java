@@ -400,6 +400,9 @@ public class BaseProcessor implements Processor {
 			if (edmProperty != null) {
             	
             	String propertyName = edmProperty.name().isEmpty() ? fld.getName() : edmProperty.name();
+            	if(edmProperty.name().trim().isEmpty()) {
+            		propertyName = Util.applyNamingConvention(edmProperty, propertyName);
+        		}
             	Property property = entity.getProperty(propertyName);
             	
             	if(property != null) {
@@ -466,7 +469,9 @@ public class BaseProcessor implements Processor {
         	if(edmNavigationProperty != null) {
         		
         		String propertyName = edmNavigationProperty.name().isEmpty() ? fld.getName() : edmNavigationProperty.name();
-
+        		if(edmNavigationProperty.name().trim().isEmpty()) {
+            		propertyName = Util.applyNamingConvention(edmNavigationProperty, propertyName);
+        		}
         		Class<?> fieldClass = fld.getType();
 
 				if(Collection.class.isAssignableFrom(fieldClass)) {
