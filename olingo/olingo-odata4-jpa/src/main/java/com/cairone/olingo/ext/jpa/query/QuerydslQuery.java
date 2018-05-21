@@ -5,8 +5,8 @@ import java.util.List;
 
 import org.springframework.data.querydsl.QueryDslPredicateExecutor;
 
-import com.mysema.query.types.OrderSpecifier;
-import com.mysema.query.types.expr.BooleanExpression;
+import com.querydsl.core.types.OrderSpecifier;
+import com.querydsl.core.types.dsl.BooleanExpression;
 
 public class QuerydslQuery {
 
@@ -35,6 +35,7 @@ public class QuerydslQuery {
 
 	@SuppressWarnings("unchecked")
 	public static <T> List<T> execute(QueryDslPredicateExecutor<?> queryDslPredicateExecutor, QuerydslQuery dslQuery) {
+		
 		return dslQuery.getOrderSpecifiers() == null
 				? (List<T>) queryDslPredicateExecutor.findAll(dslQuery.getBooleanExpression())
 				: (List<T>) queryDslPredicateExecutor.findAll(dslQuery.getBooleanExpression(), dslQuery.getOrderSpecifiers());

@@ -19,19 +19,19 @@ import org.apache.olingo.server.api.uri.queryoption.expression.UnaryOperatorKind
 
 import com.cairone.olingo.ext.jpa.interfaces.OdataExtendedEnum;
 import com.google.common.base.CharMatcher;
-import com.mysema.query.support.Expressions;
-import com.mysema.query.types.Constant;
-import com.mysema.query.types.Expression;
-import com.mysema.query.types.Path;
-import com.mysema.query.types.Predicate;
-import com.mysema.query.types.expr.BooleanExpression;
-import com.mysema.query.types.expr.BooleanOperation;
-import com.mysema.query.types.expr.SimpleExpression;
-import com.mysema.query.types.path.BooleanPath;
-import com.mysema.query.types.path.DatePath;
-import com.mysema.query.types.path.EnumPath;
-import com.mysema.query.types.path.NumberPath;
-import com.mysema.query.types.path.StringPath;
+import com.querydsl.core.types.Constant;
+import com.querydsl.core.types.Expression;
+import com.querydsl.core.types.Path;
+import com.querydsl.core.types.Predicate;
+import com.querydsl.core.types.dsl.BooleanExpression;
+import com.querydsl.core.types.dsl.BooleanOperation;
+import com.querydsl.core.types.dsl.BooleanPath;
+import com.querydsl.core.types.dsl.DatePath;
+import com.querydsl.core.types.dsl.EnumPath;
+import com.querydsl.core.types.dsl.Expressions;
+import com.querydsl.core.types.dsl.NumberPath;
+import com.querydsl.core.types.dsl.SimpleExpression;
+import com.querydsl.core.types.dsl.StringPath;
 
 public abstract class BaseExpressionVisitor implements ExpressionVisitor<Expression<?>> {
 

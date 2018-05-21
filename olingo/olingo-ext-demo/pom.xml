@@ -5,7 +5,7 @@
   <parent>
     <groupId>com.cairone</groupId>
     <artifactId>olingo</artifactId>
-    <version>0.0.2-SNAPSHOT</version>
+    <version>0.0.3-SNAPSHOT</version>
   </parent>
   <artifactId>olingo-ext-demo</artifactId>
   <name>olingo-ext-demo</name>
@@ -13,7 +13,7 @@
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <java.version>1.8</java.version>
-		<querydsl.version>3.7.2</querydsl.version>
+		<querydsl.version>4.1.4</querydsl.version>
   </properties>
   <dependencies>
 		<!-- SPRING BOOT -->
@@ -32,20 +32,17 @@
 		
 		<!-- QUERYDSL -->
 		<dependency>
-			<groupId>com.mysema.querydsl</groupId>
+			<groupId>com.querydsl</groupId>
 			<artifactId>querydsl-core</artifactId>
-			<version>${querydsl.version}</version>
-		</dependency>
+			</dependency>
 		<dependency>
-			<groupId>com.mysema.querydsl</groupId>
+			<groupId>com.querydsl</groupId>
 			<artifactId>querydsl-apt</artifactId>
-			<version>${querydsl.version}</version>
-		</dependency>
+			</dependency>
 		<dependency>
-			<groupId>com.mysema.querydsl</groupId>
+			<groupId>com.querydsl</groupId>
 			<artifactId>querydsl-jpa</artifactId>
-			<version>${querydsl.version}</version>
-		</dependency>
+			</dependency>
 		
 		<!-- JDBC -->
 		<dependency>
@@ -92,23 +89,10 @@
 						</goals>
 						<configuration>
 							<outputDirectory>target/generated-sources</outputDirectory>
-							<processor>com.mysema.query.apt.jpa.JPAAnnotationProcessor</processor>
+							<processor>com.querydsl.apt.jpa.JPAAnnotationProcessor</processor>
 						</configuration>
 					</execution>
 				</executions>
-				<dependencies>
-					<dependency>
-						<groupId>com.mysema.querydsl</groupId>
-						<artifactId>querydsl-apt</artifactId>
-						<version>3.7.2</version>
-					</dependency>
-					<dependency>
-						<groupId>com.mysema.querydsl</groupId>
-						<artifactId>querydsl-jpa</artifactId>
-						<classifier>apt</classifier>
-						<version>3.7.2</version>
-					</dependency>
-				</dependencies>
 			</plugin>
 		</plugins>
 	</build>

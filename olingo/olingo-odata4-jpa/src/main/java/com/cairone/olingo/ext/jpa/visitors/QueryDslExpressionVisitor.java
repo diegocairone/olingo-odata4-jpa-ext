@@ -26,10 +26,10 @@ import com.cairone.olingo.ext.jpa.annotations.ODataQueryDslEntity;
 import com.cairone.olingo.ext.jpa.annotations.ODataQueryDslProperty;
 import com.cairone.olingo.ext.jpa.utilities.Util;
 import com.google.common.base.Splitter;
-import com.mysema.query.support.Expressions;
-import com.mysema.query.types.Expression;
-import com.mysema.query.types.Path;
-import com.mysema.query.types.path.PathBuilder;
+import com.querydsl.core.types.Expression;
+import com.querydsl.core.types.Path;
+import com.querydsl.core.types.dsl.Expressions;
+import com.querydsl.core.types.dsl.PathBuilder;
 
 public class QueryDslExpressionVisitor extends BaseExpressionVisitor {
 

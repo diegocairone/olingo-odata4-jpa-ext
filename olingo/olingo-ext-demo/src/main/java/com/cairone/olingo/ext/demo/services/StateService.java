@@ -13,7 +13,7 @@ import com.cairone.olingo.ext.demo.entities.StateEntity;
 import com.cairone.olingo.ext.demo.exceptions.ServiceException;
 import com.cairone.olingo.ext.demo.repositories.CountryRepository;
 import com.cairone.olingo.ext.demo.repositories.StateRepository;
-import com.mysema.query.types.expr.BooleanExpression;
+import com.querydsl.core.types.dsl.BooleanExpression;
 
 @Service
 public class StateService {

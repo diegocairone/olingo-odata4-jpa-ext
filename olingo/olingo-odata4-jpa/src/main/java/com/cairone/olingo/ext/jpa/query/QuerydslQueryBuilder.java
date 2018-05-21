@@ -13,10 +13,10 @@ import org.apache.olingo.server.api.uri.queryoption.expression.Expression;
 import org.apache.olingo.server.api.uri.queryoption.expression.ExpressionVisitException;
 
 import com.cairone.olingo.ext.jpa.visitors.QueryDslExpressionVisitor;
-import com.mysema.query.BooleanBuilder;
-import com.mysema.query.types.OrderSpecifier;
-import com.mysema.query.types.expr.BooleanExpression;
-import com.mysema.query.types.expr.ComparableExpressionBase;
+import com.querydsl.core.BooleanBuilder;
+import com.querydsl.core.types.OrderSpecifier;
+import com.querydsl.core.types.dsl.BooleanExpression;
+import com.querydsl.core.types.dsl.ComparableExpressionBase;
 
 public class QuerydslQueryBuilder {
 
@@ -57,7 +57,7 @@ public class QuerydslQueryBuilder {
 			QueryDslExpressionVisitor expressionVisitor = new QueryDslExpressionVisitor(clazz);
 			
 			try {
-				com.mysema.query.types.Expression<?> expression = filterExpression.accept(expressionVisitor);
+				com.querydsl.core.types.Expression<?> expression = filterExpression.accept(expressionVisitor);
 				BooleanExpression exp = (BooleanExpression) expression;
 				
 				return exp;
@@ -80,7 +80,7 @@ public class QuerydslQueryBuilder {
 				QueryDslExpressionVisitor expressionVisitor = new QueryDslExpressionVisitor(clazz);
 				
 				try {
-					com.mysema.query.types.Expression<?> expression = orderExpression.accept(expressionVisitor);
+					com.querydsl.core.types.Expression<?> expression = orderExpression.accept(expressionVisitor);
 					if(expression instanceof ComparableExpressionBase<?>) {
 						ComparableExpressionBase<?> comparableExpression = (ComparableExpressionBase<?>) expression;
 						orderSpecifiers.add(isDescending ? comparableExpression.desc() : comparableExpression.asc());

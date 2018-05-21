@@ -5,14 +5,14 @@
   <parent>
     <groupId>com.cairone</groupId>
     <artifactId>olingo</artifactId>
-    <version>0.0.2-SNAPSHOT</version>
+    <version>0.0.3-SNAPSHOT</version>
   </parent>
   <artifactId>olingo-odata4-jpa</artifactId>
   <name>olingo-odata4-jpa</name>
   <url>http://maven.apache.org</url>
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-    <querydsl.version>3.7.2</querydsl.version>
+    <querydsl.version>4.1.4</querydsl.version>
   </properties>
   <dependencies>
   <dependency>
@@ -20,10 +20,9 @@
 			<artifactId>spring-boot-starter-data-jpa</artifactId>
 		</dependency>
 		<dependency>
-			<groupId>com.mysema.querydsl</groupId>
-			<artifactId>querydsl-core</artifactId>
-			<version>${querydsl.version}</version>
-		</dependency>
+			<groupId>com.querydsl</groupId>
+			<artifactId>querydsl-jpa</artifactId>
+			</dependency>
     <dependency>
       <groupId>junit</groupId>
       <artifactId>junit</artifactId>
