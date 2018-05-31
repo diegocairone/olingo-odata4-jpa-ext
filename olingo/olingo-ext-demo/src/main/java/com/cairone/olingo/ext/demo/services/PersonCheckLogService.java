@@ -1,5 +1,7 @@
 package com.cairone.olingo.ext.demo.services;
 
+import java.util.Optional;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -21,28 +23,28 @@ public class PersonCheckLogService {
 	public PersonCheckLogEntity findOne(Long id) throws ServiceException {
 		
 		if(id == null) throw new ServiceException(ServiceException.MISSING_DATA, "ENTITY ID CAN NOT BE NULL");
-		PersonCheckLogEntity personCheckLogEntity = personCheckLogRepository.findOne(id);
+		Optional<PersonCheckLogEntity> personCheckLogEntityOptional = personCheckLogRepository.findById(id);
 		
-		if(personCheckLogEntity == null) {
+		if(!personCheckLogEntityOptional.isPresent()) {
 			throw new ServiceException(ServiceException.NOT_FOUND, String.format("COULD NOT BE FOUND AN ENTITY WITH ID %s", id));
 		}
 		
-		return personCheckLogEntity;
+		return personCheckLogEntityOptional.get();
 	}
 
 	@Transactional
 	public PersonCheckLogEntity save(PersonCheckLogFrmDto personCheckLogFrmDto) throws ServiceException {
 		
 		Integer personId = personCheckLogFrmDto.getPersonId();
-		PersonEntity personEntity = personRepository.findOne(personId);
+		Optional<PersonEntity> personEntityOptional = personRepository.findById(personId);
 		
-		if(personEntity == null) {
+		if(!personEntityOptional.isPresent()) {
 			throw new ServiceException(ServiceException.NOT_FOUND, 
 					String.format("COULD NOT BE FOUND A PERSON ENTITY WITH ID %s", personId));
 		}
 				
 		PersonCheckLogEntity personCheckLogEntity = 
-				new PersonCheckLogEntity(personEntity, personCheckLogFrmDto.getCheckType(), personCheckLogFrmDto.getDatetime());
+				new PersonCheckLogEntity(personEntityOptional.get(), personCheckLogFrmDto.getCheckType(), personCheckLogFrmDto.getDatetime());
 		
 		personCheckLogRepository.save(personCheckLogEntity);
 		

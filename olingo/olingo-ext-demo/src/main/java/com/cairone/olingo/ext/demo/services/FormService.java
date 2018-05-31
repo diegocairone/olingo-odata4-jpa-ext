@@ -1,5 +1,7 @@
 package com.cairone.olingo.ext.demo.services;
 
+import java.util.Optional;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -18,13 +20,13 @@ public class FormService {
 	public FormEntity findOne(String id) throws ServiceException {
 		
 		if(id == null) throw new ServiceException(ServiceException.MISSING_DATA, "ENTITY ID CAN NOT BE NULL");
-		FormEntity formEntity = formRepository.findOne(id);
+		Optional<FormEntity> formEntityOptional = formRepository.findById(id);
 		
-		if(formEntity == null) {
+		if(!formEntityOptional.isPresent()) {
 			throw new ServiceException(ServiceException.NOT_FOUND, String.format("COULD NOT BE FOUND AN ENTITY WITH ID %s", id));
 		}
 		
-		return formEntity;
+		return formEntityOptional.get();
 	}
 
 	@Transactional

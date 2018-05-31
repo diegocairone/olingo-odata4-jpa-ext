@@ -1,5 +1,7 @@
 package com.cairone.olingo.ext.demo.services;
 
+import java.util.Optional;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -29,27 +31,27 @@ public class UserService {
 	public UserEntity findOne(Integer id) throws ServiceException {
 		
 		if(id == null) throw new ServiceException(ServiceException.MISSING_DATA, "ENTITY ID CAN NOT BE NULL");
-		UserEntity userEntity = userRepository.findOne(id);
+		Optional<UserEntity> userEntityOptional = userRepository.findById(id);
 		
-		if(userEntity == null) {
+		if(!userEntityOptional.isPresent()) {
 			throw new ServiceException(ServiceException.NOT_FOUND, String.format("COULD NOT BE FOUND AN ENTITY WITH ID %s", id));
 		}
 		
-		return userEntity;
+		return userEntityOptional.get();
 	}
 	
 	@Transactional
 	public UserEntity save(UserFrmDto userFrmDto) throws ServiceException {
 		
 		Integer personId = userFrmDto.getId();
-		PersonEntity personEntity = personRepository.findOne(personId);
+		Optional<PersonEntity> personEntityOptional = personRepository.findById(personId);
 		
-		if(personEntity == null) {
+		if(!personEntityOptional.isPresent()) {
 			throw new ServiceException(ServiceException.NOT_FOUND, 
 					String.format("COULD NOT BE FOUND A PERSON ENTITY WITH ID %s", personId));
 		}
 		
-		UserEntity userEntity = new UserEntity(personEntity, userFrmDto.getUsername(), userFrmDto.getPassword());
+		UserEntity userEntity = new UserEntity(personEntityOptional.get(), userFrmDto.getUsername(), userFrmDto.getPassword());
 		
 		userRepository.save(userEntity);
 		

@@ -1,10 +1,10 @@
 package com.cairone.olingo.ext.demo.repositories;
 
 import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.data.querydsl.QueryDslPredicateExecutor;
+import org.springframework.data.querydsl.QuerydslPredicateExecutor;
 
 import com.cairone.olingo.ext.demo.entities.RegionEntity;
 
-public interface RegionRepository extends JpaRepository<RegionEntity, Integer>, QueryDslPredicateExecutor<RegionEntity> {
+public interface RegionRepository extends JpaRepository<RegionEntity, Integer>, QuerydslPredicateExecutor<RegionEntity> {
 
 }

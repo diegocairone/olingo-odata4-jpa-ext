@@ -1,6 +1,7 @@
 package com.cairone.olingo.ext.demo.services;
 
 import java.util.List;
+import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -29,13 +30,13 @@ public class StateService {
 	public StateEntity findOne(Integer id) throws ServiceException {
 		
 		if(id == null) throw new ServiceException(ServiceException.MISSING_DATA, "ENTITY ID CAN NOT BE NULL");
-		StateEntity stateEntity = stateRepository.findOne(id);
+		Optional<StateEntity> stateEntityOptional = stateRepository.findById(id);
 		
-		if(stateEntity == null) {
+		if(!stateEntityOptional.isPresent()) {
 			throw new ServiceException(ServiceException.NOT_FOUND, String.format("COULD NOT BE FOUND AN ENTITY WITH ID %s", id));
 		}
 		
-		return stateEntity;
+		return stateEntityOptional.get();
 	}
 	
 	@Transactional(readOnly=true)
@@ -49,12 +50,13 @@ public class StateService {
 	public StateEntity save(StateFrmDto stateFrmDto) throws ServiceException {
 		
 		Integer countryID = stateFrmDto.getCountryId();
-		CountryEntity countryEntity = countryRepository.findOne(countryID);
+		Optional<CountryEntity> countryEntityOptional = countryRepository.findById(countryID);
 		
-		if(countryEntity == null) {
+		if(!countryEntityOptional.isPresent()) {
 			throw new ServiceException(ServiceException.NOT_FOUND, String.format("COULD NOT BE A COUNTRY ENTITY WITH ID %s", countryID));
 		}
 		
+		CountryEntity countryEntity = countryEntityOptional.get();
 		StateEntity stateEntity = new StateEntity(stateFrmDto.getId(), stateFrmDto.getName(), countryEntity);
 		stateRepository.save(stateEntity);
 		
