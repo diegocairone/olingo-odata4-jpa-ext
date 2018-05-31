@@ -61,7 +61,7 @@
 		<dependency>
 			<groupId>com.cairone</groupId>
 			<artifactId>olingo-odata4-jpa</artifactId>
-			<version>0.0.2-SNAPSHOT</version>
+			<version>0.0.3-SNAPSHOT</version>
 		</dependency>
 		
 		<dependency>
