@@ -32,6 +32,7 @@ import org.apache.olingo.server.api.processor.PrimitiveCollectionProcessor;
 import org.apache.olingo.server.api.processor.PrimitiveProcessor;
 import org.apache.olingo.server.api.serializer.ODataSerializer;
 import org.apache.olingo.server.api.serializer.PrimitiveSerializerOptions;
+import org.apache.olingo.server.api.serializer.SerializerException;
 import org.apache.olingo.server.api.serializer.SerializerResult;
 import org.apache.olingo.server.api.uri.UriInfo;
 import org.apache.olingo.server.api.uri.UriParameter;
@@ -197,18 +198,24 @@ public class PrimitiveProcessorImpl extends BaseProcessor implements PrimitivePr
 
             // serialize
             SerializerResult serializerResult;
-            if(property.isCollection()) {
-            	serializerResult = serializer.primitiveCollection(serviceMetadata, edmPropertyType, property, options);
-            } else {
-            	serializerResult = serializer.primitive(serviceMetadata, edmPropertyType, property, options);
-            }
-            
-            InputStream propertyStream = serializerResult.getContent();
-
-            // configure the response object
-            response.setContent(propertyStream);
-            response.setStatusCode(HttpStatusCode.OK.getStatusCode());
-            response.setHeader(HttpHeader.CONTENT_TYPE, responseFormat.toContentTypeString());
+            try {
+	            if(property.isCollection()) {
+	            	serializerResult = serializer.primitiveCollection(serviceMetadata, edmPropertyType, property, options);
+	            } else {
+	            	serializerResult = serializer.primitive(serviceMetadata, edmPropertyType, property, options);
+	            }
+	            
+	            InputStream propertyStream = serializerResult.getContent();
+	
+	            // configure the response object
+	            response.setContent(propertyStream);
+	            response.setStatusCode(HttpStatusCode.OK.getStatusCode());
+	            response.setHeader(HttpHeader.CONTENT_TYPE, responseFormat.toContentTypeString());
+	            
+    	    } catch (SerializerException e) {
+    	    	LOG.error(e.getMessage(), e);
+    			throw new ODataApplicationException(e.getMessage(), HttpStatusCode.INTERNAL_SERVER_ERROR.getStatusCode(), Locale.ENGLISH);
+    		}
             
         } else {
         	// in case there's no value for the property, we can skip the serialization
@@ -329,18 +336,25 @@ public class PrimitiveProcessorImpl extends BaseProcessor implements PrimitivePr
 
         // serialize
         SerializerResult serializerResult;
-        if(property.isCollection()) {
-        	serializerResult = serializer.primitiveCollection(serviceMetadata, edmFunctionReturnType, property, options);
-        } else {
-        	serializerResult = serializer.primitive(serviceMetadata, edmFunctionReturnType, property, options);
-        }
-
-        InputStream propertyStream = serializerResult.getContent();
-
-        // configure the response object
-        response.setContent(propertyStream);
-        response.setStatusCode(HttpStatusCode.OK.getStatusCode());
-        response.setHeader(HttpHeader.CONTENT_TYPE, responseFormat.toContentTypeString());
+        try {
+	        
+	        if(property.isCollection()) {
+	        	serializerResult = serializer.primitiveCollection(serviceMetadata, edmFunctionReturnType, property, options);
+	        } else {
+	        	serializerResult = serializer.primitive(serviceMetadata, edmFunctionReturnType, property, options);
+	        }
+	
+	        InputStream propertyStream = serializerResult.getContent();
+	
+	        // configure the response object
+	        response.setContent(propertyStream);
+	        response.setStatusCode(HttpStatusCode.OK.getStatusCode());
+	        response.setHeader(HttpHeader.CONTENT_TYPE, responseFormat.toContentTypeString());
+	        
+	    } catch (SerializerException e) {
+	    	LOG.error(e.getMessage(), e);
+			throw new ODataApplicationException(e.getMessage(), HttpStatusCode.INTERNAL_SERVER_ERROR.getStatusCode(), Locale.ENGLISH);
+		}
 	}
 
 	private Object readFromEntitySet(UriResourceEntitySet uriResourceEntitySet) throws ODataApplicationException {

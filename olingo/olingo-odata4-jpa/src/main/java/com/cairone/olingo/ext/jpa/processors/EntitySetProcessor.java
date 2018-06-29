@@ -287,17 +287,24 @@ public class EntitySetProcessor extends BaseProcessor implements EntityProcessor
 			LOG.error(e.getMessage(), e);
 			throw new ODataApplicationException(e.getMessage(), HttpStatusCode.BAD_REQUEST.getStatusCode(), Locale.ENGLISH);
 		}
+		
 		EntitySerializerOptions options = EntitySerializerOptions.with().contextURL(contextUrl).build();
 		
-		ODataSerializer serializer = this.odata.createSerializer(responseFormat);
-		SerializerResult serializedResponse = serializer.entity(serviceMetadata, edmEntityType, createdEntity, options);
-
-		final String location = request.getRawBaseUri() + '/' + odata.createUriHelper().buildCanonicalURL(edmEntitySet, createdEntity);
-		
-		response.setContent(serializedResponse.getContent());
-		response.setStatusCode(HttpStatusCode.CREATED.getStatusCode());
-		response.setHeader(HttpHeader.LOCATION, location);
-		response.setHeader(HttpHeader.CONTENT_TYPE, responseFormat.toContentTypeString());
+		try {
+			ODataSerializer serializer = this.odata.createSerializer(responseFormat);
+			SerializerResult serializedResponse = serializer.entity(serviceMetadata, edmEntityType, createdEntity, options);
+	
+			final String location = request.getRawBaseUri() + '/' + odata.createUriHelper().buildCanonicalURL(edmEntitySet, createdEntity);
+			
+			response.setContent(serializedResponse.getContent());
+			response.setStatusCode(HttpStatusCode.CREATED.getStatusCode());
+			response.setHeader(HttpHeader.LOCATION, location);
+			response.setHeader(HttpHeader.CONTENT_TYPE, responseFormat.toContentTypeString());
+			 
+	    } catch (SerializerException e) {
+	    	LOG.error(e.getMessage(), e);
+			throw new ODataApplicationException(e.getMessage(), HttpStatusCode.INTERNAL_SERVER_ERROR.getStatusCode(), Locale.ENGLISH);
+		}
 	}
 
 	@Override
@@ -766,12 +773,18 @@ public class EntitySetProcessor extends BaseProcessor implements EntityProcessor
 			.select(selectOption)
 			.expand(expandOption).build();
 		
-		SerializerResult serializerResult = serializer.entityCollection(serviceMetadata, edmEntityType, entityCollection, opts);
-		InputStream serializedContent = serializerResult.getContent();
-
-		response.setContent(serializedContent);
-		response.setStatusCode(HttpStatusCode.OK.getStatusCode());
-		response.setHeader(HttpHeader.CONTENT_TYPE, responseFormat.toContentTypeString());
+		try {
+			SerializerResult serializerResult = serializer.entityCollection(serviceMetadata, edmEntityType, entityCollection, opts);
+			InputStream serializedContent = serializerResult.getContent();
+	
+			response.setContent(serializedContent);
+			response.setStatusCode(HttpStatusCode.OK.getStatusCode());
+			response.setHeader(HttpHeader.CONTENT_TYPE, responseFormat.toContentTypeString());
+			 
+	    } catch (SerializerException e) {
+	    	LOG.error(e.getMessage(), e);
+			throw new ODataApplicationException(e.getMessage(), HttpStatusCode.INTERNAL_SERVER_ERROR.getStatusCode(), Locale.ENGLISH);
+		}
 	}
 	
 	private void readNavigationEntityInternal(ODataRequest request, ODataResponse response, UriInfo uriInfo, ContentType responseFormat) throws ODataApplicationException, ODataLibraryException {
@@ -1009,12 +1022,18 @@ public class EntitySetProcessor extends BaseProcessor implements EntityProcessor
 			.contextURL(contextUrl)
 			.expand(expandOption).build();
 		
-		SerializerResult serializerResult = serializer.entityCollection(serviceMetadata, edmEntityType, entityCollection, opts);
-		InputStream serializedContent = serializerResult.getContent();
-
-		response.setContent(serializedContent);
-		response.setStatusCode(HttpStatusCode.OK.getStatusCode());
-		response.setHeader(HttpHeader.CONTENT_TYPE, responseFormat.toContentTypeString());
+		try {
+			SerializerResult serializerResult = serializer.entityCollection(serviceMetadata, edmEntityType, entityCollection, opts);
+			InputStream serializedContent = serializerResult.getContent();
+	
+			response.setContent(serializedContent);
+			response.setStatusCode(HttpStatusCode.OK.getStatusCode());
+			response.setHeader(HttpHeader.CONTENT_TYPE, responseFormat.toContentTypeString());
+			 
+	    } catch (SerializerException e) {
+	    	LOG.error(e.getMessage(), e);
+			throw new ODataApplicationException(e.getMessage(), HttpStatusCode.INTERNAL_SERVER_ERROR.getStatusCode(), Locale.ENGLISH);
+		}
 	}
 	
 	private void readEntityCollectionInternal(ODataRequest request, ODataResponse response, UriInfo uriInfo, ContentType responseFormat) throws ODataApplicationException, ODataLibraryException {
@@ -1136,12 +1155,18 @@ public class EntitySetProcessor extends BaseProcessor implements EntityProcessor
 			.select(selectOption)
 			.expand(expandOption).build();
 		
-		SerializerResult serializerResult = serializer.entityCollection(serviceMetadata, edmEntityType, entityCollection, opts);
-		InputStream serializedContent = serializerResult.getContent();
-
-		response.setContent(serializedContent);
-		response.setStatusCode(HttpStatusCode.OK.getStatusCode());
-		response.setHeader(HttpHeader.CONTENT_TYPE, responseFormat.toContentTypeString());
+		try {
+			SerializerResult serializerResult = serializer.entityCollection(serviceMetadata, edmEntityType, entityCollection, opts);
+			InputStream serializedContent = serializerResult.getContent();
+	
+			response.setContent(serializedContent);
+			response.setStatusCode(HttpStatusCode.OK.getStatusCode());
+			response.setHeader(HttpHeader.CONTENT_TYPE, responseFormat.toContentTypeString());
+			 
+	    } catch (SerializerException e) {
+	    	LOG.error(e.getMessage(), e);
+			throw new ODataApplicationException(e.getMessage(), HttpStatusCode.INTERNAL_SERVER_ERROR.getStatusCode(), Locale.ENGLISH);
+		}
 	}
 	
 	private Object readFromEntitySet(UriResourceEntitySet uriResourceEntitySet) throws ODataApplicationException {

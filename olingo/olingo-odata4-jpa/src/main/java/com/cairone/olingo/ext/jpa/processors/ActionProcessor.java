@@ -39,6 +39,7 @@ import org.apache.olingo.server.api.processor.ActionVoidProcessor;
 import org.apache.olingo.server.api.serializer.EntityCollectionSerializerOptions;
 import org.apache.olingo.server.api.serializer.EntitySerializerOptions;
 import org.apache.olingo.server.api.serializer.ODataSerializer;
+import org.apache.olingo.server.api.serializer.SerializerException;
 import org.apache.olingo.server.api.serializer.SerializerResult;
 import org.apache.olingo.server.api.uri.UriInfo;
 import org.apache.olingo.server.api.uri.UriParameter;
@@ -214,12 +215,18 @@ public class ActionProcessor extends BaseProcessor implements ActionEntityProces
 			.select(selectOption)
 			.expand(expandOption).build();
 		
-		SerializerResult serializerResult = serializer.entityCollection(serviceMetadata, edmEntityType, entityCollection, opts);
-		InputStream serializedContent = serializerResult.getContent();
-
-		response.setContent(serializedContent);
-		response.setStatusCode(HttpStatusCode.OK.getStatusCode());
-		response.setHeader(HttpHeader.CONTENT_TYPE, responseFormat.toContentTypeString());
+		try {
+			SerializerResult serializerResult = serializer.entityCollection(serviceMetadata, edmEntityType, entityCollection, opts);
+			InputStream serializedContent = serializerResult.getContent();
+	
+			response.setContent(serializedContent);
+			response.setStatusCode(HttpStatusCode.OK.getStatusCode());
+			response.setHeader(HttpHeader.CONTENT_TYPE, responseFormat.toContentTypeString());
+			 
+	    } catch (SerializerException e) {
+	    	LOG.error(e.getMessage(), e);
+			throw new ODataApplicationException(e.getMessage(), HttpStatusCode.INTERNAL_SERVER_ERROR.getStatusCode(), Locale.ENGLISH);
+		}
 	}
 
 	@Override
@@ -332,6 +339,7 @@ public class ActionProcessor extends BaseProcessor implements ActionEntityProces
 			contextUrl = builder.build();
 			
 		} catch (URISyntaxException e) {
+			LOG.error(e.getMessage(), e);
 			throw new ODataApplicationException(e.getMessage(), HttpStatusCode.BAD_REQUEST.getStatusCode(), Locale.ENGLISH);
 		}
 	    EntitySerializerOptions options = EntitySerializerOptions.with().contextURL(contextUrl).select(selectOption).expand(expandOption).build();
@@ -342,11 +350,18 @@ public class ActionProcessor extends BaseProcessor implements ActionEntityProces
 	    }
 	    
 	    ODataSerializer serializer = odata.createSerializer(responseFormat);
-	    SerializerResult serializerResult = serializer.entity(serviceMetadata, edmEntityType, entity, options);
-	    InputStream entityStream = serializerResult.getContent();
-
-	    response.setContent(entityStream);
-	    response.setStatusCode(HttpStatusCode.OK.getStatusCode());
-	    response.setHeader(HttpHeader.CONTENT_TYPE, responseFormat.toContentTypeString());
+	    
+	    try {
+		    SerializerResult serializerResult = serializer.entity(serviceMetadata, edmEntityType, entity, options);
+		    InputStream entityStream = serializerResult.getContent();
+	
+		    response.setContent(entityStream);
+		    response.setStatusCode(HttpStatusCode.OK.getStatusCode());
+		    response.setHeader(HttpHeader.CONTENT_TYPE, responseFormat.toContentTypeString());
+		    
+	    } catch (SerializerException e) {
+	    	LOG.error(e.getMessage(), e);
+			throw new ODataApplicationException(e.getMessage(), HttpStatusCode.INTERNAL_SERVER_ERROR.getStatusCode(), Locale.ENGLISH);
+		}
 	}
 }

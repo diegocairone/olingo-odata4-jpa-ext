@@ -24,6 +24,7 @@ import org.apache.olingo.server.api.ODataRequest;
 import org.apache.olingo.server.api.ODataResponse;
 import org.apache.olingo.server.api.processor.MediaEntityProcessor;
 import org.apache.olingo.server.api.serializer.EntitySerializerOptions;
+import org.apache.olingo.server.api.serializer.SerializerException;
 import org.apache.olingo.server.api.serializer.SerializerResult;
 import org.apache.olingo.server.api.uri.UriInfo;
 import org.apache.olingo.server.api.uri.UriParameter;
@@ -144,19 +145,27 @@ public class MediaProcessor extends EntitySetProcessor implements MediaEntityPro
 				LOG.error(e.getMessage(), e);
 				throw new ODataApplicationException(e.getMessage(), HttpStatusCode.BAD_REQUEST.getStatusCode(), Locale.ENGLISH);
 			}
-		    final EntitySerializerOptions opts = EntitySerializerOptions.with().contextURL(contextUrl).build();
-		    final SerializerResult serializerResult = odata
-		    		.createSerializer(responseFormat)
-		    		.entity(serviceMetadata, edmEntitySet.getEntityType(), entity, opts);
-
-		    final String location = request.getRawBaseUri() + '/' + odata.createUriHelper().buildCanonicalURL(edmEntitySet, entity);
-
-		    response.setContent(serializerResult.getContent());
-		    response.setStatusCode(HttpStatusCode.CREATED.getStatusCode());
-		    response.setHeader(HttpHeader.LOCATION, location);
-		    response.setHeader(HttpHeader.CONTENT_TYPE, responseFormat.toContentTypeString());
 		    
-		    return;
+			final EntitySerializerOptions opts = EntitySerializerOptions.with().contextURL(contextUrl).build();
+			
+			try {
+			    final SerializerResult serializerResult = odata
+			    		.createSerializer(responseFormat)
+			    		.entity(serviceMetadata, edmEntitySet.getEntityType(), entity, opts);
+	
+			    final String location = request.getRawBaseUri() + '/' + odata.createUriHelper().buildCanonicalURL(edmEntitySet, entity);
+	
+			    response.setContent(serializerResult.getContent());
+			    response.setStatusCode(HttpStatusCode.CREATED.getStatusCode());
+			    response.setHeader(HttpHeader.LOCATION, location);
+			    response.setHeader(HttpHeader.CONTENT_TYPE, responseFormat.toContentTypeString());
+			    
+			    return;
+			    
+		    } catch (SerializerException e) {
+		    	LOG.error(e.getMessage(), e);
+				throw new ODataApplicationException(e.getMessage(), HttpStatusCode.INTERNAL_SERVER_ERROR.getStatusCode(), Locale.ENGLISH);
+			}
 	    }
 	    
 	    throw new ODataApplicationException("Not implemented", HttpStatusCode.BAD_REQUEST.getStatusCode(), Locale.ENGLISH);
