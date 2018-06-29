@@ -92,6 +92,7 @@ public class MediaProcessor extends EntitySetProcessor implements MediaEntityPro
 		        return;
 		        
 			} catch (IOException e) {
+				LOG.error(e.getMessage(), e);
 				throw new ODataApplicationException(e.getMessage(), HttpStatusCode.INTERNAL_SERVER_ERROR.getStatusCode(), Locale.ENGLISH);
 			}
 	    }
@@ -122,10 +123,12 @@ public class MediaProcessor extends EntitySetProcessor implements MediaEntityPro
 					entity = writeEntity(object, null);
 					
 				} catch (IllegalArgumentException | IllegalAccessException | NoSuchMethodException | SecurityException | InvocationTargetException e) {
+					LOG.error(e.getMessage(), e);
 					throw new ODataApplicationException(e.getMessage(), HttpStatusCode.INTERNAL_SERVER_ERROR.getStatusCode(), Locale.ENGLISH);
 				}
 		        
 			} catch (ODataApplicationException e) {
+				LOG.error(e.getMessage(), e);
 				throw e;
 			}
 		    
@@ -138,6 +141,7 @@ public class MediaProcessor extends EntitySetProcessor implements MediaEntityPro
 						.suffix(Suffix.ENTITY)
 						.build();
 			} catch (URISyntaxException e) {
+				LOG.error(e.getMessage(), e);
 				throw new ODataApplicationException(e.getMessage(), HttpStatusCode.BAD_REQUEST.getStatusCode(), Locale.ENGLISH);
 			}
 		    final EntitySerializerOptions opts = EntitySerializerOptions.with().contextURL(contextUrl).build();
@@ -191,8 +195,10 @@ public class MediaProcessor extends EntitySetProcessor implements MediaEntityPro
 		        return;
 		        
 			} catch (ODataApplicationException e) {
+				LOG.error(e.getMessage(), e);
 				throw e;
 			} catch (IOException e) {
+				LOG.error(e.getMessage(), e);
 				throw new ODataApplicationException(e.getMessage(), HttpStatusCode.INTERNAL_SERVER_ERROR.getStatusCode(), Locale.ENGLISH);
 			}
 	    }

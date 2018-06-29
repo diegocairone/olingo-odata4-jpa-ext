@@ -11,6 +11,8 @@ import org.apache.olingo.server.api.uri.queryoption.OrderByItem;
 import org.apache.olingo.server.api.uri.queryoption.OrderByOption;
 import org.apache.olingo.server.api.uri.queryoption.expression.Expression;
 import org.apache.olingo.server.api.uri.queryoption.expression.ExpressionVisitException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.cairone.olingo.ext.jpa.visitors.QueryDslExpressionVisitor;
 import com.querydsl.core.BooleanBuilder;
@@ -20,6 +22,8 @@ import com.querydsl.core.types.dsl.ComparableExpressionBase;
 
 public class QuerydslQueryBuilder {
 
+	protected static final Logger LOG = LoggerFactory.getLogger(QuerydslQueryBuilder.class);
+	
 	private Class<?> clazz = null;
 	
 	private FilterOption filterOption = null; 
@@ -63,6 +67,7 @@ public class QuerydslQueryBuilder {
 				return exp;
 				
 			} catch (ExpressionVisitException | ODataApplicationException e) {
+				LOG.error(e.getMessage(), e);
 				throw new ODataApplicationException(e.getMessage(), HttpStatusCode.INTERNAL_SERVER_ERROR.getStatusCode(), Locale.ENGLISH);
 			}
 		}
@@ -86,6 +91,7 @@ public class QuerydslQueryBuilder {
 						orderSpecifiers.add(isDescending ? comparableExpression.desc() : comparableExpression.asc());
 					}
 				} catch (ExpressionVisitException | ODataApplicationException e) {
+					LOG.error(e.getMessage(), e);
 					throw new ODataApplicationException(e.getMessage(), HttpStatusCode.INTERNAL_SERVER_ERROR.getStatusCode(), Locale.ENGLISH);
 				}
 			}

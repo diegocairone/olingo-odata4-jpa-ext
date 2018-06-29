@@ -171,6 +171,7 @@ public class ComplexProcessorImpl extends BaseProcessor implements ComplexProces
 			entity = writeEntity(object);
 			
 		} catch (IllegalArgumentException | IllegalAccessException | NoSuchMethodException | SecurityException | InvocationTargetException e) {
+			LOG.error(e.getMessage(), e);
 			throw new ODataApplicationException(e.getMessage(), HttpStatusCode.INTERNAL_SERVER_ERROR.getStatusCode(), Locale.ENGLISH);
 		}
 
@@ -191,6 +192,7 @@ public class ComplexProcessorImpl extends BaseProcessor implements ComplexProces
             try {
             	contextUrl = ContextURL.with().serviceRoot(new URI(SERVICE_ROOT)).entitySet(edmEntitySet).navOrPropertyPath(edmPropertyName).build();
             } catch (URISyntaxException e) {
+            	LOG.error(e.getMessage(), e);
     			throw new ODataApplicationException(e.getMessage(), HttpStatusCode.BAD_REQUEST.getStatusCode(), Locale.ENGLISH);
     		}
             ComplexSerializerOptions options = ComplexSerializerOptions.with().contextURL(contextUrl).build();
@@ -267,6 +269,7 @@ public class ComplexProcessorImpl extends BaseProcessor implements ComplexProces
                     		fld.set(operation, rv);
 	    					
 						} catch (SecurityException | IllegalArgumentException | IllegalAccessException e) {
+							LOG.error(e.getMessage(), e);
 							throw new ODataApplicationException(e.getMessage(), HttpStatusCode.INTERNAL_SERVER_ERROR.getStatusCode(), Locale.ENGLISH);
 						}
 					}
@@ -280,6 +283,7 @@ public class ComplexProcessorImpl extends BaseProcessor implements ComplexProces
 					try {
 						fld.set(operation, value);
 					} catch (IllegalArgumentException | IllegalAccessException e) {
+						LOG.error(e.getMessage(), e);
 						throw new ODataApplicationException(e.getMessage(), HttpStatusCode.INTERNAL_SERVER_ERROR.getStatusCode(), Locale.ENGLISH);
 					}
 				}
@@ -329,6 +333,7 @@ public class ComplexProcessorImpl extends BaseProcessor implements ComplexProces
 			}
 			
 		} catch (ODataException | IllegalArgumentException | SecurityException | IllegalAccessException | NoSuchMethodException | InvocationTargetException e) {
+			LOG.error(e.getMessage(), e);
 			throw new ODataApplicationException(e.getMessage(), HttpStatusCode.INTERNAL_SERVER_ERROR.getStatusCode(), Locale.ENGLISH);
 		}
 		
@@ -343,6 +348,7 @@ public class ComplexProcessorImpl extends BaseProcessor implements ComplexProces
         		.entitySetOrSingletonOrType(edmFunctionReturnType.getFullQualifiedName().getFullQualifiedNameAsString())
         		.build();
         } catch (URISyntaxException e) {
+        	LOG.error(e.getMessage(), e);
 			throw new ODataApplicationException(e.getMessage(), HttpStatusCode.BAD_REQUEST.getStatusCode(), Locale.ENGLISH);
 		}
         ComplexSerializerOptions options = ComplexSerializerOptions.with().contextURL(contextUrl).build();

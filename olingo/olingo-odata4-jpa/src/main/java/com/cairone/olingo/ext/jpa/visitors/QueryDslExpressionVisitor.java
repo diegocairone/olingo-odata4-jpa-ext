@@ -19,6 +19,8 @@ import org.apache.olingo.server.api.uri.UriResourceNavigation;
 import org.apache.olingo.server.api.uri.UriResourcePrimitiveProperty;
 import org.apache.olingo.server.api.uri.queryoption.expression.ExpressionVisitException;
 import org.apache.olingo.server.api.uri.queryoption.expression.Member;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.cairone.olingo.ext.jpa.annotations.EdmNavigationProperty;
 import com.cairone.olingo.ext.jpa.annotations.EdmProperty;
@@ -33,6 +35,8 @@ import com.querydsl.core.types.dsl.PathBuilder;
 
 public class QueryDslExpressionVisitor extends BaseExpressionVisitor {
 
+	protected static final Logger LOG = LoggerFactory.getLogger(QueryDslExpressionVisitor.class);
+	
 	private Class<?> targetEdm = null;
 	private Class<?> pointerEdmClazz = null;
 	private Class<?> pointerJpaClazz = null;
@@ -73,6 +77,7 @@ public class QueryDslExpressionVisitor extends BaseExpressionVisitor {
 					} catch (NoSuchFieldException e) {
 						jpaFieldPathName = oDataQueryDslEntity.extendsFieldName() + "." + jpaFieldPathName;
 					} catch (SecurityException e) {
+						LOG.error(e.getMessage(), e);
 						throw new ExpressionVisitException(e.getMessage(), e);
 					}
 					if(primitiveProperty.getProperty().getType().getKind().equals(EdmTypeKind.ENUM)) {
@@ -120,6 +125,7 @@ public class QueryDslExpressionVisitor extends BaseExpressionVisitor {
 					} catch (NoSuchFieldException e) {
 						jpaFieldPathName = oDataQueryDslEntity.extendsFieldName() + "." + jpaFieldPathName;
 					} catch (SecurityException e) {
+						LOG.error(e.getMessage(), e);
 						throw new ExpressionVisitException(e.getMessage(), e);
 					}
 					pathBuilder = (PathBuilder<?>) getPath(pointerJpaClazz, pathBuilder, jpaFieldPathName);

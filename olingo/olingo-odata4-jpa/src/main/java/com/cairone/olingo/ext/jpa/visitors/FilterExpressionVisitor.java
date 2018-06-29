@@ -29,6 +29,8 @@ import org.apache.olingo.server.api.uri.queryoption.expression.Literal;
 import org.apache.olingo.server.api.uri.queryoption.expression.Member;
 import org.apache.olingo.server.api.uri.queryoption.expression.MethodKind;
 import org.apache.olingo.server.api.uri.queryoption.expression.UnaryOperatorKind;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.cairone.olingo.ext.jpa.annotations.EdmEnum;
 import com.cairone.olingo.ext.jpa.annotations.EdmProperty;
@@ -37,12 +39,14 @@ import com.cairone.olingo.ext.jpa.converters.BinaryOperatorConverter;
 import com.cairone.olingo.ext.jpa.enums.BinaryOperatorGroup;
 import com.cairone.olingo.ext.jpa.enums.EnumerationTreatedAs;
 import com.cairone.olingo.ext.jpa.interfaces.OdataEnum;
+import com.cairone.olingo.ext.jpa.query.JPQLQueryBuilder;
 import com.google.common.base.CharMatcher;
 import com.google.common.primitives.Ints;
 import com.google.common.primitives.Longs;
 
 public class FilterExpressionVisitor implements ExpressionVisitor<Object> {
 	
+	protected static final Logger LOG = LoggerFactory.getLogger(FilterExpressionVisitor.class);
 	private static String DATE_FORMAT = "yyyy-MM-dd";
 	
 	private Class<?> clazz;
@@ -116,6 +120,7 @@ public class FilterExpressionVisitor implements ExpressionVisitor<Object> {
 				return sb.toString();
 				
 			} catch(DateTimeParseException e) {
+				LOG.error(e.getMessage(), e);
 				throw new ODataApplicationException(e.getMessage(), HttpStatusCode.BAD_REQUEST.getStatusCode(), Locale.ENGLISH);
 			}
 		} else if(typeName.equals("java.lang.String")) {

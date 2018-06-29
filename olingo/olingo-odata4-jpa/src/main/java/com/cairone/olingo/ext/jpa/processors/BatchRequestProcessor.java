@@ -99,6 +99,7 @@ public class BatchRequestProcessor extends BaseProcessor implements BatchProcess
 				}
 			}
 			
+			LOG.error(e.getMessage(), e);
 			throw new ODataApplicationException(exception.getMessage(), HttpStatusCode.INTERNAL_SERVER_ERROR.getStatusCode(), Locale.ENGLISH, exception);
 	    }
 	}

@@ -169,6 +169,7 @@ public class PrimitiveProcessorImpl extends BaseProcessor implements PrimitivePr
 			entity = writeEntity(object);
 			
 		} catch (IllegalArgumentException | IllegalAccessException | NoSuchMethodException | SecurityException | InvocationTargetException e) {
+			LOG.error(e.getMessage(), e);
 			throw new ODataApplicationException(e.getMessage(), HttpStatusCode.INTERNAL_SERVER_ERROR.getStatusCode(), Locale.ENGLISH);
 		}
 		
@@ -189,6 +190,7 @@ public class PrimitiveProcessorImpl extends BaseProcessor implements PrimitivePr
             try {
             	contextUrl = ContextURL.with().serviceRoot(new URI(SERVICE_ROOT)).entitySet(edmEntitySet).navOrPropertyPath(edmPropertyName).build();
             } catch (URISyntaxException e) {
+            	LOG.error(e.getMessage(), e);
     			throw new ODataApplicationException(e.getMessage(), HttpStatusCode.BAD_REQUEST.getStatusCode(), Locale.ENGLISH);
     		}
             PrimitiveSerializerOptions options = PrimitiveSerializerOptions.with().contextURL(contextUrl).build();
@@ -265,6 +267,7 @@ public class PrimitiveProcessorImpl extends BaseProcessor implements PrimitivePr
                     		fld.set(operation, rv);
 	    					
 						} catch (SecurityException | IllegalArgumentException | IllegalAccessException e) {
+							LOG.error(e.getMessage(), e);
 							throw new ODataApplicationException(e.getMessage(), HttpStatusCode.INTERNAL_SERVER_ERROR.getStatusCode(), Locale.ENGLISH);
 						}
 					}
@@ -278,6 +281,7 @@ public class PrimitiveProcessorImpl extends BaseProcessor implements PrimitivePr
 					try {
 						fld.set(operation, value);
 					} catch (IllegalArgumentException | IllegalAccessException e) {
+						LOG.error(e.getMessage(), e);
 						throw new ODataApplicationException(e.getMessage(), HttpStatusCode.INTERNAL_SERVER_ERROR.getStatusCode(), Locale.ENGLISH);
 					}
 				}
@@ -299,6 +303,7 @@ public class PrimitiveProcessorImpl extends BaseProcessor implements PrimitivePr
 			returnedValue = operation.doOperation(edmFunction.isBound(), keyPredicateMap);
 			
 		} catch (ODataException | IllegalArgumentException | SecurityException e) {
+			LOG.error(e.getMessage(), e);
 			throw new ODataApplicationException(e.getMessage(), HttpStatusCode.INTERNAL_SERVER_ERROR.getStatusCode(), Locale.ENGLISH);
 		}
 		
@@ -317,6 +322,7 @@ public class PrimitiveProcessorImpl extends BaseProcessor implements PrimitivePr
         		.entitySetOrSingletonOrType(edmFunctionReturnType.getFullQualifiedName().getFullQualifiedNameAsString())
         		.build();
         } catch (URISyntaxException e) {
+        	LOG.error(e.getMessage(), e);
 			throw new ODataApplicationException(e.getMessage(), HttpStatusCode.BAD_REQUEST.getStatusCode(), Locale.ENGLISH);
 		}
         PrimitiveSerializerOptions options = PrimitiveSerializerOptions.with().contextURL(contextUrl).build();

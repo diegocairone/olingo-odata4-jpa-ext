@@ -195,7 +195,8 @@ public class EntitySetProcessor extends BaseProcessor implements EntityProcessor
     		createdEntity = writeEntity(createdObject, null);
     		
     	} catch (IllegalArgumentException | IllegalAccessException | NoSuchMethodException | SecurityException | InstantiationException | InvocationTargetException e) {
-			throw new ODataApplicationException(e.getMessage(), HttpStatusCode.INTERNAL_SERVER_ERROR.getStatusCode(), Locale.ENGLISH);
+    		LOG.error(e.getMessage(), e);
+    		throw new ODataApplicationException(e.getMessage(), HttpStatusCode.INTERNAL_SERVER_ERROR.getStatusCode(), Locale.ENGLISH);
 		}
     	
 	    ContextURL contextUrl = null;
@@ -206,6 +207,7 @@ public class EntitySetProcessor extends BaseProcessor implements EntityProcessor
 					.suffix(Suffix.ENTITY)
 					.build();
 		} catch (URISyntaxException e) {
+			LOG.error(e.getMessage(), e);
 			throw new ODataApplicationException(e.getMessage(), HttpStatusCode.BAD_REQUEST.getStatusCode(), Locale.ENGLISH);
 		}
 		EntitySerializerOptions options = EntitySerializerOptions.with().contextURL(contextUrl).build();
@@ -270,7 +272,8 @@ public class EntitySetProcessor extends BaseProcessor implements EntityProcessor
     		createdEntity = writeEntity(createdObject, null);
     		
     	} catch (IllegalArgumentException | IllegalAccessException | NoSuchMethodException | SecurityException | InstantiationException | InvocationTargetException e) {
-			throw new ODataApplicationException(e.getMessage(), HttpStatusCode.INTERNAL_SERVER_ERROR.getStatusCode(), Locale.ENGLISH);
+    		LOG.error(e.getMessage(), e);
+    		throw new ODataApplicationException(e.getMessage(), HttpStatusCode.INTERNAL_SERVER_ERROR.getStatusCode(), Locale.ENGLISH);
 		}
     	
 	    ContextURL contextUrl = null;
@@ -281,6 +284,7 @@ public class EntitySetProcessor extends BaseProcessor implements EntityProcessor
 					.suffix(Suffix.ENTITY)
 					.build();
 		} catch (URISyntaxException e) {
+			LOG.error(e.getMessage(), e);
 			throw new ODataApplicationException(e.getMessage(), HttpStatusCode.BAD_REQUEST.getStatusCode(), Locale.ENGLISH);
 		}
 		EntitySerializerOptions options = EntitySerializerOptions.with().contextURL(contextUrl).build();
@@ -379,7 +383,8 @@ public class EntitySetProcessor extends BaseProcessor implements EntityProcessor
 	    	object = writeObject(clazz, requestEntity);
     		
     	} catch (IllegalArgumentException | IllegalAccessException | NoSuchMethodException | SecurityException | InstantiationException | InvocationTargetException e) {
-			throw new ODataApplicationException(e.getMessage(), HttpStatusCode.INTERNAL_SERVER_ERROR.getStatusCode(), Locale.ENGLISH);
+    		LOG.error(e.getMessage(), e);
+    		throw new ODataApplicationException(e.getMessage(), HttpStatusCode.INTERNAL_SERVER_ERROR.getStatusCode(), Locale.ENGLISH);
 		}
     	
     	dataSource.update(keyPredicateMap, object, parentobject, propertiesInJSON, request.getMethod().equals(HttpMethod.PUT));
@@ -436,7 +441,8 @@ public class EntitySetProcessor extends BaseProcessor implements EntityProcessor
 	    	object = writeObject(clazz, requestEntity);
     		
     	} catch (IllegalArgumentException | IllegalAccessException | NoSuchMethodException | SecurityException | InstantiationException | InvocationTargetException e) {
-			throw new ODataApplicationException(e.getMessage(), HttpStatusCode.INTERNAL_SERVER_ERROR.getStatusCode(), Locale.ENGLISH);
+    		LOG.error(e.getMessage(), e);
+    		throw new ODataApplicationException(e.getMessage(), HttpStatusCode.INTERNAL_SERVER_ERROR.getStatusCode(), Locale.ENGLISH);
 		}
     	
     	dataSource.update(keyPredicateMap, object, null, propertiesInJSON, request.getMethod().equals(HttpMethod.PUT));
@@ -558,6 +564,7 @@ public class EntitySetProcessor extends BaseProcessor implements EntityProcessor
 		try {
 			selectList = odata.createUriHelper().buildContextURLSelectList(edmEntityType, null, selectOption);
 		} catch (SerializerException e) {
+			LOG.error(e.getMessage(), e);
 			throw new ODataApplicationException(e.getMessage(), HttpStatusCode.INTERNAL_SERVER_ERROR.getStatusCode(), Locale.ENGLISH);
 		}
 	    
@@ -572,6 +579,7 @@ public class EntitySetProcessor extends BaseProcessor implements EntityProcessor
 			entity = writeEntity(object, expandOption);
 			
 		} catch (IllegalArgumentException | IllegalAccessException | NoSuchMethodException | SecurityException | InvocationTargetException e) {
+			LOG.error(e.getMessage(), e);
 			throw new ODataApplicationException(e.getMessage(), HttpStatusCode.INTERNAL_SERVER_ERROR.getStatusCode(), Locale.ENGLISH);
 		}
 		
@@ -584,6 +592,7 @@ public class EntitySetProcessor extends BaseProcessor implements EntityProcessor
 					.suffix(Suffix.ENTITY)
 					.build();
 		} catch (URISyntaxException e) {
+			LOG.error(e.getMessage(), e);
 			throw new ODataApplicationException(e.getMessage(), HttpStatusCode.INTERNAL_SERVER_ERROR.getStatusCode(), Locale.ENGLISH);
 		}
 	    EntitySerializerOptions options = EntitySerializerOptions.with().contextURL(contextUrl).select(selectOption).expand(expandOption).build();
@@ -595,6 +604,7 @@ public class EntitySetProcessor extends BaseProcessor implements EntityProcessor
 			serializer = odata.createSerializer(responseFormat);
 			serializerResult = serializer.entity(serviceMetadata, edmEntityType, entity, options);
 		} catch (SerializerException e) {
+			LOG.error(e.getMessage(), e);
 			throw new ODataApplicationException(e.getMessage(), HttpStatusCode.INTERNAL_SERVER_ERROR.getStatusCode(), Locale.ENGLISH);
 		}
 		
@@ -725,6 +735,7 @@ public class EntitySetProcessor extends BaseProcessor implements EntityProcessor
 				result.add(entity);
 			}
 		} catch (Exception e) {
+			LOG.error(e.getMessage(), e);
 			throw new ODataApplicationException(e.getMessage(), HttpStatusCode.INTERNAL_SERVER_ERROR.getStatusCode(), Locale.ENGLISH);
 		}
 		
@@ -744,6 +755,7 @@ public class EntitySetProcessor extends BaseProcessor implements EntityProcessor
 					.selectList(selectList)
 					.build();
 		} catch (URISyntaxException e) {
+			LOG.error(e.getMessage(), e);
 			throw new ODataApplicationException(e.getMessage(), HttpStatusCode.BAD_REQUEST.getStatusCode(), Locale.ENGLISH);
 		}
 		
@@ -797,6 +809,7 @@ public class EntitySetProcessor extends BaseProcessor implements EntityProcessor
 		try {
 			selectList = odata.createUriHelper().buildContextURLSelectList(edmEntityType, null, selectOption);
 		} catch (SerializerException e) {
+			LOG.error(e.getMessage(), e);
 			throw new ODataApplicationException(e.getMessage(), HttpStatusCode.INTERNAL_SERVER_ERROR.getStatusCode(), Locale.ENGLISH);
 		}
 	    
@@ -848,6 +861,7 @@ public class EntitySetProcessor extends BaseProcessor implements EntityProcessor
 			serializer = odata.createSerializer(responseFormat);
 			serializerResult = serializer.entity(serviceMetadata, edmEntityType, entity, options);
 		} catch (SerializerException e) {
+			LOG.error(e.getMessage(), e);
 			throw new ODataApplicationException(e.getMessage(), HttpStatusCode.INTERNAL_SERVER_ERROR.getStatusCode(), Locale.ENGLISH);
 		}
 		
@@ -906,6 +920,7 @@ public class EntitySetProcessor extends BaseProcessor implements EntityProcessor
                     		fld.set(operation, rv);
 	    					
 						} catch (SecurityException | IllegalArgumentException | IllegalAccessException e) {
+							LOG.error(e.getMessage(), e);
 							throw new ODataApplicationException(e.getMessage(), HttpStatusCode.INTERNAL_SERVER_ERROR.getStatusCode(), Locale.ENGLISH);
 						}
 					}
@@ -919,6 +934,7 @@ public class EntitySetProcessor extends BaseProcessor implements EntityProcessor
 					try {
 						fld.set(operation, value);
 					} catch (IllegalArgumentException | IllegalAccessException e) {
+						LOG.error(e.getMessage(), e);
 						throw new ODataApplicationException(e.getMessage(), HttpStatusCode.INTERNAL_SERVER_ERROR.getStatusCode(), Locale.ENGLISH);
 					}
 				}
@@ -967,6 +983,7 @@ public class EntitySetProcessor extends BaseProcessor implements EntityProcessor
 			}
 			
 		} catch (ODataException | IllegalArgumentException | IllegalAccessException | NoSuchMethodException | SecurityException | InvocationTargetException e) {
+			LOG.error(e.getMessage(), e);
 			throw new ODataApplicationException(e.getMessage(), HttpStatusCode.INTERNAL_SERVER_ERROR.getStatusCode(), Locale.ENGLISH);
 		}
 
@@ -980,6 +997,7 @@ public class EntitySetProcessor extends BaseProcessor implements EntityProcessor
 					.entitySet(edmEntitySet)
 					.build();
 		} catch (URISyntaxException e) {
+			LOG.error(e.getMessage(), e);
 			throw new ODataApplicationException(e.getMessage(), HttpStatusCode.BAD_REQUEST.getStatusCode(), Locale.ENGLISH);
 		}
 		
@@ -1088,6 +1106,7 @@ public class EntitySetProcessor extends BaseProcessor implements EntityProcessor
 				result.add(entity);
 			}
 		} catch (Exception e) {
+			LOG.error(e.getMessage(), e);
 			throw new ODataApplicationException(e.getMessage(), HttpStatusCode.INTERNAL_SERVER_ERROR.getStatusCode(), Locale.ENGLISH);
 		}
 				
@@ -1106,6 +1125,7 @@ public class EntitySetProcessor extends BaseProcessor implements EntityProcessor
 					.selectList(selectList)
 					.build();
 		} catch (URISyntaxException e) {
+			LOG.error(e.getMessage(), e);
 			throw new ODataApplicationException(e.getMessage(), HttpStatusCode.BAD_REQUEST.getStatusCode(), Locale.ENGLISH);
 		}
 		

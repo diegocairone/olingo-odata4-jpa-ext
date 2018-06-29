@@ -131,6 +131,7 @@ public class ActionProcessor extends BaseProcessor implements ActionEntityProces
 	    				fld.set(operation, parameter.getValue());
 	    			}
 				} catch (IllegalArgumentException | IllegalAccessException e) {
+					LOG.error(e.getMessage(), e);
 					throw new ODataApplicationException(e.getMessage(), HttpStatusCode.INTERNAL_SERVER_ERROR.getStatusCode(), Locale.ENGLISH);
 				}
 			}
@@ -186,6 +187,7 @@ public class ActionProcessor extends BaseProcessor implements ActionEntityProces
 			}
 			
 		} catch (ODataException | IllegalArgumentException | IllegalAccessException | NoSuchMethodException | SecurityException | InvocationTargetException e) {
+			LOG.error(e.getMessage(), e);
 			throw new ODataApplicationException(e.getMessage(), HttpStatusCode.INTERNAL_SERVER_ERROR.getStatusCode(), Locale.ENGLISH);
 		}
 
@@ -279,6 +281,7 @@ public class ActionProcessor extends BaseProcessor implements ActionEntityProces
 	    				}
 	    			}
 				} catch (IllegalArgumentException | IllegalAccessException | NoSuchMethodException | SecurityException | InstantiationException | InvocationTargetException e) {
+					LOG.error(e.getMessage(), e);
 					throw new ODataApplicationException(e.getMessage(), HttpStatusCode.INTERNAL_SERVER_ERROR.getStatusCode(), Locale.ENGLISH);
 				}
 			}

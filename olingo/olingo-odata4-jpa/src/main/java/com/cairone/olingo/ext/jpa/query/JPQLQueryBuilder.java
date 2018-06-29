@@ -243,6 +243,7 @@ public final class JPQLQueryBuilder {
 					if(!whereClause.isEmpty()) sb.append("WHERE " + whereClause);
 				}
 			} catch (ExpressionVisitException e) {
+				LOG.error(e.getMessage(), e);
 				throw new ODataApplicationException(e.getMessage(), HttpStatusCode.INTERNAL_SERVER_ERROR.getStatusCode(), Locale.ENGLISH);
 			}
 		}

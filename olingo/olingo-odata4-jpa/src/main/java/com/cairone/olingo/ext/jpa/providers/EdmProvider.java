@@ -171,6 +171,7 @@ public class EdmProvider extends CsdlAbstractEdmProvider {
 				}
 			}
 		} catch (ClassNotFoundException e) {
+			LOG.error(e.getMessage(), e);
 			throw new ODataApplicationException(e.getMessage(), HttpStatusCode.INTERNAL_SERVER_ERROR.getStatusCode(), Locale.ENGLISH);
 		}
 		
@@ -647,6 +648,7 @@ public class EdmProvider extends CsdlAbstractEdmProvider {
 					String val = String.valueOf(enumObj.ordinal());
 					enumType.getMembers().add(new CsdlEnumMember().setName(obj.toString()).setValue(val));
 				} catch (SecurityException | IllegalArgumentException e) {
+					LOG.error(e.getMessage(), e);
 					throw new ODataException(e.getMessage());
 				}
 			}

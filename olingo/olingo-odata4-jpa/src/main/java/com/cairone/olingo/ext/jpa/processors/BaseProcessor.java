@@ -107,6 +107,7 @@ public class BaseProcessor implements Processor {
 				}
 			}
 		} catch (ClassNotFoundException e) {
+			LOG.error(e.getMessage(), e);
 			throw new ODataApplicationException(e.getMessage(), HttpStatusCode.INTERNAL_SERVER_ERROR.getStatusCode(), Locale.ENGLISH);
 		}
 		
@@ -611,6 +612,7 @@ public class BaseProcessor implements Processor {
 	            }
 			}
     	} catch(SecurityException | IllegalArgumentException | IllegalAccessException | NoSuchMethodException | InvocationTargetException e) {
+    		LOG.error(e.getMessage(), e);
     		throw new ODataApplicationException(e.getMessage(), HttpStatusCode.INTERNAL_SERVER_ERROR.getStatusCode(), Locale.ENGLISH);
     	}
     	
@@ -663,6 +665,7 @@ public class BaseProcessor implements Processor {
 				    	
 				    	
 	    			} catch (ODataException | IllegalArgumentException | SecurityException | IllegalAccessException | NoSuchMethodException | InvocationTargetException e) {
+	    				LOG.error(e.getMessage(), e);
 	    				throw new ODataApplicationException(e.getMessage(), HttpStatusCode.INTERNAL_SERVER_ERROR.getStatusCode(), Locale.ENGLISH);
 	    			}
 			    	
@@ -706,6 +709,7 @@ public class BaseProcessor implements Processor {
 		    				entityCollection.getEntities().add(targetEntity);
 				    				
 		    			} catch (ODataException | IllegalArgumentException | SecurityException | IllegalAccessException | NoSuchMethodException | InvocationTargetException e) {
+		    				LOG.error(e.getMessage(), e);
 		    				throw new ODataApplicationException(e.getMessage(), HttpStatusCode.INTERNAL_SERVER_ERROR.getStatusCode(), Locale.ENGLISH);
 		    			}
 			    	}
