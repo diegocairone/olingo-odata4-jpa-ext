@@ -139,13 +139,16 @@ public class QuerydslQueryBuilder {
 
 		this.queryOptions = queryOptions;
 		
-		queryOptions.getFilterOption().ifPresent(option -> {
-			this.filterOption = option;
-		});
-		
-		queryOptions.getOrderByOption().ifPresent(option -> {
-			this.orderByOption = option;
-		});
+		if(queryOptions != null) {
+			
+			queryOptions.getFilterOption().ifPresent(option -> {
+				this.filterOption = option;
+			});
+			
+			queryOptions.getOrderByOption().ifPresent(option -> {
+				this.orderByOption = option;
+			});
+		}
 		
 		return this;
 	}
