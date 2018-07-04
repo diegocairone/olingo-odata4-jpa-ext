@@ -7,8 +7,6 @@ import java.util.stream.Collectors;
 import org.apache.olingo.server.api.ODataApplicationException;
 import org.apache.olingo.server.api.uri.UriParameter;
 import org.apache.olingo.server.api.uri.queryoption.ExpandOption;
-import org.apache.olingo.server.api.uri.queryoption.FilterOption;
-import org.apache.olingo.server.api.uri.queryoption.OrderByOption;
 import org.apache.olingo.server.api.uri.queryoption.SelectOption;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -23,6 +21,7 @@ import com.cairone.olingo.ext.demo.repositories.PersonRepository;
 import com.cairone.olingo.ext.demo.services.PersonService;
 import com.cairone.olingo.ext.demo.utils.OdataExceptionParser;
 import com.cairone.olingo.ext.demo.utils.ValidatorUtil;
+import com.cairone.olingo.ext.jpa.interfaces.QueryOptions;
 import com.cairone.olingo.ext.jpa.query.QuerydslQuery;
 import com.cairone.olingo.ext.jpa.query.QuerydslQueryBuilder;
 
@@ -134,15 +133,14 @@ public class PeopleDataSource extends AbstractDataSource {
 	}
 
 	@Override
-	public Iterable<?> readAll(ExpandOption expandOption, FilterOption filterOption, OrderByOption orderByOption, Object parentEntity) throws ODataApplicationException {
+	public Iterable<?> readAll(QueryOptions queryOptions, Object parentEntity) throws ODataApplicationException {
 		
-		QuerydslQuery dslQuery = new QuerydslQueryBuilder()
+		QuerydslQuery query = new QuerydslQueryBuilder()
 				.setClazz(PersonEdm.class)
-				.setFilterOption(filterOption)
-				.setOrderByOption(orderByOption)
+				.setQueryOptions(queryOptions)
 				.build();
 		
-		List<PersonEntity> personEntities = QuerydslQuery.execute(personRepository, dslQuery);
+		List<PersonEntity> personEntities = QuerydslQuery.execute(personRepository, query);
 		List<PersonEdm> personEdms = personEntities.stream()
 			.map(entity -> { 
 				PersonEdm personEdm = new PersonEdm(entity);

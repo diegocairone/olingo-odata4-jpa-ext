@@ -19,6 +19,10 @@ public class PersonCheckLogService {
 	@Autowired private PersonRepository personRepository = null;
 	@Autowired private PersonCheckLogRepository personCheckLogRepository = null;
 
+	public PersonCheckLogRepository getPersonCheckLogRepository() {
+		return personCheckLogRepository;
+	}
+
 	@Transactional(readOnly=true)
 	public PersonCheckLogEntity findOne(Long id) throws ServiceException {
 		

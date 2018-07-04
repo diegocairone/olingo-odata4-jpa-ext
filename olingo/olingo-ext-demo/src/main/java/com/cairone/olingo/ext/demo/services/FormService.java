@@ -16,6 +16,10 @@ public class FormService {
 
 	@Autowired private FormRepository formRepository = null;
 
+	public FormRepository getFormRepository() {
+		return formRepository;
+	}
+
 	@Transactional(readOnly=true)
 	public FormEntity findOne(String id) throws ServiceException {
 		

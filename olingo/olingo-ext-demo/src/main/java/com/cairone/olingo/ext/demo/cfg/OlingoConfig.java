@@ -23,6 +23,9 @@ public class OlingoConfig {
 	@Value("${demo.odata.maxtopoption}") private Integer maxTopOption = null;
 	@Value("${demo.odata.serviceroot}") public String SERVICE_ROOT = null;
 	
+	@Value("${demo.odata.skipbylib}") public boolean skipByLib = true;
+	@Value("${demo.odata.topbylib}") public boolean topByLib = true;
+	
     @Autowired private ApplicationContext context = null;
     @Autowired ODataController dispatcherServlet = null;
     
@@ -55,6 +58,8 @@ public class OlingoConfig {
 	    	.setDefaultEdmPackage(AppDemoConstants.DEFAULT_EDM_PACKAGE)
 			.setServiceRoot(SERVICE_ROOT)
 			.setMaxTopOption(maxTopOption)
+			.setSkipByLib(skipByLib)
+			.setTopByLib(topByLib)
 			.initialize(context);
     	
     	return mediaProcessor;
@@ -91,8 +96,8 @@ public class OlingoConfig {
     }
 
     @Bean
-    public ServletRegistrationBean dispatcherServletRegistration() {
-    	ServletRegistrationBean registration = new ServletRegistrationBean(dispatcherServlet, "/odata/olingodemo.svc/*");
+    public ServletRegistrationBean<ODataController> dispatcherServletRegistration() {
+    	ServletRegistrationBean<ODataController> registration = new ServletRegistrationBean<ODataController>(dispatcherServlet, "/odata/olingodemo.svc/*");
     	return registration;
     }
 }

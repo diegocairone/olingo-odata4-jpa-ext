@@ -7,8 +7,6 @@ import java.util.stream.Collectors;
 import org.apache.olingo.server.api.ODataApplicationException;
 import org.apache.olingo.server.api.uri.UriParameter;
 import org.apache.olingo.server.api.uri.queryoption.ExpandOption;
-import org.apache.olingo.server.api.uri.queryoption.FilterOption;
-import org.apache.olingo.server.api.uri.queryoption.OrderByOption;
 import org.apache.olingo.server.api.uri.queryoption.SelectOption;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -21,8 +19,9 @@ import com.cairone.olingo.ext.demo.exceptions.ODataBadRequestException;
 import com.cairone.olingo.ext.demo.services.FormTypeService;
 import com.cairone.olingo.ext.demo.utils.OdataExceptionParser;
 import com.cairone.olingo.ext.demo.utils.ValidatorUtil;
-import com.cairone.olingo.ext.jpa.query.JPQLQuery;
-import com.cairone.olingo.ext.jpa.query.JPQLQueryBuilder;
+import com.cairone.olingo.ext.jpa.interfaces.QueryOptions;
+import com.cairone.olingo.ext.jpa.query.QuerydslQuery;
+import com.cairone.olingo.ext.jpa.query.QuerydslQueryBuilder;
 
 @Component
 public class FormTypesDataSource extends AbstractDataSource {
@@ -124,17 +123,14 @@ public class FormTypesDataSource extends AbstractDataSource {
 	}
 
 	@Override
-	public Iterable<?> readAll(ExpandOption expandOption, FilterOption filterOption, OrderByOption orderByOption, Object parentEntity) throws ODataApplicationException {
+	public Iterable<?> readAll(QueryOptions queryOptions, Object parentEntity) throws ODataApplicationException {
 
-		JPQLQuery query = new JPQLQueryBuilder()
-			.setDistinct(false)
-			.setClazz(FormTypeEdm.class)
-			.setExpandOption(expandOption)
-			.setFilterOption(filterOption)
-			.setOrderByOption(orderByOption)
-			.build();
+		QuerydslQuery query = new QuerydslQueryBuilder()
+				.setClazz(FormTypeEdm.class)
+				.setQueryOptions(queryOptions)
+				.build();
 	
-		List<FormTypeEntity> formTypeEntities = JPQLQuery.execute(entityManager, query);
+		List<FormTypeEntity> formTypeEntities = QuerydslQuery.execute(formTypeService.getFormTypeRepository(), query);
 		List<FormTypeEdm> formTypeEdms = formTypeEntities.stream()
 			.map(entity -> { 
 				FormTypeEdm formTypeEdm = new FormTypeEdm(entity);
