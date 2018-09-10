@@ -722,7 +722,9 @@ public class EdmProvider extends CsdlAbstractEdmProvider {
 				boolean fieldIsCollection = false;
 
 				if(parameter.type().isEmpty()) {					
-					if(fld.getType().isAssignableFrom(Integer.class)) {
+					if(fld.getType().isAssignableFrom(Long.class)) {
+						parameterType = EdmPrimitiveTypeKind.Int64.getFullQualifiedName();
+					} else if(fld.getType().isAssignableFrom(Integer.class)) {
 						parameterType = EdmPrimitiveTypeKind.Int32.getFullQualifiedName();
 					} else if(fld.getType().isAssignableFrom(String.class)) {
 						parameterType = EdmPrimitiveTypeKind.String.getFullQualifiedName();
@@ -780,6 +782,9 @@ public class EdmProvider extends CsdlAbstractEdmProvider {
 					}
 				} else {
 					switch(parameter.type()) {
+					case "Edm.Int64":
+						parameterType = EdmPrimitiveTypeKind.Int64.getFullQualifiedName();
+						break;
 					case "Edm.Int32":
 						parameterType = EdmPrimitiveTypeKind.Int32.getFullQualifiedName();
 						break;

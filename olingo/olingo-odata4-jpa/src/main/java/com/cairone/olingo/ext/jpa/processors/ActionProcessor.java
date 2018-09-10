@@ -54,6 +54,7 @@ import org.springframework.context.ApplicationContext;
 import com.cairone.olingo.ext.jpa.annotations.EdmAction;
 import com.cairone.olingo.ext.jpa.annotations.EdmParameter;
 import com.cairone.olingo.ext.jpa.interfaces.Operation;
+import com.cairone.olingo.ext.jpa.utilities.Util;
 
 public class ActionProcessor extends BaseProcessor implements ActionEntityProcessor, ActionEntityCollectionProcessor, ActionVoidProcessor {
 
@@ -248,6 +249,9 @@ public class ActionProcessor extends BaseProcessor implements ActionEntityProces
 			if(edmParameter != null) {
 				
 				String parameterName = edmParameter.name().isEmpty() ? fld.getName() : edmParameter.name();
+				if(edmParameter.name().trim().isEmpty()) {
+					parameterName = Util.applyNamingConvention(edmParameter, parameterName);
+				}
 				Parameter parameter = parameters.get(parameterName);
 				
 				fld.setAccessible(true);
