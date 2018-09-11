@@ -806,6 +806,9 @@ public class EdmProvider extends CsdlAbstractEdmProvider {
 					.setNullable(parameter.nullable())
 					.setCollection(fieldIsCollection);
 				
+				if(parameterType.equals(EdmPrimitiveTypeKind.Decimal.getFullQualifiedName())) csdlParameter.setScale(parameter.scale());
+				if(parameterType.equals(EdmPrimitiveTypeKind.Decimal.getFullQualifiedName())) csdlParameter.setPrecision(parameter.precision());
+				
 				action.getParameters().add(csdlParameter);
 			}
 		}

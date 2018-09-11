@@ -97,7 +97,7 @@ public @interface EdmParameter {
      *
      * @return The maximum length of this parameter.
      */
-    long maxLength() default Long.MAX_VALUE;
+    int maxLength() default Integer.MAX_VALUE;
 
     /**
      * The precision of this property. The following special values can be used:
@@ -111,7 +111,7 @@ public @interface EdmParameter {
      *
      * @return The precision of this property.
      */
-    long precision() default Long.MAX_VALUE;
+    int precision() default Integer.MAX_VALUE;
 
     /**
      * The scale of this property. The following special values can be used:
@@ -126,7 +126,7 @@ public @interface EdmParameter {
      *
      * @return The scale of this property.
      */
-    long scale() default Long.MAX_VALUE;
+    int scale() default Integer.MAX_VALUE;
 
     /**
      * The spatial reference system identifier of this property. The following special values can be used:
@@ -141,7 +141,7 @@ public @interface EdmParameter {
      *
      * @return The spatial reference system identifier of this property.
      */
-    long srid() default Long.MAX_VALUE;
+    int srid() default Integer.MAX_VALUE;
 
     /**
      * Indicates if the value of this property is Unicode encoded. If {@code false}, the value of this property
