@@ -452,8 +452,11 @@ public class EdmProvider extends CsdlAbstractEdmProvider {
 		
 		CsdlFunctionImport csdlFunctionImport = new CsdlFunctionImport()
 			.setName(functionImportName)
-			.setEntitySet(edmFunctionImport.entitySet())
 			.setFunction(getFullQualifiedName(edmFunctionImport.namespace(), edmFunctionImport.function()));
+		
+		if(edmFunctionImport.entitySet() != null && !edmFunctionImport.entitySet().trim().isEmpty()) {
+			csdlFunctionImport.setEntitySet(edmFunctionImport.entitySet());
+		}
 		
 		return csdlFunctionImport;
 	}
