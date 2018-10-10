@@ -846,7 +846,9 @@ public class EdmProvider extends CsdlAbstractEdmProvider {
 			
 			CsdlReturnType returnType = new CsdlReturnType()
 				.setCollection(isCollection)
-				.setNullable(edmReturnType.nullable());
+				.setNullable(edmReturnType.nullable())
+				.setScale(edmReturnType.scale())
+				.setPrecision(edmReturnType.precision());
 			
 			if(isCollection) {
 				returnType.setType(String.format("Collection(%s)", getFullQualifiedName(edmReturnType.type()).toString() ));
