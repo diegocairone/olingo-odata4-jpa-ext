@@ -766,6 +766,12 @@ public class EdmProvider extends CsdlAbstractEdmProvider {
 									String name = edmEntity.name().isEmpty() ? t.getSimpleName() : edmEntity.name();
 									parameterType = getFullQualifiedName(namespace, name);
 								}
+								EdmComplex edmComplex = t.getAnnotation(EdmComplex.class);
+								if(edmComplex != null) {
+									String namespace = edmComplex.namespace().isEmpty() ? NAME_SPACE : edmComplex.namespace();
+									String name = edmComplex.name().isEmpty() ? t.getSimpleName() : edmComplex.name();
+									parameterType = getFullQualifiedName(namespace, name);
+								}
 							}
 						}
 					} else {
@@ -780,6 +786,12 @@ public class EdmProvider extends CsdlAbstractEdmProvider {
 						if(edmEntity != null) {
 							String namespace = edmEntity.namespace().isEmpty() ? NAME_SPACE : edmEntity.namespace();
 							String name = edmEntity.name().isEmpty() ? otherClazz.getSimpleName() : edmEntity.name();
+							parameterType = getFullQualifiedName(namespace, name);
+						}
+						EdmComplex edmComplex = otherClazz.getAnnotation(EdmComplex.class);
+						if(edmComplex != null) {
+							String namespace = edmComplex.namespace().isEmpty() ? NAME_SPACE : edmComplex.namespace();
+							String name = edmComplex.name().isEmpty() ? otherClazz.getSimpleName() : edmComplex.name();
 							parameterType = getFullQualifiedName(namespace, name);
 						}
 					}
