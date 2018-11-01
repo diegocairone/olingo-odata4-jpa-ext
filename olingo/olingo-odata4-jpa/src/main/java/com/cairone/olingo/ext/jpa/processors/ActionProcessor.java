@@ -294,6 +294,25 @@ public class ActionProcessor extends BaseProcessor implements ActionEntityProces
 	    					Class<?> cl = entitySetMap.get(entitySetName);
 	    					Object object = writeObject(cl, entity);
 	    					fld.set(operation, object);
+	    				} else if(parameter.isComplex() && parameter.isCollection()) {
+	    					@SuppressWarnings("unchecked")
+							List<ComplexValue> complexValues = (List<ComplexValue>) parameter.getValue();
+
+							ParameterizedType listType = (ParameterizedType) fld.getGenericType();
+							Type type = listType.getActualTypeArguments()[0];
+					        Class<?> inlineClazz = (Class<?>) type;
+					        
+					        ArrayList<Object> inlineObjectCollection = new ArrayList<Object>();
+					        
+					        for(ComplexValue complexValue : complexValues) {
+					        	Entity complexEntity = new Entity();
+		    					complexEntity.getProperties().addAll(complexValue.getValue());
+		    					Object complexObject = writeObject(inlineClazz, complexEntity);
+		    					inlineObjectCollection.add(complexObject);
+					        }
+					        	    					
+	    					fld.setAccessible(true);
+	                		fld.set(operation, inlineObjectCollection);
 	    				} else {
 	    					fld.set(operation, parameter.getValue());
 	    				}
