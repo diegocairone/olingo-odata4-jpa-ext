@@ -621,6 +621,7 @@ public class EdmProvider extends CsdlAbstractEdmProvider {
 				
 				if(propertyType.equals(EdmPrimitiveTypeKind.String.getFullQualifiedName()) && property.maxLength() > 0) csdlProperty.setMaxLength(property.maxLength());
 				if(propertyType.equals(EdmPrimitiveTypeKind.Decimal.getFullQualifiedName())) csdlProperty.setScale(property.scale());
+				if(propertyType.equals(EdmPrimitiveTypeKind.DateTimeOffset.getFullQualifiedName())) csdlProperty.setPrecision(property.precision());
 				
 				csdlProperties.add(csdlProperty);
 			}

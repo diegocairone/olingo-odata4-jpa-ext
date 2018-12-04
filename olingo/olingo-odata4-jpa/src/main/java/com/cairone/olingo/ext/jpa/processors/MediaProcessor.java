@@ -116,6 +116,11 @@ public class MediaProcessor extends EntitySetProcessor implements MediaEntityPro
 	@Override
 	public void createMediaEntity(ODataRequest request, ODataResponse response, UriInfo uriInfo, ContentType requestFormat, ContentType responseFormat) throws ODataApplicationException, ODataLibraryException {
 
+		if(requestFormat.equals(ContentType.APPLICATION_JSON)) {
+			createEntity(request, response, uriInfo, requestFormat, responseFormat);
+			return;
+		}
+		
 		final UriResource firstResoucePart = uriInfo.getUriResourceParts().get(0);
 		
 	    if(firstResoucePart instanceof UriResourceEntitySet) {
