@@ -371,10 +371,12 @@ public class BaseProcessor implements Processor {
 			LOG.debug("The type of field {} is an enumeration!", field);
 			type = null;
 			valueType = ValueType.ENUM;
-			if(value != null) {
+			if(value != null && value instanceof OdataEnum) {
 				OdataEnum<?> odataEnum = (OdataEnum<?>) value;
 				value = odataEnum.getOrdinal();
 				LOG.debug("The ordinal for Enum {} is {}", odataEnum, value);
+			} else if(value != null) {
+				LOG.error("The enumeration for field {} in class {} does not implement OdataEnum interface", field, field.getDeclaringClass());
 			}
 		} else 
 		if(Collection.class.isAssignableFrom(field.getType())) {
