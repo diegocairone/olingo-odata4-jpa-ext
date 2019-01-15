@@ -452,8 +452,11 @@ public class EdmProvider extends CsdlAbstractEdmProvider {
 		
 		CsdlFunctionImport csdlFunctionImport = new CsdlFunctionImport()
 			.setName(functionImportName)
-			.setEntitySet(edmFunctionImport.entitySet())
 			.setFunction(getFullQualifiedName(edmFunctionImport.namespace(), edmFunctionImport.function()));
+		
+		if(edmFunctionImport.entitySet() != null && !edmFunctionImport.entitySet().trim().isEmpty()) {
+			csdlFunctionImport.setEntitySet(edmFunctionImport.entitySet());
+		}
 		
 		return csdlFunctionImport;
 	}
@@ -618,6 +621,7 @@ public class EdmProvider extends CsdlAbstractEdmProvider {
 				
 				if(propertyType.equals(EdmPrimitiveTypeKind.String.getFullQualifiedName()) && property.maxLength() > 0) csdlProperty.setMaxLength(property.maxLength());
 				if(propertyType.equals(EdmPrimitiveTypeKind.Decimal.getFullQualifiedName())) csdlProperty.setScale(property.scale());
+				if(propertyType.equals(EdmPrimitiveTypeKind.DateTimeOffset.getFullQualifiedName())) csdlProperty.setPrecision(property.precision());
 				
 				csdlProperties.add(csdlProperty);
 			}
@@ -722,7 +726,9 @@ public class EdmProvider extends CsdlAbstractEdmProvider {
 				boolean fieldIsCollection = false;
 
 				if(parameter.type().isEmpty()) {					
-					if(fld.getType().isAssignableFrom(Integer.class)) {
+					if(fld.getType().isAssignableFrom(Long.class)) {
+						parameterType = EdmPrimitiveTypeKind.Int64.getFullQualifiedName();
+					} else if(fld.getType().isAssignableFrom(Integer.class)) {
 						parameterType = EdmPrimitiveTypeKind.Int32.getFullQualifiedName();
 					} else if(fld.getType().isAssignableFrom(String.class)) {
 						parameterType = EdmPrimitiveTypeKind.String.getFullQualifiedName();
@@ -761,6 +767,12 @@ public class EdmProvider extends CsdlAbstractEdmProvider {
 									String name = edmEntity.name().isEmpty() ? t.getSimpleName() : edmEntity.name();
 									parameterType = getFullQualifiedName(namespace, name);
 								}
+								EdmComplex edmComplex = t.getAnnotation(EdmComplex.class);
+								if(edmComplex != null) {
+									String namespace = edmComplex.namespace().isEmpty() ? NAME_SPACE : edmComplex.namespace();
+									String name = edmComplex.name().isEmpty() ? t.getSimpleName() : edmComplex.name();
+									parameterType = getFullQualifiedName(namespace, name);
+								}
 							}
 						}
 					} else {
@@ -777,9 +789,18 @@ public class EdmProvider extends CsdlAbstractEdmProvider {
 							String name = edmEntity.name().isEmpty() ? otherClazz.getSimpleName() : edmEntity.name();
 							parameterType = getFullQualifiedName(namespace, name);
 						}
+						EdmComplex edmComplex = otherClazz.getAnnotation(EdmComplex.class);
+						if(edmComplex != null) {
+							String namespace = edmComplex.namespace().isEmpty() ? NAME_SPACE : edmComplex.namespace();
+							String name = edmComplex.name().isEmpty() ? otherClazz.getSimpleName() : edmComplex.name();
+							parameterType = getFullQualifiedName(namespace, name);
+						}
 					}
 				} else {
 					switch(parameter.type()) {
+					case "Edm.Int64":
+						parameterType = EdmPrimitiveTypeKind.Int64.getFullQualifiedName();
+						break;
 					case "Edm.Int32":
 						parameterType = EdmPrimitiveTypeKind.Int32.getFullQualifiedName();
 						break;
@@ -800,6 +821,9 @@ public class EdmProvider extends CsdlAbstractEdmProvider {
 					.setType(parameterType)
 					.setNullable(parameter.nullable())
 					.setCollection(fieldIsCollection);
+				
+				if(parameterType.equals(EdmPrimitiveTypeKind.Decimal.getFullQualifiedName())) csdlParameter.setScale(parameter.scale());
+				if(parameterType.equals(EdmPrimitiveTypeKind.Decimal.getFullQualifiedName())) csdlParameter.setPrecision(parameter.precision());
 				
 				action.getParameters().add(csdlParameter);
 			}
@@ -835,7 +859,9 @@ public class EdmProvider extends CsdlAbstractEdmProvider {
 			
 			CsdlReturnType returnType = new CsdlReturnType()
 				.setCollection(isCollection)
-				.setNullable(edmReturnType.nullable());
+				.setNullable(edmReturnType.nullable())
+				.setScale(edmReturnType.scale())
+				.setPrecision(edmReturnType.precision());
 			
 			if(isCollection) {
 				returnType.setType(String.format("Collection(%s)", getFullQualifiedName(edmReturnType.type()).toString() ));

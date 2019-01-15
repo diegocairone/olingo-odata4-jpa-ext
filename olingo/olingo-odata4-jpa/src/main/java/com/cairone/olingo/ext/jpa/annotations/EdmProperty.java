@@ -108,7 +108,7 @@ public @interface EdmProperty {
      *
      * @return The precision of this property.
      */
-    long precision() default Long.MAX_VALUE;
+    int precision() default Integer.MAX_VALUE;
 
     /**
      * The scale of this property. The following special values can be used:

@@ -25,6 +25,10 @@ public class PersonService {
 	@Autowired private RegionRepository regionRepository = null;
 	@Autowired private StateRepository stateRepository = null;
 	
+	public PersonRepository getPersonRepository() {
+		return personRepository;
+	}
+
 	@Transactional(readOnly=true)
 	public PersonEntity findOne(Integer id) throws ServiceException {
 		

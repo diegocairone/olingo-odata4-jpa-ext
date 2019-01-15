@@ -71,6 +71,8 @@ public class BaseProcessor implements Processor {
 	
 	protected String SERVICE_ROOT = null;
 	protected String DEFAULT_EDM_PACKAGE = null;
+	protected boolean SKIP_BY_LIB = true;
+	protected boolean TOP_BY_LIB = true;
 	
 	protected OData odata;
 	protected ServiceMetadata serviceMetadata;
@@ -129,6 +131,24 @@ public class BaseProcessor implements Processor {
 
 	public BaseProcessor setDefaultEdmPackage(String DefaultEdmPackage) {
 		DEFAULT_EDM_PACKAGE = DefaultEdmPackage;
+		return this;
+	}
+	
+	public boolean getSkipByLib() {
+		return SKIP_BY_LIB;
+	}
+	
+	public BaseProcessor setSkipByLib(boolean skipByLib) {
+		SKIP_BY_LIB = skipByLib;
+		return this;
+	}
+
+	public boolean getTopByLib() {
+		return TOP_BY_LIB;
+	}
+	
+	public BaseProcessor setTopByLib(boolean topByLib) {
+		TOP_BY_LIB = topByLib;
 		return this;
 	}
 	

@@ -7,8 +7,6 @@ import java.util.stream.Collectors;
 import org.apache.olingo.server.api.ODataApplicationException;
 import org.apache.olingo.server.api.uri.UriParameter;
 import org.apache.olingo.server.api.uri.queryoption.ExpandOption;
-import org.apache.olingo.server.api.uri.queryoption.FilterOption;
-import org.apache.olingo.server.api.uri.queryoption.OrderByOption;
 import org.apache.olingo.server.api.uri.queryoption.SelectOption;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -22,6 +20,7 @@ import com.cairone.olingo.ext.demo.exceptions.ODataBadRequestException;
 import com.cairone.olingo.ext.demo.services.StateService;
 import com.cairone.olingo.ext.demo.utils.OdataExceptionParser;
 import com.cairone.olingo.ext.demo.utils.ValidatorUtil;
+import com.cairone.olingo.ext.jpa.interfaces.QueryOptions;
 import com.cairone.olingo.ext.jpa.query.QuerydslQuery;
 import com.cairone.olingo.ext.jpa.query.QuerydslQueryBuilder;
 
@@ -136,12 +135,11 @@ public class StatesDataSource extends AbstractDataSource {
 	}
 	
 	@Override
-	public Iterable<?> readAll(ExpandOption expandOption, FilterOption filterOption, OrderByOption orderByOption, Object parentEntity) throws ODataApplicationException {
+	public Iterable<?> readAll(QueryOptions queryOptions, Object parentEntity) throws ODataApplicationException {
 
 		QuerydslQuery query = new QuerydslQueryBuilder()
 			.setClazz(StateEdm.class)
-			.setFilterOption(filterOption)
-			.setOrderByOption(orderByOption)
+			.setQueryOptions(queryOptions)
 			.build();
 	
 		List<StateEntity> stateEntities = QuerydslQuery.execute(stateService.getStateRepository(), query);

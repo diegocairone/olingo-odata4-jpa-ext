@@ -19,8 +19,6 @@ import java.util.Map;
 import org.apache.olingo.server.api.ODataApplicationException;
 import org.apache.olingo.server.api.uri.UriParameter;
 import org.apache.olingo.server.api.uri.queryoption.ExpandOption;
-import org.apache.olingo.server.api.uri.queryoption.FilterOption;
-import org.apache.olingo.server.api.uri.queryoption.OrderByOption;
 import org.apache.olingo.server.api.uri.queryoption.SelectOption;
 
 public interface DataSource {
@@ -32,5 +30,9 @@ public interface DataSource {
 	Object delete(Map<String, UriParameter> keyPredicateMap, Object superentity) throws ODataApplicationException;
 	
 	Object readFromKey(Map<String, UriParameter> keyPredicateMap, ExpandOption expandOption, SelectOption selectOption, Object superentity) throws ODataApplicationException;
-	Iterable<?> readAll(ExpandOption expandOption, FilterOption filterOption, OrderByOption orderByOption, Object parentEntity) throws ODataApplicationException;
+	Iterable<?> readAll(QueryOptions queryOptions, Object parentEntity) throws ODataApplicationException;
+	
+	default long countAll(QueryOptions queryOptions) throws ODataApplicationException {
+		return 0L;
+	}
 }

@@ -27,21 +27,8 @@ public class AppDemo extends SpringBootServletInitializer implements CommandLine
     protected SpringApplicationBuilder configure(SpringApplicationBuilder application) {
     	return application.sources(applicationClass);
     }
-
+    
 	@Override
 	public void run(String... args) throws Exception {
-		/*
-		String queryString = "SELECT e FROM UserEntity e LEFT JOIN FETCH e.person e1 LEFT JOIN FETCH e1.form e2";
-		String queryString = "SELECT e FROM UserEntity e";
-		LOG.info(">> QUERY: {}", queryString);
-		
-		Query query = em.createQuery(queryString, UserEntity.class);
-		
-		@SuppressWarnings("unchecked")
-		List<UserEntity> userEntities = query.getResultList();
-		
-		userEntities.forEach(e -> {
-			LOG.info("USER: {}", e);
-		});*/
 	}
 }

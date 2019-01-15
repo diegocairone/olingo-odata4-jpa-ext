@@ -63,6 +63,7 @@ import com.cairone.olingo.ext.jpa.annotations.EdmFunction;
 import com.cairone.olingo.ext.jpa.annotations.EdmParameter;
 import com.cairone.olingo.ext.jpa.interfaces.DataSource;
 import com.cairone.olingo.ext.jpa.interfaces.Operation;
+import com.cairone.olingo.ext.jpa.query.QueryOptionsImp;
 import com.cairone.olingo.ext.jpa.utilities.Util;
 import com.google.common.collect.Iterables;
 
@@ -113,6 +114,18 @@ public class EntitySetProcessor extends BaseProcessor implements EntityProcessor
 		return this;
 	}
 	
+	@Override
+	public EntitySetProcessor setSkipByLib(boolean skipByLib) {
+		super.setSkipByLib(skipByLib);
+		return this;
+	}
+
+	@Override
+	public EntitySetProcessor setTopByLib(boolean topByLib) {
+		super.setTopByLib(topByLib);
+		return this;
+	}
+
 	@Override
 	public void createEntity(ODataRequest request, ODataResponse response, UriInfo uriInfo, ContentType requestFormat, ContentType responseFormat) throws ODataApplicationException, ODataLibraryException {
 
@@ -718,7 +731,8 @@ public class EntitySetProcessor extends BaseProcessor implements EntityProcessor
 		final String id = request.getRawBaseUri() + "/" + edmEntitySet.getName();
 		String nextLink = id + "?$count=true&$skip=";
 		
-		Iterable<?> data = dsSecondSegment.readAll(expandOption, filterOption, orderByOption, parentobject);
+		QueryOptionsImp queryOptionsImp = new QueryOptionsImp(expandOption, filterOption, orderByOption);
+		Iterable<?> data = dsSecondSegment.readAll(queryOptionsImp, parentobject);
 		
 		if(count) entityCollection.setCount(Iterables.size(data));
 		
@@ -1092,17 +1106,26 @@ public class EntitySetProcessor extends BaseProcessor implements EntityProcessor
 		queryParams.remove("$skip");
 		queryParams.remove("%24skip");
 		
-		Iterable<?> data = dataSource.readAll(expandOption, filterOption, orderByOption, null);
+		QueryOptionsImp queryOptionsImp = new QueryOptionsImp(expandOption, filterOption, orderByOption);
+		queryOptionsImp.setSkipByLib(SKIP_BY_LIB);
+		queryOptionsImp.setTopByLib(TOP_BY_LIB);
+		
+		if(skipOption != null) queryOptionsImp.setSkip(skipOption.getValue());
+		if(topOption != null) queryOptionsImp.setTop(topOption.getValue());
+		
+		Iterable<?> data = dataSource.readAll(queryOptionsImp, null);
 		
 		if(count) entityCollection.setCount(Iterables.size(data));
-		
+
 		if(skipOption != null) {
-			data = Iterables.skip(data, skipOption.getValue());
+			if(SKIP_BY_LIB) {
+				data = Iterables.skip(data, skipOption.getValue());
+			}
 			queryParams.put("$skip", String.valueOf(skipOption.getValue() + maxTopOption));
 		} else {
 			queryParams.put("$skip", String.valueOf(maxTopOption));
 		}
-
+		
 		final List<String> pairs = new ArrayList<>();
 		queryParams.entrySet().forEach(entry -> {
 			pairs.add(String.format("%s=%s", entry.getKey(), entry.getValue()));
@@ -1111,12 +1134,15 @@ public class EntitySetProcessor extends BaseProcessor implements EntityProcessor
 		if(nextLink != null && !nextLink.isEmpty()) {
 			nextLink = id + "?" + nextLink;
 		}
-		
+
 		if(topOption != null) {
-			if(Iterables.size(data) <= topOption.getValue()) {
-				nextLink = null;
+			if(TOP_BY_LIB) {
+				if(Iterables.size(data) <= topOption.getValue()) nextLink = null;
+				data = Iterables.limit(data, topOption.getValue());
+			} else {
+				long countAll = dataSource.countAll(queryOptionsImp);
+				if(countAll - (skipOption == null ? 0 : skipOption.getValue()) <= topOption.getValue()) nextLink = null;
 			}
-			data = Iterables.limit(data, topOption.getValue());
 		}
 		
 		try {			

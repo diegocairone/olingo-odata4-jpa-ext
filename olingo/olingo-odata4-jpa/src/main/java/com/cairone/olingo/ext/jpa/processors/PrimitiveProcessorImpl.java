@@ -332,8 +332,15 @@ public class PrimitiveProcessorImpl extends BaseProcessor implements PrimitivePr
         	LOG.error(e.getMessage(), e);
 			throw new ODataApplicationException(e.getMessage(), HttpStatusCode.BAD_REQUEST.getStatusCode(), Locale.ENGLISH);
 		}
-        PrimitiveSerializerOptions options = PrimitiveSerializerOptions.with().contextURL(contextUrl).build();
-
+        
+        PrimitiveSerializerOptions options = PrimitiveSerializerOptions.with().contextURL(contextUrl)
+        		.scale(edmFunction.getReturnType().getScale())
+        		.precision(edmFunction.getReturnType().getPrecision())
+        		.maxLength(edmFunction.getReturnType().getMaxLength())
+        		.nullable(edmFunction.getReturnType().isNullable())
+        		.build();
+        
+        
         // serialize
         SerializerResult serializerResult;
         try {

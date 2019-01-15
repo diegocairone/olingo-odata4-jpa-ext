@@ -62,6 +62,18 @@ public class MediaProcessor extends EntitySetProcessor implements MediaEntityPro
 	}
 
 	@Override
+	public MediaProcessor setSkipByLib(boolean skipByLib) {
+		super.setSkipByLib(skipByLib);
+		return this;
+	}
+
+	@Override
+	public MediaProcessor setTopByLib(boolean topByLib) {
+		super.setTopByLib(topByLib);
+		return this;
+	}
+
+	@Override
 	public void readMediaEntity(ODataRequest request, ODataResponse response, UriInfo uriInfo, ContentType responseFormat) throws ODataApplicationException, ODataLibraryException {
 		
 		final UriResource firstResoucePart = uriInfo.getUriResourceParts().get(0);
@@ -104,6 +116,11 @@ public class MediaProcessor extends EntitySetProcessor implements MediaEntityPro
 	@Override
 	public void createMediaEntity(ODataRequest request, ODataResponse response, UriInfo uriInfo, ContentType requestFormat, ContentType responseFormat) throws ODataApplicationException, ODataLibraryException {
 
+		if(requestFormat.equals(ContentType.APPLICATION_JSON)) {
+			createEntity(request, response, uriInfo, requestFormat, responseFormat);
+			return;
+		}
+		
 		final UriResource firstResoucePart = uriInfo.getUriResourceParts().get(0);
 		
 	    if(firstResoucePart instanceof UriResourceEntitySet) {

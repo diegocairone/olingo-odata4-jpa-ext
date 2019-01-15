@@ -7,8 +7,6 @@ import java.util.stream.Collectors;
 import org.apache.olingo.server.api.ODataApplicationException;
 import org.apache.olingo.server.api.uri.UriParameter;
 import org.apache.olingo.server.api.uri.queryoption.ExpandOption;
-import org.apache.olingo.server.api.uri.queryoption.FilterOption;
-import org.apache.olingo.server.api.uri.queryoption.OrderByOption;
 import org.apache.olingo.server.api.uri.queryoption.SelectOption;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -21,8 +19,9 @@ import com.cairone.olingo.ext.demo.exceptions.ODataBadRequestException;
 import com.cairone.olingo.ext.demo.services.PersonCheckLogService;
 import com.cairone.olingo.ext.demo.utils.OdataExceptionParser;
 import com.cairone.olingo.ext.demo.utils.ValidatorUtil;
-import com.cairone.olingo.ext.jpa.query.JPQLQuery;
-import com.cairone.olingo.ext.jpa.query.JPQLQueryBuilder;
+import com.cairone.olingo.ext.jpa.interfaces.QueryOptions;
+import com.cairone.olingo.ext.jpa.query.QuerydslQuery;
+import com.cairone.olingo.ext.jpa.query.QuerydslQueryBuilder;
 
 @Component
 public class PeopleCheckLogsDataSource extends AbstractDataSource {
@@ -126,17 +125,14 @@ public class PeopleCheckLogsDataSource extends AbstractDataSource {
 	}
 
 	@Override
-	public Iterable<?> readAll(ExpandOption expandOption, FilterOption filterOption, OrderByOption orderByOption, Object parentEntity) throws ODataApplicationException {
+	public Iterable<?> readAll(QueryOptions queryOptions, Object parentEntity) throws ODataApplicationException {
 
-		JPQLQuery query = new JPQLQueryBuilder()
-			.setDistinct(false)
-			.setClazz(PersonCheckLogEdm.class)
-			.setExpandOption(expandOption)
-			.setFilterOption(filterOption)
-			.setOrderByOption(orderByOption)
-			.build();
+		QuerydslQuery query = new QuerydslQueryBuilder()
+				.setClazz(PersonCheckLogEdm.class)
+				.setQueryOptions(queryOptions)
+				.build();
 	
-		List<PersonCheckLogEntity> personCheckLogEntities = JPQLQuery.execute(entityManager, query);
+		List<PersonCheckLogEntity> personCheckLogEntities = QuerydslQuery.execute(personCheckLogService.getPersonCheckLogRepository(), query);
 		List<PersonCheckLogEdm> personCheckLogEdms = personCheckLogEntities.stream()
 			.map(entity -> { 
 				PersonCheckLogEdm personCheckLogEdm = new PersonCheckLogEdm(entity);

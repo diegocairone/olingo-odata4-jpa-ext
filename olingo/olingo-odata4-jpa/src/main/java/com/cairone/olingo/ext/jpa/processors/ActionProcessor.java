@@ -17,14 +17,19 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+import org.apache.olingo.commons.api.data.ComplexValue;
 import org.apache.olingo.commons.api.data.ContextURL;
 import org.apache.olingo.commons.api.data.ContextURL.Builder;
 import org.apache.olingo.commons.api.data.ContextURL.Suffix;
 import org.apache.olingo.commons.api.data.Entity;
 import org.apache.olingo.commons.api.data.EntityCollection;
 import org.apache.olingo.commons.api.data.Parameter;
+import org.apache.olingo.commons.api.data.Property;
+import org.apache.olingo.commons.api.data.ValueType;
+import org.apache.olingo.commons.api.edm.EdmComplexType;
 import org.apache.olingo.commons.api.edm.EdmEntitySet;
 import org.apache.olingo.commons.api.edm.EdmEntityType;
+import org.apache.olingo.commons.api.edm.EdmReturnType;
 import org.apache.olingo.commons.api.ex.ODataException;
 import org.apache.olingo.commons.api.format.ContentType;
 import org.apache.olingo.commons.api.http.HttpHeader;
@@ -33,9 +38,11 @@ import org.apache.olingo.server.api.ODataApplicationException;
 import org.apache.olingo.server.api.ODataLibraryException;
 import org.apache.olingo.server.api.ODataRequest;
 import org.apache.olingo.server.api.ODataResponse;
+import org.apache.olingo.server.api.processor.ActionComplexProcessor;
 import org.apache.olingo.server.api.processor.ActionEntityCollectionProcessor;
 import org.apache.olingo.server.api.processor.ActionEntityProcessor;
 import org.apache.olingo.server.api.processor.ActionVoidProcessor;
+import org.apache.olingo.server.api.serializer.ComplexSerializerOptions;
 import org.apache.olingo.server.api.serializer.EntityCollectionSerializerOptions;
 import org.apache.olingo.server.api.serializer.EntitySerializerOptions;
 import org.apache.olingo.server.api.serializer.ODataSerializer;
@@ -54,8 +61,9 @@ import org.springframework.context.ApplicationContext;
 import com.cairone.olingo.ext.jpa.annotations.EdmAction;
 import com.cairone.olingo.ext.jpa.annotations.EdmParameter;
 import com.cairone.olingo.ext.jpa.interfaces.Operation;
+import com.cairone.olingo.ext.jpa.utilities.Util;
 
-public class ActionProcessor extends BaseProcessor implements ActionEntityProcessor, ActionEntityCollectionProcessor, ActionVoidProcessor {
+public class ActionProcessor extends BaseProcessor implements ActionEntityProcessor, ActionEntityCollectionProcessor, ActionVoidProcessor, ActionComplexProcessor {
 
 	private Map<String, Operation<?>> operationsMap = new HashMap<>();
 	
@@ -248,6 +256,9 @@ public class ActionProcessor extends BaseProcessor implements ActionEntityProces
 			if(edmParameter != null) {
 				
 				String parameterName = edmParameter.name().isEmpty() ? fld.getName() : edmParameter.name();
+				if(edmParameter.name().trim().isEmpty()) {
+					parameterName = Util.applyNamingConvention(edmParameter, parameterName);
+				}
 				Parameter parameter = parameters.get(parameterName);
 				
 				fld.setAccessible(true);
@@ -283,6 +294,25 @@ public class ActionProcessor extends BaseProcessor implements ActionEntityProces
 	    					Class<?> cl = entitySetMap.get(entitySetName);
 	    					Object object = writeObject(cl, entity);
 	    					fld.set(operation, object);
+	    				} else if(parameter.isComplex() && parameter.isCollection()) {
+	    					@SuppressWarnings("unchecked")
+							List<ComplexValue> complexValues = (List<ComplexValue>) parameter.getValue();
+
+							ParameterizedType listType = (ParameterizedType) fld.getGenericType();
+							Type type = listType.getActualTypeArguments()[0];
+					        Class<?> inlineClazz = (Class<?>) type;
+					        
+					        ArrayList<Object> inlineObjectCollection = new ArrayList<Object>();
+					        
+					        for(ComplexValue complexValue : complexValues) {
+					        	Entity complexEntity = new Entity();
+		    					complexEntity.getProperties().addAll(complexValue.getValue());
+		    					Object complexObject = writeObject(inlineClazz, complexEntity);
+		    					inlineObjectCollection.add(complexObject);
+					        }
+					        	    					
+	    					fld.setAccessible(true);
+	                		fld.set(operation, inlineObjectCollection);
 	    				} else {
 	    					fld.set(operation, parameter.getValue());
 	    				}
@@ -359,6 +389,136 @@ public class ActionProcessor extends BaseProcessor implements ActionEntityProces
 		    response.setStatusCode(HttpStatusCode.OK.getStatusCode());
 		    response.setHeader(HttpHeader.CONTENT_TYPE, responseFormat.toContentTypeString());
 		    
+	    } catch (SerializerException e) {
+	    	LOG.error(e.getMessage(), e);
+			throw new ODataApplicationException(e.getMessage(), HttpStatusCode.INTERNAL_SERVER_ERROR.getStatusCode(), Locale.ENGLISH);
+		}
+	}
+	
+	@Override
+	public void processActionComplex(ODataRequest request, ODataResponse response, UriInfo uriInfo, ContentType requestFormat, ContentType responseFormat) throws ODataApplicationException, ODataLibraryException {
+
+		List<UriResource> resourcePaths = uriInfo.getUriResourceParts();
+		UriResourceAction uriResourceAction = (UriResourceAction) resourcePaths.get(resourcePaths.size() - 1);
+		org.apache.olingo.commons.api.edm.EdmAction action = uriResourceAction.getAction();
+		
+		String operationName = action.getName();
+		Operation<?> operation = operationsMap.get(operationName);
+		
+		Map<String, Parameter> parameters = readActionParameters(action, request.getBody(), requestFormat);
+		Class<?> clazz = operation.getClass();
+		
+		for (Field fld : clazz.getDeclaredFields()) {
+			
+			EdmParameter edmParameter = fld.getAnnotation(EdmParameter.class);
+			if(edmParameter != null) {
+				
+				String parameterName = edmParameter.name().isEmpty() ? fld.getName() : edmParameter.name();
+				if(edmParameter.name().trim().isEmpty()) {
+					parameterName = Util.applyNamingConvention(edmParameter, parameterName);
+				}
+				Parameter parameter = parameters.get(parameterName);
+				
+				fld.setAccessible(true);
+	    		try {
+	    			if(fld.getType().isAssignableFrom(LocalDate.class) && parameter.getValue() instanceof GregorianCalendar) {
+	    				GregorianCalendar cal = (GregorianCalendar) parameter.getValue();
+                		fld.set(operation, cal.toZonedDateTime().toLocalDate());
+                		
+	    			} else if(Collection.class.isAssignableFrom(fld.getType()) && parameter.getValue() instanceof EntityCollection) {
+	    				
+	    				EntityCollection entityCollection = (EntityCollection) parameter.getValue();
+	    				List<Entity> entities = entityCollection.getEntities();
+						
+						ParameterizedType listType = (ParameterizedType) fld.getGenericType();
+						Type type = listType.getActualTypeArguments()[0];
+				        Class<?> inlineClazz = (Class<?>) type;
+				        
+				        ArrayList<Object> inlineObjectCollection = new ArrayList<Object>();
+						
+						for(Entity inlineEntity : entities) {
+							Object inlineObject = writeObject(inlineClazz, inlineEntity);
+							inlineObjectCollection.add(inlineObject);
+						}
+						
+						fld.setAccessible(true);
+						fld.set(operation, inlineObjectCollection);
+						
+	    			} else {
+	    				if(parameter.getValue() instanceof Entity) {
+	    					Entity entity = (Entity) parameter.getValue();
+	    					String entityTypeName = entity.getType();
+	    					String entitySetName = entityTypeMap.get(entityTypeName);
+	    					Class<?> cl = entitySetMap.get(entitySetName);
+	    					Object object = writeObject(cl, entity);
+	    					fld.set(operation, object);
+	    				} else {
+	    					fld.set(operation, parameter.getValue());
+	    				}
+	    			}
+				} catch (IllegalArgumentException | IllegalAccessException | NoSuchMethodException | SecurityException | InstantiationException | InvocationTargetException e) {
+					LOG.error(e.getMessage(), e);
+					throw new ODataApplicationException(e.getMessage(), HttpStatusCode.INTERNAL_SERVER_ERROR.getStatusCode(), Locale.ENGLISH);
+				}
+			}
+		}
+
+		Map<String, UriParameter> keyPredicateMap = null;
+		
+	    if(action.isBound()) {
+	    	UriResourceEntitySet uriResourceEntitySet = (UriResourceEntitySet) resourcePaths.get(0);
+	    	List<UriParameter> keyPredicates = uriResourceEntitySet.getKeyPredicates();
+	    	keyPredicateMap = keyPredicates.stream().collect(Collectors.toMap(UriParameter::getName, x -> x));
+	    } 
+	    		
+	    ExpandOption expandOption = uriInfo.getExpandOption();
+		Entity entity;
+	    
+		try {
+			Object object = operation.doOperation(action.isBound(), keyPredicateMap);
+			entity = writeEntity(object, expandOption); 
+			
+		} catch (ODataException | IllegalArgumentException | IllegalAccessException | NoSuchMethodException | SecurityException | InvocationTargetException e) {
+			throw new ODataApplicationException(e.getMessage(), HttpStatusCode.INTERNAL_SERVER_ERROR.getStatusCode(), Locale.ENGLISH);
+		}
+
+		ComplexValue complexValue = new ComplexValue();
+		List<Property> properties = complexValue.getValue();
+		entity.getProperties().forEach(prop -> {
+			properties.add(prop);
+		});
+		
+		EdmReturnType edmReturnType = uriResourceAction.getAction().getReturnType();
+		EdmComplexType edmActionReturnType = (EdmComplexType) edmReturnType.getType();
+		
+		Property property = new Property(edmActionReturnType.getFullQualifiedName().toString(), null, ValueType.COMPLEX, complexValue);
+    	EdmComplexType edmComplexType = (EdmComplexType) uriResourceAction.getAction().getReturnType().getType();
+    	    	
+		// configure the serializer
+        ODataSerializer serializer = odata.createSerializer(responseFormat);
+
+        ContextURL contextUrl = null;
+        try {
+        	contextUrl = ContextURL.with().serviceRoot(new URI(SERVICE_ROOT)).entitySetOrSingletonOrType(edmActionReturnType.getFullQualifiedName().getFullQualifiedNameAsString()).build();
+        } catch (URISyntaxException e) {
+        	LOG.error(e.getMessage(), e);
+			throw new ODataApplicationException(e.getMessage(), HttpStatusCode.BAD_REQUEST.getStatusCode(), Locale.ENGLISH);
+		}
+        ComplexSerializerOptions options = ComplexSerializerOptions.with().contextURL(contextUrl).build();
+
+        // serialize
+        SerializerResult serializerResult;
+        try {
+
+            serializerResult = serializer.complex(serviceMetadata, edmComplexType, property, options);
+            
+            InputStream propertyStream = serializerResult.getContent();
+
+            // configure the response object
+            response.setContent(propertyStream);
+            response.setStatusCode(HttpStatusCode.OK.getStatusCode());
+            response.setHeader(HttpHeader.CONTENT_TYPE, responseFormat.toContentTypeString());
+            
 	    } catch (SerializerException e) {
 	    	LOG.error(e.getMessage(), e);
 			throw new ODataApplicationException(e.getMessage(), HttpStatusCode.INTERNAL_SERVER_ERROR.getStatusCode(), Locale.ENGLISH);
