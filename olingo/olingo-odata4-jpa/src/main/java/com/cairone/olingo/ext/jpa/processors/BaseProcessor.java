@@ -322,7 +322,7 @@ public class BaseProcessor implements Processor {
 			name = Util.applyNamingConvention(edmPropertyAnn, name);
 		}
     	
-    	LOG.debug("Writting property with name {} for EDM {} from field {} of class {}", name, edmObject.getClass(), field.getName(), field.getDeclaringClass());
+    	LOG.debug("Writting property with name {} for EDM {} from field {} of class {} with value: {}", name, edmObject.getClass(), field.getName(), field.getDeclaringClass(), value);
     	
 		String type = null;
 		ValueType valueType = null;
