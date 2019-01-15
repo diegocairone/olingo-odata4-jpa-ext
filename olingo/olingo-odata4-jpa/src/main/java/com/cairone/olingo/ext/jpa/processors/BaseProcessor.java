@@ -322,6 +322,8 @@ public class BaseProcessor implements Processor {
 			name = Util.applyNamingConvention(edmPropertyAnn, name);
 		}
     	
+    	LOG.debug("Writting property with name {} for EDM {} from field {} of class {}", name, edmObject.getClass(), field.getName(), field.getDeclaringClass());
+    	
 		String type = null;
 		ValueType valueType = null;
 		
@@ -366,11 +368,13 @@ public class BaseProcessor implements Processor {
 			valueType = ValueType.PRIMITIVE;
 		} else
 		if(field.getType().isEnum()) {
+			LOG.debug("The type of field {} is an enumeration!", field);
 			type = null;
 			valueType = ValueType.ENUM;
 			if(value != null) {
 				OdataEnum<?> odataEnum = (OdataEnum<?>) value;
 				value = odataEnum.getOrdinal();
+				LOG.debug("The ordinal for Enum {} is {}", odataEnum, value);
 			}
 		} else 
 		if(Collection.class.isAssignableFrom(field.getType())) {
@@ -402,6 +406,8 @@ public class BaseProcessor implements Processor {
 		}
 		
 		Property property = new Property(type, name, valueType, value);
+		LOG.debug("Property written: {}", property);
+		
 		return property;
 	}
 	
