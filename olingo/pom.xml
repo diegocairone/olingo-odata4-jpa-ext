@@ -3,7 +3,7 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>com.cairone</groupId>
   <artifactId>olingo</artifactId>
-  <version>0.0.5-SNAPSHOT</version>
+  <version>0.0.6-SNAPSHOT</version>
   <packaging>pom</packaging>
   <modules>
     <module>olingo-odata4-jpa</module>
@@ -14,7 +14,8 @@
 		<artifactId>spring-boot-starter-parent</artifactId>
 		<!-- <version>1.4.5.RELEASE</version> -->
 		<!-- <version>1.5.12.RELEASE</version> -->
-		<version>2.0.2.RELEASE</version>
+		<!-- <version>2.0.2.RELEASE</version> -->
+		<version>2.1.1.RELEASE</version>
 	</parent>
 	
 	<properties>

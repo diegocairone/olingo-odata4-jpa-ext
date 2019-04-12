@@ -1,5 +1,7 @@
 package com.cairone.olingo.ext.demo.cfg;
 
+import java.sql.SQLException;
+
 import javax.sql.DataSource;
 
 import org.springframework.beans.factory.annotation.Value;
@@ -8,7 +10,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
 
-import com.mysql.jdbc.jdbc2.optional.MysqlXADataSource;
+import com.mysql.cj.jdbc.MysqlXADataSource;
 
 @Configuration
 @EnableTransactionManagement
@@ -20,7 +22,7 @@ public class DatabaseConfig {
 	@Value("${database.password}") private String password = null;
 	
 	@Bean
-	public DataSource databaseDataSource() {
+	public DataSource databaseDataSource() throws SQLException {
 
 		MysqlXADataSource xaDataSource = new MysqlXADataSource();
 		
