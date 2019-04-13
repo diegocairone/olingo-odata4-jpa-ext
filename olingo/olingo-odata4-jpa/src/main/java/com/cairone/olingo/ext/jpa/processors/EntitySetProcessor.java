@@ -69,17 +69,18 @@ import com.google.common.collect.Iterables;
 
 public class EntitySetProcessor extends BaseProcessor implements EntityProcessor, EntityCollectionProcessor {
 	
-	protected Map<String, DataSource> dataSourceMap = new HashMap<>();
+	protected Map<String, DataSource<Object>> dataSourceMap = new HashMap<>();
 	protected Map<String, Operation<?>> operationsMap = new HashMap<>();
 	protected Integer maxTopOption = null;
 	
+	@SuppressWarnings("unchecked")
 	public EntitySetProcessor initialize(ApplicationContext context) throws ODataApplicationException {
 		super.initialize(context);
 		
 		context.getBeansOfType(DataSource.class).entrySet()
 			.stream()
 			.forEach(entry -> {
-				DataSource dataSource = entry.getValue();
+				DataSource<Object> dataSource = entry.getValue();
 				dataSourceMap.put(dataSource.isSuitableFor(), dataSource);
 			});
 		
@@ -154,20 +155,12 @@ public class EntitySetProcessor extends BaseProcessor implements EntityProcessor
 		LOG.debug("EntitySet [First segment]: {}", uriResourceEntitySet);
 		LOG.debug("NavProperty [Second segment]: {}", uriResourceNavigation);
 		
-		Object parentobject = readFromEntitySet(uriResourceEntitySet);
-
-		if(parentobject == null) {
-			throw new ODataApplicationException("LA ENTIDAD SOLICITADA NO EXISTE", HttpStatusCode.NOT_FOUND.getStatusCode(), Locale.ENGLISH);
-		}
-		
-		LOG.debug("EDM found: {}", parentobject);
-
 		// *** SECOND SEGMENT
 		
 		EdmEntitySet edmEntitySet = getNavigationTargetEntitySet(uriResourceEntitySet.getEntitySet(), uriResourceNavigation.getProperty());
 		EdmEntityType edmEntityType = edmEntitySet.getEntityType();
 
-		DataSource dataSource = dataSourceMap.get(edmEntitySet.getName());
+		DataSource<Object> dataSource = dataSourceMap.get(edmEntitySet.getName());
 		
 		if(dataSource == null) {
 			throw new ODataApplicationException(
@@ -204,7 +197,7 @@ public class EntitySetProcessor extends BaseProcessor implements EntityProcessor
     	try {
     		object = writeObject(clazz, requestEntity);
     		
-    		Object createdObject = dataSource.create(object, parentobject);
+    		Object createdObject = dataSource.create(object);
     		createdEntity = writeEntity(createdObject, null);
     		
     	} catch (IllegalArgumentException | IllegalAccessException | NoSuchMethodException | SecurityException | InstantiationException | InvocationTargetException e) {
@@ -244,7 +237,7 @@ public class EntitySetProcessor extends BaseProcessor implements EntityProcessor
 	    EdmEntitySet edmEntitySet = uriResourceEntitySet.getEntitySet();
 		EdmEntityType edmEntityType = edmEntitySet.getEntityType();
 		
-		DataSource dataSource = dataSourceMap.get(edmEntitySet.getName());
+		DataSource<Object> dataSource = dataSourceMap.get(edmEntitySet.getName());
 		
 		if(dataSource == null) {
 			throw new ODataApplicationException(
@@ -281,7 +274,7 @@ public class EntitySetProcessor extends BaseProcessor implements EntityProcessor
     	try {
     		object = writeObject(clazz, requestEntity);
     		
-    		Object createdObject = dataSource.create(object, null);
+    		Object createdObject = dataSource.create(object);
     		createdEntity = writeEntity(createdObject, null);
     		
     	} catch (IllegalArgumentException | IllegalAccessException | NoSuchMethodException | SecurityException | InstantiationException | InvocationTargetException e) {
@@ -348,20 +341,12 @@ public class EntitySetProcessor extends BaseProcessor implements EntityProcessor
 		LOG.debug("EntitySet [First segment]: {}", uriResourceEntitySet);
 		LOG.debug("NavProperty [Second segment]: {}", uriResourceNavigation);
 		
-		Object parentobject = readFromEntitySet(uriResourceEntitySet);
-
-		if(parentobject == null) {
-			throw new ODataApplicationException("LA ENTIDAD SOLICITADA NO EXISTE", HttpStatusCode.NOT_FOUND.getStatusCode(), Locale.ENGLISH);
-		}
-		
-		LOG.debug("EDM found: {}", parentobject);
-
 		// *** SECOND SEGMENT
 
 		EdmEntitySet edmEntitySet = getNavigationTargetEntitySet(uriResourceEntitySet.getEntitySet(), uriResourceNavigation.getProperty());
 		EdmEntityType edmEntityType = edmEntitySet.getEntityType();
 
-		DataSource dataSource = dataSourceMap.get(edmEntitySet.getName());
+		DataSource<Object> dataSource = dataSourceMap.get(edmEntitySet.getName());
 		
 		if(dataSource == null) {
 			throw new ODataApplicationException(
@@ -407,7 +392,7 @@ public class EntitySetProcessor extends BaseProcessor implements EntityProcessor
     		throw new ODataApplicationException(e.getMessage(), HttpStatusCode.INTERNAL_SERVER_ERROR.getStatusCode(), Locale.ENGLISH);
 		}
     	
-    	dataSource.update(keyPredicateMap, object, parentobject, propertiesInJSON, request.getMethod().equals(HttpMethod.PUT));
+    	dataSource.update(keyPredicateMap, object, propertiesInJSON, request.getMethod().equals(HttpMethod.PUT));
     	response.setStatusCode(HttpStatusCode.NO_CONTENT.getStatusCode());
 	}
 	
@@ -419,7 +404,7 @@ public class EntitySetProcessor extends BaseProcessor implements EntityProcessor
 		EdmEntitySet edmEntitySet = uriResourceEntitySet.getEntitySet();
 		EdmEntityType edmEntityType = edmEntitySet.getEntityType();
 
-		DataSource dataSource = dataSourceMap.get(edmEntitySet.getName());
+		DataSource<Object> dataSource = dataSourceMap.get(edmEntitySet.getName());
 		
 		if(dataSource == null) {
 			throw new ODataApplicationException(
@@ -465,7 +450,7 @@ public class EntitySetProcessor extends BaseProcessor implements EntityProcessor
     		throw new ODataApplicationException(e.getMessage(), HttpStatusCode.INTERNAL_SERVER_ERROR.getStatusCode(), Locale.ENGLISH);
 		}
     	
-    	dataSource.update(keyPredicateMap, object, null, propertiesInJSON, request.getMethod().equals(HttpMethod.PUT));
+    	dataSource.update(keyPredicateMap, object, propertiesInJSON, request.getMethod().equals(HttpMethod.PUT));
     	response.setStatusCode(HttpStatusCode.NO_CONTENT.getStatusCode());
 	}
 	
@@ -497,19 +482,11 @@ public class EntitySetProcessor extends BaseProcessor implements EntityProcessor
 		LOG.debug("EntitySet [First segment]: {}", uriResourceEntitySet);
 		LOG.debug("NavProperty [Second segment]: {}", uriResourceNavigation);
 		
-		Object parentobject = readFromEntitySet(uriResourceEntitySet);
-
-		if(parentobject == null) {
-			throw new ODataApplicationException("LA ENTIDAD SOLICITADA NO EXISTE", HttpStatusCode.NOT_FOUND.getStatusCode(), Locale.ENGLISH);
-		}
-		
-		LOG.debug("EDM found: {}", parentobject);
-
 		// *** SECOND SEGMENT
 
 		EdmEntitySet edmEntitySet = getNavigationTargetEntitySet(uriResourceEntitySet.getEntitySet(), uriResourceNavigation.getProperty());
 
-		DataSource dataSource = dataSourceMap.get(edmEntitySet.getName());
+		DataSource<Object> dataSource = dataSourceMap.get(edmEntitySet.getName());
 		
 		if(dataSource == null) {
 			throw new ODataApplicationException(
@@ -523,7 +500,7 @@ public class EntitySetProcessor extends BaseProcessor implements EntityProcessor
 				.stream()
 				.collect(Collectors.toMap(UriParameter::getName, x -> x));
 		
-    	dataSource.delete(keyPredicateMap, parentobject);
+    	dataSource.delete(keyPredicateMap);
     	response.setStatusCode(HttpStatusCode.NO_CONTENT.getStatusCode());
 	}
 
@@ -534,7 +511,7 @@ public class EntitySetProcessor extends BaseProcessor implements EntityProcessor
 		UriResourceEntitySet uriResourceEntitySet = (UriResourceEntitySet) resourcePaths.get(0);
 		EdmEntitySet edmEntitySet = uriResourceEntitySet.getEntitySet();
 		
-		DataSource dataSource = dataSourceMap.get(edmEntitySet.getName());
+		DataSource<Object> dataSource = dataSourceMap.get(edmEntitySet.getName());
 		
 		if(dataSource == null) {
 			throw new ODataApplicationException(
@@ -548,7 +525,7 @@ public class EntitySetProcessor extends BaseProcessor implements EntityProcessor
 				.stream()
 				.collect(Collectors.toMap(UriParameter::getName, x -> x));
 		
-    	dataSource.delete(keyPredicateMap, null);
+    	dataSource.delete(keyPredicateMap);
     	response.setStatusCode(HttpStatusCode.NO_CONTENT.getStatusCode());
 	}
 	
@@ -668,7 +645,7 @@ public class EntitySetProcessor extends BaseProcessor implements EntityProcessor
 		
 		EdmEntitySet edmEntitySet = uriResourceEntitySet.getEntitySet();
 		
-	    DataSource dsEntitySet = dataSourceMap.get(edmEntitySet.getName());
+	    DataSource<Object> dsEntitySet = dataSourceMap.get(edmEntitySet.getName());
 		
 		if(dsEntitySet == null) {
 			throw new ODataApplicationException(
@@ -716,7 +693,7 @@ public class EntitySetProcessor extends BaseProcessor implements EntityProcessor
 	    String selectList = odata.createUriHelper().buildContextURLSelectList(edmEntityType, null, selectOption);
 	    boolean count = countOption == null ? false : countOption.getValue();
 	    
-		DataSource dsSecondSegment = dataSourceMap.get(responseEdmEntitySet.getName());
+		DataSource<Object> dsSecondSegment = dataSourceMap.get(responseEdmEntitySet.getName());
 		
 		if(dsSecondSegment == null) {
 			throw new ODataApplicationException(
@@ -840,7 +817,7 @@ public class EntitySetProcessor extends BaseProcessor implements EntityProcessor
 			throw new ODataApplicationException(e.getMessage(), HttpStatusCode.INTERNAL_SERVER_ERROR.getStatusCode(), Locale.ENGLISH);
 		}
 	    
-	    DataSource responseDataSource = dataSourceMap.get(responseEdmEntitySet.getName());
+	    DataSource<Object> responseDataSource = dataSourceMap.get(responseEdmEntitySet.getName());
 
 		if(responseDataSource == null) {
 			throw new ODataApplicationException(
@@ -1076,7 +1053,7 @@ public class EntitySetProcessor extends BaseProcessor implements EntityProcessor
 	    String selectList = odata.createUriHelper().buildContextURLSelectList(edmEntityType, null, selectOption);
 	    boolean count = countOption == null ? false : countOption.getValue();
 	    
-		DataSource dataSource = dataSourceMap.get(edmEntitySet.getName());
+		DataSource<Object> dataSource = dataSourceMap.get(edmEntitySet.getName());
 		
 		if(dataSource == null) {
 			throw new ODataApplicationException(
@@ -1203,7 +1180,7 @@ public class EntitySetProcessor extends BaseProcessor implements EntityProcessor
 
 		EdmEntitySet edmEntitySet = uriResourceEntitySet.getEntitySet();
 		
-	    DataSource dataSource = dataSourceMap.get(edmEntitySet.getName());
+	    DataSource<Object> dataSource = dataSourceMap.get(edmEntitySet.getName());
 		
 		if(dataSource == null) {
 			throw new ODataApplicationException(

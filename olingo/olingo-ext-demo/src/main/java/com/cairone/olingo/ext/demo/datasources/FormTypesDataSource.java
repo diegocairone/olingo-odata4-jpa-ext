@@ -24,7 +24,7 @@ import com.cairone.olingo.ext.jpa.query.QuerydslQuery;
 import com.cairone.olingo.ext.jpa.query.QuerydslQueryBuilder;
 
 @Component
-public class FormTypesDataSource extends AbstractDataSource {
+public class FormTypesDataSource extends AbstractDataSource<FormTypeEdm> {
 
 	private static final String ENTITY_SET_NAME = "FormTypes";
 
@@ -37,7 +37,7 @@ public class FormTypesDataSource extends AbstractDataSource {
 	}
 
 	@Override
-	public Object create(Object entity, Object parentEntity) throws ODataApplicationException {
+	public FormTypeEdm create(FormTypeEdm entity) throws ODataApplicationException {
 
 		if(entity instanceof FormTypeEdm) {
 			
@@ -60,7 +60,7 @@ public class FormTypesDataSource extends AbstractDataSource {
 	}
 
 	@Override
-	public Object update(Map<String, UriParameter> keyPredicateMap, Object entity, Object parentEntity, List<String> propertiesInJSON, boolean isPut) throws ODataApplicationException {
+	public FormTypeEdm update(Map<String, UriParameter> keyPredicateMap, FormTypeEdm entity, List<String> propertiesInJSON, boolean isPut) throws ODataApplicationException {
 
 		if(entity instanceof FormTypeEdm) {
 
@@ -93,7 +93,7 @@ public class FormTypesDataSource extends AbstractDataSource {
 	}
 
 	@Override
-	public Object delete(Map<String, UriParameter> keyPredicateMap, Object parentEntity) throws ODataApplicationException {
+	public FormTypeEdm delete(Map<String, UriParameter> keyPredicateMap) throws ODataApplicationException {
 		
 		Integer formTypeID = Integer.valueOf( keyPredicateMap.get("Id").getText() );
 

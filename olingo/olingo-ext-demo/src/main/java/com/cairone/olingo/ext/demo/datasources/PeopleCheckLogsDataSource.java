@@ -24,7 +24,7 @@ import com.cairone.olingo.ext.jpa.query.QuerydslQuery;
 import com.cairone.olingo.ext.jpa.query.QuerydslQueryBuilder;
 
 @Component
-public class PeopleCheckLogsDataSource extends AbstractDataSource {
+public class PeopleCheckLogsDataSource extends AbstractDataSource<PersonCheckLogEdm> {
 
 	private static final String ENTITY_SET_NAME = "PeopleCheckLogs";
 
@@ -37,7 +37,7 @@ public class PeopleCheckLogsDataSource extends AbstractDataSource {
 	}
 
 	@Override
-	public Object create(Object entity, Object parentEntity) throws ODataApplicationException {
+	public PersonCheckLogEdm create(PersonCheckLogEdm entity) throws ODataApplicationException {
 
 		if(entity instanceof PersonCheckLogEdm) {
 			
@@ -60,7 +60,7 @@ public class PeopleCheckLogsDataSource extends AbstractDataSource {
 	}
 
 	@Override
-	public Object update(Map<String, UriParameter> keyPredicateMap, Object entity, Object parentEntity, List<String> propertiesInJSON, boolean isPut) throws ODataApplicationException {
+	public PersonCheckLogEdm update(Map<String, UriParameter> keyPredicateMap, PersonCheckLogEdm entity, List<String> propertiesInJSON, boolean isPut) throws ODataApplicationException {
 
 		if(entity instanceof PersonCheckLogEdm) {
 
@@ -95,7 +95,7 @@ public class PeopleCheckLogsDataSource extends AbstractDataSource {
 	}
 
 	@Override
-	public Object delete(Map<String, UriParameter> keyPredicateMap, Object parentEntity) throws ODataApplicationException {
+	public PersonCheckLogEdm delete(Map<String, UriParameter> keyPredicateMap) throws ODataApplicationException {
 
 		Long eventID = Long.valueOf( keyPredicateMap.get("Id").getText() );
 

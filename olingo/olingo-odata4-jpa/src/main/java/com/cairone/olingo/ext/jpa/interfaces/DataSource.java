@@ -21,13 +21,13 @@ import org.apache.olingo.server.api.uri.UriParameter;
 import org.apache.olingo.server.api.uri.queryoption.ExpandOption;
 import org.apache.olingo.server.api.uri.queryoption.SelectOption;
 
-public interface DataSource {
+public interface DataSource<T> {
 
 	String isSuitableFor();
 	
-	Object create(Object entity, Object superentity) throws ODataApplicationException;
-	Object update(Map<String, UriParameter> keyPredicateMap, Object entity, Object superentity, List<String> propertiesInJSON, boolean isPut) throws ODataApplicationException;
-	Object delete(Map<String, UriParameter> keyPredicateMap, Object superentity) throws ODataApplicationException;
+	T create(T t) throws ODataApplicationException;
+	T update(Map<String, UriParameter> keyPredicateMap, T t, List<String> propertiesInJSON, boolean isPut) throws ODataApplicationException;
+	T delete(Map<String, UriParameter> keyPredicateMap) throws ODataApplicationException;
 	
 	Object readFromKey(Map<String, UriParameter> keyPredicateMap, ExpandOption expandOption, SelectOption selectOption, Object superentity) throws ODataApplicationException;
 	Iterable<?> readAll(QueryOptions queryOptions, Object parentEntity) throws ODataApplicationException;

@@ -28,7 +28,7 @@ import com.cairone.olingo.ext.jpa.query.QuerydslQuery;
 import com.cairone.olingo.ext.jpa.query.QuerydslQueryBuilder;
 
 @Component
-public class CountriesDataSource extends AbstractDataSource {
+public class CountriesDataSource extends AbstractDataSource<CountryEdm> {
 
 	private static final String ENTITY_SET_NAME = "Countries";
 
@@ -42,7 +42,7 @@ public class CountriesDataSource extends AbstractDataSource {
 	}
 
 	@Override
-	public Object create(Object entity, Object parentEntity) throws ODataApplicationException {
+	public CountryEdm create(CountryEdm entity) throws ODataApplicationException {
 
 		if(entity instanceof CountryEdm) {
 			
@@ -65,7 +65,7 @@ public class CountriesDataSource extends AbstractDataSource {
 	}
 
 	@Override
-	public Object update(Map<String, UriParameter> keyPredicateMap, Object entity, Object parentEntity, List<String> propertiesInJSON, boolean isPut) throws ODataApplicationException {
+	public CountryEdm update(Map<String, UriParameter> keyPredicateMap, CountryEdm entity, List<String> propertiesInJSON, boolean isPut) throws ODataApplicationException {
 
 		if(entity instanceof CountryEdm) {
 
@@ -98,7 +98,7 @@ public class CountriesDataSource extends AbstractDataSource {
 	}
 
 	@Override
-	public Object delete(Map<String, UriParameter> keyPredicateMap, Object parentEntity) throws ODataApplicationException {
+	public CountryEdm delete(Map<String, UriParameter> keyPredicateMap) throws ODataApplicationException {
 		
 		Integer countryID = Integer.valueOf( keyPredicateMap.get("Id").getText() );
 

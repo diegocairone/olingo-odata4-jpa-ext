@@ -21,7 +21,7 @@ import com.cairone.olingo.ext.jpa.query.QuerydslQuery;
 import com.cairone.olingo.ext.jpa.query.QuerydslQueryBuilder;
 
 @Component
-public class CustomersDataSource extends AbstractDataSource {
+public class CustomersDataSource extends AbstractDataSource<CustomerEdm> {
 
 	private static final String ENTITY_SET_NAME = "Customers";
 
@@ -33,17 +33,17 @@ public class CustomersDataSource extends AbstractDataSource {
 	}
 
 	@Override
-	public Object create(Object entity, Object superentity) throws ODataApplicationException {
+	public CustomerEdm create(CustomerEdm entity) throws ODataApplicationException {
 		throw new ODataNotImplementedException("OPERATION NOT IMPLEMENTED YET");
 	}
 
 	@Override
-	public Object update(Map<String, UriParameter> keyPredicateMap, Object entity, Object superentity, List<String> propertiesInJSON, boolean isPut) throws ODataApplicationException {
+	public CustomerEdm update(Map<String, UriParameter> keyPredicateMap, CustomerEdm entity, List<String> propertiesInJSON, boolean isPut) throws ODataApplicationException {
 		throw new ODataNotImplementedException("OPERATION NOT IMPLEMENTED YET");
 	}
 
 	@Override
-	public Object delete(Map<String, UriParameter> keyPredicateMap, Object superentity) throws ODataApplicationException {
+	public CustomerEdm delete(Map<String, UriParameter> keyPredicateMap) throws ODataApplicationException {
 		throw new ODataNotImplementedException("OPERATION NOT IMPLEMENTED YET");
 	}
 

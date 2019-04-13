@@ -18,7 +18,7 @@ import org.springframework.context.MessageSource;
 import com.cairone.olingo.ext.jpa.interfaces.DataSource;
 import com.cairone.olingo.ext.jpa.interfaces.QueryOptions;
 
-public abstract class AbstractDataSource implements DataSource {
+public abstract class AbstractDataSource<T> implements DataSource<T> {
 	
 	protected static final Logger LOG = LoggerFactory.getLogger(AbstractDataSource.class);
 	
@@ -29,13 +29,13 @@ public abstract class AbstractDataSource implements DataSource {
 	public abstract String isSuitableFor();
 
 	@Override
-	public abstract Object create(Object entity, Object superentity) throws ODataApplicationException;
+	public abstract T create(T t) throws ODataApplicationException;
 
 	@Override
-	public abstract Object update(Map<String, UriParameter> keyPredicateMap, Object entity, Object superentity, List<String> propertiesInJSON, boolean isPut) throws ODataApplicationException;
+	public abstract T update(Map<String, UriParameter> keyPredicateMap, T t, List<String> propertiesInJSON, boolean isPut) throws ODataApplicationException;
 
 	@Override
-	public abstract Object delete(Map<String, UriParameter> keyPredicateMap, Object superentity) throws ODataApplicationException;
+	public abstract T delete(Map<String, UriParameter> keyPredicateMap) throws ODataApplicationException;
 
 	@Override
 	public abstract Object readFromKey(Map<String, UriParameter> keyPredicateMap, ExpandOption expandOption, SelectOption selectOption, Object superentity) throws ODataApplicationException;

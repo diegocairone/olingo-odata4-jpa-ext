@@ -647,7 +647,7 @@ public class BaseProcessor implements Processor {
 		return createdEntity;
 	}
 	
-	protected void writeNavLinksFromNavBindings(Entity requestEntity, Map<String, DataSource> dataSourceMap, String rawBaseUri) throws ODataApplicationException {
+	protected void writeNavLinksFromNavBindings(Entity requestEntity, Map<String, DataSource<Object>> dataSourceMap, String rawBaseUri) throws ODataApplicationException {
 
 		List<Link> navigationBindings = requestEntity.getNavigationBindings();
 		
@@ -676,7 +676,7 @@ public class BaseProcessor implements Processor {
 		    					.stream()
 		    					.collect(Collectors.toMap(UriParameter::getName, x -> x));
 
-					    DataSource targetDataSource = dataSourceMap.get(targetEntitySet.getName());
+					    DataSource<Object> targetDataSource = (DataSource<Object>) dataSourceMap.get(targetEntitySet.getName());
 
 						if(targetDataSource == null) {
 							throw new ODataApplicationException(String.format("DATASOURCE PROVIDER FOR %s NOT FOUND", targetEntitySet.getName()), HttpStatusCode.INTERNAL_SERVER_ERROR.getStatusCode(), Locale.ENGLISH);
@@ -721,7 +721,7 @@ public class BaseProcessor implements Processor {
 			    					.collect(Collectors.toMap(UriParameter::getName, x -> x));
 			    		    
 
-						    DataSource targetDataSource = dataSourceMap.get(targetEntitySet.getName());
+						    DataSource<Object> targetDataSource = (DataSource<Object>) dataSourceMap.get(targetEntitySet.getName());
 
 							if(targetDataSource == null) {
 								throw new ODataApplicationException(String.format("DATASOURCE PROVIDER FOR %s NOT FOUND", targetEntitySet.getName()), HttpStatusCode.INTERNAL_SERVER_ERROR.getStatusCode(), Locale.ENGLISH);

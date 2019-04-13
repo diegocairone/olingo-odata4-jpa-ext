@@ -25,7 +25,7 @@ import com.cairone.olingo.ext.jpa.query.QuerydslQuery;
 import com.cairone.olingo.ext.jpa.query.QuerydslQueryBuilder;
 
 @Component
-public class StatesDataSource extends AbstractDataSource {
+public class StatesDataSource extends AbstractDataSource<StateEdm> {
 
 	private static final String ENTITY_SET_NAME = "States";
 	
@@ -38,17 +38,12 @@ public class StatesDataSource extends AbstractDataSource {
 	}
 
 	@Override
-	public Object create(Object entity, Object parentEntity) throws ODataApplicationException {
+	public StateEdm create(StateEdm entity) throws ODataApplicationException {
 
 		if(entity instanceof StateEdm) {
 			
 			StateEdm state = (StateEdm) entity;
 			StateFrmDto stateFrmDto = new StateFrmDto(state);
-			
-			if(parentEntity != null && parentEntity instanceof CountryEdm) {
-				CountryEdm countryEdm = (CountryEdm) parentEntity;
-				stateFrmDto.setCountryId(countryEdm.getId());
-			}
 			
 			try
 			{
@@ -66,7 +61,7 @@ public class StatesDataSource extends AbstractDataSource {
 	}
 
 	@Override
-	public Object update(Map<String, UriParameter> keyPredicateMap, Object entity, Object parentEntity, List<String> propertiesInJSON, boolean isPut) throws ODataApplicationException {
+	public StateEdm update(Map<String, UriParameter> keyPredicateMap, StateEdm entity, List<String> propertiesInJSON, boolean isPut) throws ODataApplicationException {
 
 		if(entity instanceof StateEdm) {
 
@@ -77,11 +72,6 @@ public class StatesDataSource extends AbstractDataSource {
 			
 			stateFrmDto.setId(stateID);
 
-			if(parentEntity != null && parentEntity instanceof CountryEdm) {
-				CountryEdm countryEdm = (CountryEdm) parentEntity;
-				stateFrmDto.setCountryId(countryEdm.getId());
-			}
-			
 			try
 			{
 				StateEntity stateEntity = stateService.findOne(stateID);
@@ -105,7 +95,7 @@ public class StatesDataSource extends AbstractDataSource {
 	}
 
 	@Override
-	public Object delete(Map<String, UriParameter> keyPredicateMap, Object parentEntity) throws ODataApplicationException {
+	public StateEdm delete(Map<String, UriParameter> keyPredicateMap) throws ODataApplicationException {
 
 		Integer stateID = Integer.valueOf( keyPredicateMap.get("Id").getText() );
 

@@ -25,7 +25,7 @@ import com.cairone.olingo.ext.jpa.query.QuerydslQueryBuilder;
 import com.google.common.base.CharMatcher;
 
 @Component
-public class FormsDataSource extends AbstractDataSource {
+public class FormsDataSource extends AbstractDataSource<FormEdm> {
 
 	private static final String ENTITY_SET_NAME = "Forms";
 
@@ -38,7 +38,7 @@ public class FormsDataSource extends AbstractDataSource {
 	}
 
 	@Override
-	public Object create(Object entity, Object parentEntity) throws ODataApplicationException {
+	public FormEdm create(FormEdm entity) throws ODataApplicationException {
 
 		if(entity instanceof FormEdm) {
 			
@@ -61,7 +61,7 @@ public class FormsDataSource extends AbstractDataSource {
 	}
 
 	@Override
-	public Object update(Map<String, UriParameter> keyPredicateMap, Object entity, Object parentEntity, List<String> propertiesInJSON, boolean isPut) throws ODataApplicationException {
+	public FormEdm update(Map<String, UriParameter> keyPredicateMap, FormEdm entity, List<String> propertiesInJSON, boolean isPut) throws ODataApplicationException {
 
 		if(entity instanceof FormEdm) {
 
@@ -94,7 +94,7 @@ public class FormsDataSource extends AbstractDataSource {
 	}
 
 	@Override
-	public Object delete(Map<String, UriParameter> keyPredicateMap, Object parentEntity) throws ODataApplicationException {
+	public FormEdm delete(Map<String, UriParameter> keyPredicateMap) throws ODataApplicationException {
 		
 		String formID = CharMatcher.is('\'').trimFrom( keyPredicateMap.get("Name").getText() );
 
