@@ -83,7 +83,7 @@ public class MediaProcessor extends EntitySetProcessor implements MediaEntityPro
 	    	final UriResourceEntitySet uriResourceEntitySet = (UriResourceEntitySet) firstResoucePart;
 	    	final EdmEntitySet edmEntitySet = uriResourceEntitySet.getEntitySet();
 	    	
-	    	DataSource dataSource = dataSourceMap.get(edmEntitySet.getName());
+	    	DataSource<?> dataSource = dataSourceMap.get(edmEntitySet.getName());
 	    	
 	    	List<UriParameter> keyPredicates = uriResourceEntitySet.getKeyPredicates();
 		    Map<String, UriParameter> keyPredicateMap = keyPredicates
@@ -128,7 +128,7 @@ public class MediaProcessor extends EntitySetProcessor implements MediaEntityPro
 	    	final UriResourceEntitySet uriResourceEntitySet = (UriResourceEntitySet) firstResoucePart;
 	    	final EdmEntitySet edmEntitySet = uriResourceEntitySet.getEntitySet();
 	    	
-	    	DataSource dataSource = dataSourceMap.get(edmEntitySet.getName());
+	    	DataSource<?> dataSource = dataSourceMap.get(edmEntitySet.getName());
 	    	
 		    MediaDataSource mediaDataSource = (MediaDataSource) dataSource;
 		    Entity entity;
@@ -198,7 +198,7 @@ public class MediaProcessor extends EntitySetProcessor implements MediaEntityPro
 	    	final UriResourceEntitySet uriResourceEntitySet = (UriResourceEntitySet) firstResoucePart;
 	    	final EdmEntitySet edmEntitySet = uriResourceEntitySet.getEntitySet();
 	    	
-	    	DataSource dataSource = dataSourceMap.get(edmEntitySet.getName());
+	    	DataSource<?> dataSource = dataSourceMap.get(edmEntitySet.getName());
 	    	
 	    	List<UriParameter> keyPredicates = uriResourceEntitySet.getKeyPredicates();
 		    Map<String, UriParameter> keyPredicateMap = keyPredicates

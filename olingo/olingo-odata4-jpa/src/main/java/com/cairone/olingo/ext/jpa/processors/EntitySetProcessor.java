@@ -69,18 +69,18 @@ import com.google.common.collect.Iterables;
 
 public class EntitySetProcessor extends BaseProcessor implements EntityProcessor, EntityCollectionProcessor {
 	
-	protected Map<String, DataSource<Object>> dataSourceMap = new HashMap<>();
+	@SuppressWarnings("rawtypes")
+	protected Map<String, DataSource> dataSourceMap = new HashMap<>();
 	protected Map<String, Operation<?>> operationsMap = new HashMap<>();
 	protected Integer maxTopOption = null;
 	
-	@SuppressWarnings("unchecked")
 	public EntitySetProcessor initialize(ApplicationContext context) throws ODataApplicationException {
 		super.initialize(context);
 		
 		context.getBeansOfType(DataSource.class).entrySet()
 			.stream()
 			.forEach(entry -> {
-				DataSource<Object> dataSource = entry.getValue();
+				DataSource<?> dataSource = entry.getValue();
 				dataSourceMap.put(dataSource.isSuitableFor(), dataSource);
 			});
 		
@@ -141,6 +141,7 @@ public class EntitySetProcessor extends BaseProcessor implements EntityProcessor
 		}
 	}
 	
+	@SuppressWarnings("unchecked")
 	private void createEntityNavigation(ODataRequest request, ODataResponse response, UriInfo uriInfo, ContentType requestFormat, ContentType responseFormat) throws ODataApplicationException, ODataLibraryException {
 
 		List<UriResource> resourcePaths = uriInfo.getUriResourceParts();
@@ -229,6 +230,7 @@ public class EntitySetProcessor extends BaseProcessor implements EntityProcessor
 		response.setHeader(HttpHeader.CONTENT_TYPE, responseFormat.toContentTypeString());
 	}
 
+	@SuppressWarnings("unchecked")
 	private void createEntityInternal(ODataRequest request, ODataResponse response, UriInfo uriInfo, ContentType requestFormat, ContentType responseFormat) throws ODataApplicationException, ODataLibraryException {
 		
 		List<UriResource> resourcePaths = uriInfo.getUriResourceParts();
@@ -327,6 +329,7 @@ public class EntitySetProcessor extends BaseProcessor implements EntityProcessor
 		}
 	}
 	
+	@SuppressWarnings("unchecked")
 	private void updateEntityNavigation(ODataRequest request, ODataResponse response, UriInfo uriInfo, ContentType requestFormat, ContentType responseFormat) throws ODataApplicationException, ODataLibraryException {
 
 		List<UriResource> resourcePaths = uriInfo.getUriResourceParts();
@@ -396,6 +399,7 @@ public class EntitySetProcessor extends BaseProcessor implements EntityProcessor
     	response.setStatusCode(HttpStatusCode.NO_CONTENT.getStatusCode());
 	}
 	
+	@SuppressWarnings("unchecked")
 	private void updateEntityInternal(ODataRequest request, ODataResponse response, UriInfo uriInfo, ContentType requestFormat, ContentType responseFormat) throws ODataApplicationException, ODataLibraryException {
 		
 		List<UriResource> resourcePaths = uriInfo.getUriResourceParts();
@@ -486,7 +490,7 @@ public class EntitySetProcessor extends BaseProcessor implements EntityProcessor
 
 		EdmEntitySet edmEntitySet = getNavigationTargetEntitySet(uriResourceEntitySet.getEntitySet(), uriResourceNavigation.getProperty());
 
-		DataSource<Object> dataSource = dataSourceMap.get(edmEntitySet.getName());
+		DataSource<?> dataSource = dataSourceMap.get(edmEntitySet.getName());
 		
 		if(dataSource == null) {
 			throw new ODataApplicationException(
@@ -511,7 +515,7 @@ public class EntitySetProcessor extends BaseProcessor implements EntityProcessor
 		UriResourceEntitySet uriResourceEntitySet = (UriResourceEntitySet) resourcePaths.get(0);
 		EdmEntitySet edmEntitySet = uriResourceEntitySet.getEntitySet();
 		
-		DataSource<Object> dataSource = dataSourceMap.get(edmEntitySet.getName());
+		DataSource<?> dataSource = dataSourceMap.get(edmEntitySet.getName());
 		
 		if(dataSource == null) {
 			throw new ODataApplicationException(
@@ -645,7 +649,7 @@ public class EntitySetProcessor extends BaseProcessor implements EntityProcessor
 		
 		EdmEntitySet edmEntitySet = uriResourceEntitySet.getEntitySet();
 		
-	    DataSource<Object> dsEntitySet = dataSourceMap.get(edmEntitySet.getName());
+	    DataSource<?> dsEntitySet = dataSourceMap.get(edmEntitySet.getName());
 		
 		if(dsEntitySet == null) {
 			throw new ODataApplicationException(
@@ -693,7 +697,7 @@ public class EntitySetProcessor extends BaseProcessor implements EntityProcessor
 	    String selectList = odata.createUriHelper().buildContextURLSelectList(edmEntityType, null, selectOption);
 	    boolean count = countOption == null ? false : countOption.getValue();
 	    
-		DataSource<Object> dsSecondSegment = dataSourceMap.get(responseEdmEntitySet.getName());
+		DataSource<?> dsSecondSegment = dataSourceMap.get(responseEdmEntitySet.getName());
 		
 		if(dsSecondSegment == null) {
 			throw new ODataApplicationException(
@@ -817,7 +821,7 @@ public class EntitySetProcessor extends BaseProcessor implements EntityProcessor
 			throw new ODataApplicationException(e.getMessage(), HttpStatusCode.INTERNAL_SERVER_ERROR.getStatusCode(), Locale.ENGLISH);
 		}
 	    
-	    DataSource<Object> responseDataSource = dataSourceMap.get(responseEdmEntitySet.getName());
+	    DataSource<?> responseDataSource = dataSourceMap.get(responseEdmEntitySet.getName());
 
 		if(responseDataSource == null) {
 			throw new ODataApplicationException(
@@ -972,8 +976,7 @@ public class EntitySetProcessor extends BaseProcessor implements EntityProcessor
 				for(Class<?> clazzIFace : object.getClass().getInterfaces()) {
 					if(List.class.isAssignableFrom(clazzIFace)) {
 						
-						@SuppressWarnings("unchecked")
-						Collection<Object> collection = (Collection<Object>) object;
+						Collection<?> collection = (Collection<?>) object;
 						
 						for(Object item : collection) {
 							Entity entity = writeEntity(item, expandOption);
@@ -1053,7 +1056,7 @@ public class EntitySetProcessor extends BaseProcessor implements EntityProcessor
 	    String selectList = odata.createUriHelper().buildContextURLSelectList(edmEntityType, null, selectOption);
 	    boolean count = countOption == null ? false : countOption.getValue();
 	    
-		DataSource<Object> dataSource = dataSourceMap.get(edmEntitySet.getName());
+		DataSource<?> dataSource = dataSourceMap.get(edmEntitySet.getName());
 		
 		if(dataSource == null) {
 			throw new ODataApplicationException(
@@ -1180,7 +1183,7 @@ public class EntitySetProcessor extends BaseProcessor implements EntityProcessor
 
 		EdmEntitySet edmEntitySet = uriResourceEntitySet.getEntitySet();
 		
-	    DataSource<Object> dataSource = dataSourceMap.get(edmEntitySet.getName());
+	    DataSource<?> dataSource = dataSourceMap.get(edmEntitySet.getName());
 		
 		if(dataSource == null) {
 			throw new ODataApplicationException(

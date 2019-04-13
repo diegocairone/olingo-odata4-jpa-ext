@@ -53,6 +53,7 @@ import com.cairone.olingo.ext.jpa.utilities.Util;
 
 public class ComplexProcessorImpl extends BaseProcessor implements ComplexProcessor, ComplexCollectionProcessor {
 
+	@SuppressWarnings("rawtypes")
 	protected Map<String, DataSource> dataSourceMap = new HashMap<>();
 	protected Map<String, Operation<?>> operationsMap = new HashMap<>();
 	
@@ -62,7 +63,7 @@ public class ComplexProcessorImpl extends BaseProcessor implements ComplexProces
 		context.getBeansOfType(DataSource.class).entrySet()
 			.stream()
 			.forEach(entry -> {
-				DataSource dataSource = entry.getValue();
+				DataSource<?> dataSource = entry.getValue();
 				dataSourceMap.put(dataSource.isSuitableFor(), dataSource);
 			});
 
@@ -386,7 +387,7 @@ public class ComplexProcessorImpl extends BaseProcessor implements ComplexProces
 
 		EdmEntitySet edmEntitySet = uriResourceEntitySet.getEntitySet();
 		
-	    DataSource dataSource = dataSourceMap.get(edmEntitySet.getName());
+	    DataSource<?> dataSource = dataSourceMap.get(edmEntitySet.getName());
 		
 		if(dataSource == null) {
 			throw new ODataApplicationException(

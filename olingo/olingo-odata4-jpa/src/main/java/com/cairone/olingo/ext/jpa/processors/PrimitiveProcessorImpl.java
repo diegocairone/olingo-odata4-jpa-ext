@@ -51,7 +51,7 @@ import com.cairone.olingo.ext.jpa.utilities.Util;
 
 public class PrimitiveProcessorImpl extends BaseProcessor implements PrimitiveProcessor, PrimitiveCollectionProcessor {
 
-	protected Map<String, DataSource> dataSourceMap = new HashMap<>();
+	protected Map<String, DataSource<?>> dataSourceMap = new HashMap<>();
 	protected Map<String, Operation<?>> operationsMap = new HashMap<>();
 	
 	public PrimitiveProcessorImpl initialize(ApplicationContext context) throws ODataApplicationException {
@@ -60,7 +60,7 @@ public class PrimitiveProcessorImpl extends BaseProcessor implements PrimitivePr
 		context.getBeansOfType(DataSource.class).entrySet()
 			.stream()
 			.forEach(entry -> {
-				DataSource dataSource = entry.getValue();
+				DataSource<?> dataSource = entry.getValue();
 				dataSourceMap.put(dataSource.isSuitableFor(), dataSource);
 			});
 
@@ -368,7 +368,7 @@ public class PrimitiveProcessorImpl extends BaseProcessor implements PrimitivePr
 
 		EdmEntitySet edmEntitySet = uriResourceEntitySet.getEntitySet();
 		
-	    DataSource dataSource = dataSourceMap.get(edmEntitySet.getName());
+	    DataSource<?> dataSource = dataSourceMap.get(edmEntitySet.getName());
 		
 		if(dataSource == null) {
 			throw new ODataApplicationException(
