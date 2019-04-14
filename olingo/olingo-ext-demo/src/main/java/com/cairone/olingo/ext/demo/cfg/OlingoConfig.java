@@ -3,6 +3,7 @@ package com.cairone.olingo.ext.demo.cfg;
 import org.apache.olingo.server.api.ODataApplicationException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.autoconfigure.web.servlet.DispatcherServletPath;
 import org.springframework.boot.web.servlet.ServletRegistrationBean;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
@@ -99,5 +100,14 @@ public class OlingoConfig {
     public ServletRegistrationBean<ODataController> dispatcherServletRegistration() {
     	ServletRegistrationBean<ODataController> registration = new ServletRegistrationBean<ODataController>(dispatcherServlet, "/odata/olingodemo.svc/*");
     	return registration;
+    }
+    @Bean
+    public DispatcherServletPath getDispatcherServletPath() {
+    	return new DispatcherServletPath() {
+			@Override
+			public String getPath() {
+				return "/odata/olingodemo.svc";
+			}
+		};
     }
 }
