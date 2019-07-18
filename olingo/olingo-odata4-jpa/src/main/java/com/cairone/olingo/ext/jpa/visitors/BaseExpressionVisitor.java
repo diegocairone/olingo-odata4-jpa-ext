@@ -191,10 +191,13 @@ public abstract class BaseExpressionVisitor implements ExpressionVisitor<Express
 		
 		if(type == null) return null;
 		
-		switch(type.getName()) {
+		String typeName = type.getName();
+		
+		switch(typeName) {
 		case "Int16":
 		case "Int32":
 		case "SByte":
+		case "Byte":
 			Integer integerValue = Integer.valueOf(text);
 			return Expressions.constant(integerValue);
 		case "Int64":
