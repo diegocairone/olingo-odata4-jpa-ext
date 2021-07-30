@@ -65,6 +65,14 @@ public @interface EdmProperty {
      * @return The name of the OData type of this property.
      */
     String type() default "";
+    
+    /**
+     * If the property is a collection, informs the OData type name of the collection items. 
+     * The type of the property will be "Collection(itemType)".
+     * 
+     * @return The OData type name of the collection items.
+     */
+    String itemType() default "";
 
     /**
      * Specifies whether this property can be {@code null}. The default value is {@code true} as specified by OData,
