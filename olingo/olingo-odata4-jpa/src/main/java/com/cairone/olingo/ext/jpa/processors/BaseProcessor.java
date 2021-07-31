@@ -61,6 +61,7 @@ import org.springframework.core.type.filter.AnnotationTypeFilter;
 
 import com.cairone.olingo.ext.jpa.annotations.EdmComplex;
 import com.cairone.olingo.ext.jpa.annotations.EdmEntity;
+import com.cairone.olingo.ext.jpa.annotations.EdmProperty;
 import com.cairone.olingo.ext.jpa.interfaces.DataSource;
 import com.cairone.olingo.ext.jpa.interfaces.OdataEnum;
 import com.cairone.olingo.ext.jpa.utilities.Util;
@@ -316,9 +317,9 @@ public class BaseProcessor implements Processor {
 		field.setAccessible(true);
 		Object value = field.get(edmObject);
 		
-		com.cairone.olingo.ext.jpa.annotations.EdmProperty edmPropertyAnn = field.getAnnotation(com.cairone.olingo.ext.jpa.annotations.EdmProperty.class);
+		EdmProperty edmPropertyAnn = field.getAnnotation(EdmProperty.class);
 		String name = edmPropertyAnn.name().isEmpty() ? field.getName() : edmPropertyAnn.name();
-    	if(edmPropertyAnn.name().trim().isEmpty()) {
+    	if (edmPropertyAnn.name().trim().isEmpty()) {
 			name = Util.applyNamingConvention(edmPropertyAnn, name);
 		}
     	
@@ -380,10 +381,29 @@ public class BaseProcessor implements Processor {
 			}
 		} else 
 		if(Collection.class.isAssignableFrom(field.getType())) {
-			ParameterizedType parameterizedType = (ParameterizedType) field.getGenericType();
-			Class<?> typeInParameterizedType = (Class<?>) parameterizedType.getActualTypeArguments()[0];
-			type = String.format("Collection(%s)", Util.inferEdmType(typeInParameterizedType));
-			valueType = ValueType.COLLECTION_PRIMITIVE;
+		    if (edmPropertyAnn.itemType() != null && !edmPropertyAnn.itemType().isEmpty()) {
+		        type = String.format("Collection(%s)", edmPropertyAnn.itemType());
+		        valueType = ValueType.COLLECTION_COMPLEX;
+		        
+		        Iterable<?> collection = (Iterable<?>) value;
+		        List<ComplexValue> complexValues = new ArrayList<ComplexValue>();
+                for(Object complexObject : collection) {
+                    Entity complexEntity = writeEntity(complexObject);
+                    ComplexValue complexValue = new ComplexValue();
+                    List<Property> properties = complexValue.getValue();
+                    complexEntity.getProperties().forEach(prop -> {
+                        properties.add(prop);
+                    });
+                    complexValues.add(complexValue);
+                }
+                value = complexValues;
+
+		    } else {
+    			ParameterizedType parameterizedType = (ParameterizedType) field.getGenericType();
+    			Class<?> typeInParameterizedType = (Class<?>) parameterizedType.getActualTypeArguments()[0];
+    			type = String.format("Collection(%s)", Util.inferEdmType(typeInParameterizedType));
+    			valueType = ValueType.COLLECTION_PRIMITIVE;
+		    }
 		} else {
 			Class<?> cl = field.getType();
 			if(!cl.isAnnotationPresent(EdmComplex.class)) {
